@@ -6,6 +6,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
+import net.minestom.server.event.player.PlayerChunkLoadEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.InstanceContainer;
@@ -36,6 +37,7 @@ public class ShardServer {
     private ShardHeartbeatService heartbeatService;
     private ShardDebugGUI debugGUI;
     private VanillaFeatures vanillaFeatures;
+    private LightingEngine lightingEngine;
     private InstanceContainer instance;
     private AdvancedWorldGenerator worldGenerator;
     
@@ -74,6 +76,10 @@ public class ShardServer {
         worldGenerator = new AdvancedWorldGenerator();
         instance.setGenerator(worldGenerator);
         
+        // Initialize lighting engine
+        lightingEngine = new LightingEngine(instance);
+        logger.info("Lighting engine initialized");
+        
         // Calculate spawn Y based on terrain
         spawnY = worldGenerator.getTerrainHeightAt(SPAWN_X, SPAWN_Z) + 2;
         logger.info("Calculated spawn height: Y={}", spawnY);
@@ -98,7 +104,7 @@ public class ShardServer {
         crossShardHandler.startListening();
         heartbeatService.start();
         debugGUI.register(MinecraftServer.getGlobalEventHandler());
-        vanillaFeatures.register(MinecraftServer.getGlobalEventHandler());
+        vanillaFeatures.register(MinecraftServer.getGlobalEventHandler(), lightingEngine);
         
         // Start server
         minecraftServer.start("0.0.0.0", port);
@@ -177,6 +183,16 @@ public class ShardServer {
             
             logger.info("Player {} spawned at {} on shard {}", 
                     player.getUsername(), safeSpawn, shardId);
+        });
+        
+        // Initialize lighting when chunks load
+        globalEventHandler.addListener(PlayerChunkLoadEvent.class, event -> {
+            if (lightingEngine != null) {
+                lightingEngine.initializeChunk(
+                        event.getChunkX(),
+                        event.getChunkZ()
+                );
+            }
         });
         
         globalEventHandler.addListener(PlayerDisconnectEvent.class, event -> {

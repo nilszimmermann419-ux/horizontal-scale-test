@@ -33,6 +33,7 @@ public class VanillaFeatures {
     private static final Logger logger = LoggerFactory.getLogger(VanillaFeatures.class);
     
     private final Instance instance;
+    private LightingEngine lightingEngine;
     private final Random random = new Random();
     
     public VanillaFeatures(Instance instance) {
@@ -40,6 +41,11 @@ public class VanillaFeatures {
     }
     
     public void register(GlobalEventHandler eventHandler) {
+        register(eventHandler, null);
+    }
+    
+    public void register(GlobalEventHandler eventHandler, LightingEngine lightingEngine) {
+        this.lightingEngine = lightingEngine;
         // Block breaking with drops
         eventHandler.addListener(PlayerBlockBreakEvent.class, this::onBlockBreak);
         
@@ -83,6 +89,14 @@ public class VanillaFeatures {
             }
         }
         
+        // Update lighting
+        if (lightingEngine != null) {
+            lightingEngine.updateBlockLight(
+                    pos.blockX(), pos.blockY(), pos.blockZ(),
+                    block, Block.AIR
+            );
+        }
+        
         logger.debug("Player {} broke {} at {}", player.getUsername(), block.name(), pos);
     }
     
@@ -96,6 +110,15 @@ public class VanillaFeatures {
                 event.getPlayer().getUsername(), 
                 event.getBlock().name(),
                 event.getBlockPosition());
+        
+        // Update lighting
+        if (lightingEngine != null) {
+            Pos pos = new Pos(event.getBlockPosition());
+            lightingEngine.updateBlockLight(
+                    pos.blockX(), pos.blockY(), pos.blockZ(),
+                    Block.AIR, event.getBlock()
+            );
+        }
     }
     
     /**
