@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class ShardedPluginManager {
     private static final Logger logger = LoggerFactory.getLogger(ShardedPluginManager.class);

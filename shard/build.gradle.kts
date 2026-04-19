@@ -9,7 +9,7 @@ dependencies {
     implementation(project(":api"))
     implementation(project(":plugin-loader"))
     
-    implementation("net.minestom:minestom-snapshots:${property("minestomVersion")}")
+    implementation("net.minestom:minestom:${property("minestomVersion")}")
     implementation("io.grpc:grpc-netty:${property("grpcVersion")}")
     implementation("io.grpc:grpc-protobuf:${property("grpcVersion")}")
     implementation("io.grpc:grpc-stub:${property("grpcVersion")}")
