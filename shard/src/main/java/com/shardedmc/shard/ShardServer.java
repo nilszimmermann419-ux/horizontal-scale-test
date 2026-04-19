@@ -37,7 +37,7 @@ public class ShardServer {
     private ShardDebugGUI debugGUI;
     private VanillaFeatures vanillaFeatures;
     private InstanceContainer instance;
-    private EnhancedWorldGenerator worldGenerator;
+    private AdvancedWorldGenerator worldGenerator;
     
     // Spawn location
     private static final int SPAWN_X = 0;
@@ -71,7 +71,7 @@ public class ShardServer {
         instance = instanceManager.createInstanceContainer();
         
         // Set up world generator
-        worldGenerator = new EnhancedWorldGenerator();
+        worldGenerator = new AdvancedWorldGenerator();
         instance.setGenerator(worldGenerator);
         
         // Calculate spawn Y based on terrain

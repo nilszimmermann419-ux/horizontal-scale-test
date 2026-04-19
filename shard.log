@@ -1,19 +1,19 @@
+> Task :shard:checkKotlinGradlePluginConfigurationErrors
 > Task :proto:checkKotlinGradlePluginConfigurationErrors
+> Task :shard:processResources NO-SOURCE
 > Task :api:checkKotlinGradlePluginConfigurationErrors
 > Task :plugin-loader:checkKotlinGradlePluginConfigurationErrors
-> Task :shared:checkKotlinGradlePluginConfigurationErrors
-> Task :shard:checkKotlinGradlePluginConfigurationErrors
 > Task :plugin-loader:processResources NO-SOURCE
-> Task :shard:processResources NO-SOURCE
+> Task :shared:checkKotlinGradlePluginConfigurationErrors
 > Task :api:processResources NO-SOURCE
 > Task :shared:compileKotlin NO-SOURCE
 > Task :proto:extractIncludeProto UP-TO-DATE
 > Task :proto:extractProto UP-TO-DATE
-> Task :proto:generateProto UP-TO-DATE
-> Task :proto:compileKotlin NO-SOURCE
 > Task :shared:compileJava UP-TO-DATE
 > Task :shared:processResources NO-SOURCE
 > Task :shared:classes UP-TO-DATE
+> Task :proto:generateProto UP-TO-DATE
+> Task :proto:compileKotlin NO-SOURCE
 > Task :shared:jar UP-TO-DATE
 > Task :api:compileKotlin NO-SOURCE
 > Task :proto:compileJava UP-TO-DATE
@@ -32,277 +32,242 @@
 > Task :shard:classes UP-TO-DATE
 
 > Task :shard:run
-20:28:12.829 [main] INFO com.shardedmc.shard.ShardServer -- Starting Shard Server: shard-9403c13b on port 25565
-20:28:13.161 [main] DEBUG io.netty.util.internal.logging.InternalLoggerFactory -- Using SLF4J as the default logging framework
-20:28:13.162 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- -Dio.netty.noUnsafe: false
-20:28:13.162 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- Java version: 21
-20:28:13.162 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- sun.misc.Unsafe.theUnsafe: available
-20:28:13.162 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- sun.misc.Unsafe.copyMemory: available
-20:28:13.162 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- sun.misc.Unsafe.storeFence: available
-20:28:13.162 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- java.nio.Buffer.address: available
-20:28:13.162 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- direct buffer constructor: unavailable: Reflective setAccessible(true) disabled
-20:28:13.162 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- java.nio.Bits.unaligned: available, true
-20:28:13.163 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- jdk.internal.misc.Unsafe.allocateUninitializedArray(int): unavailable: class io.netty.util.internal.PlatformDependent0$7 cannot access class jdk.internal.misc.Unsafe (in module java.base) because module java.base does not export jdk.internal.misc to unnamed module @7c84195
-20:28:13.163 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- java.nio.DirectByteBuffer.<init>(long, {int,long}): unavailable
-20:28:13.163 [main] DEBUG io.netty.util.internal.PlatformDependent -- sun.misc.Unsafe: available
-20:28:13.163 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.tmpdir: /var/folders/lk/183dy3g91g599hbwwxty7m640000gn/T (java.io.tmpdir)
-20:28:13.163 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.bitMode: 64 (sun.arch.data.model)
-20:28:13.163 [main] DEBUG io.netty.util.internal.PlatformDependent -- Platform: MacOS
-20:28:13.163 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.maxDirectMemory: -1 bytes
-20:28:13.163 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.uninitializedArrayAllocationThreshold: -1
-20:28:13.164 [main] DEBUG io.netty.util.internal.CleanerJava9 -- java.nio.ByteBuffer.cleaner(): available
-20:28:13.164 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.noPreferDirect: false
-20:28:13.182 [main] DEBUG io.netty.channel.MultithreadEventLoopGroup -- -Dio.netty.eventLoopThreads: 20
-20:28:13.184 [main] DEBUG io.netty.util.concurrent.GlobalEventExecutor -- -Dio.netty.globalEventExecutor.quietPeriodSeconds: 1
-20:28:13.186 [main] DEBUG io.netty.util.internal.InternalThreadLocalMap -- -Dio.netty.threadLocalMap.stringBuilder.initialSize: 1024
-20:28:13.186 [main] DEBUG io.netty.util.internal.InternalThreadLocalMap -- -Dio.netty.threadLocalMap.stringBuilder.maxSize: 4096
-20:28:13.187 [main] DEBUG io.netty.channel.nio.NioEventLoop -- -Dio.netty.noKeySetOptimization: false
-20:28:13.187 [main] DEBUG io.netty.channel.nio.NioEventLoop -- -Dio.netty.selectorAutoRebuildThreshold: 512
-20:28:13.189 [main] DEBUG io.netty.util.internal.PlatformDependent -- org.jctools-core.MpscChunkedArrayQueue: available
-20:28:13.214 [main] DEBUG io.lettuce.core.resource.AddressResolverGroupProvider -- Starting without optional netty's non-blocking DNS resolver library
-20:28:13.214 [main] DEBUG io.lettuce.core.resource.DefaultClientResources -- -Dio.netty.eventLoopThreads: 10
-20:28:13.215 [main] DEBUG io.lettuce.core.resource.DefaultEventLoopGroupProvider -- Creating executor io.netty.util.concurrent.DefaultEventExecutorGroup
-20:28:13.216 [main] DEBUG io.netty.util.ResourceLeakDetector -- -Dio.netty.leakDetection.level: simple
-20:28:13.216 [main] DEBUG io.netty.util.ResourceLeakDetector -- -Dio.netty.leakDetection.targetRecords: 4
-20:28:13.216 [main] DEBUG io.netty.util.ResourceLeakDetectorFactory -- Loaded default ResourceLeakDetector: io.netty.util.ResourceLeakDetector@423b2b62
-20:28:13.218 [main] DEBUG reactor.util.Loggers -- Using Slf4j logging framework
-20:28:13.230 [main] DEBUG io.lettuce.core.event.jfr.EventRecorderHolder -- Starting with JFR support
-20:28:13.254 [main] DEBUG io.lettuce.core.RedisClient -- Trying to get a Redis connection for: redis://localhost?timeout=5s
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.numHeapArenas: 20
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.numDirectArenas: 20
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.pageSize: 8192
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.maxOrder: 9
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.chunkSize: 4194304
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.smallCacheSize: 256
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.normalCacheSize: 64
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.maxCachedBufferCapacity: 32768
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.cacheTrimInterval: 8192
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.cacheTrimIntervalMillis: 0
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.useCacheForAllThreads: false
-20:28:13.310 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.maxCachedByteBuffersPerChunk: 1023
-20:28:13.313 [main] DEBUG io.netty.buffer.ByteBufUtil -- -Dio.netty.allocator.type: pooled
-20:28:13.313 [main] DEBUG io.netty.buffer.ByteBufUtil -- -Dio.netty.threadLocalDirectBufferSize: 0
-20:28:13.313 [main] DEBUG io.netty.buffer.ByteBufUtil -- -Dio.netty.maxThreadLocalCharBufferSize: 16384
-20:28:13.313 [main] DEBUG io.lettuce.core.resource.KqueueProvider -- Starting without optional kqueue library
-20:28:13.314 [main] DEBUG io.lettuce.core.resource.IOUringProvider -- Starting without optional io_uring library
-20:28:13.314 [main] DEBUG io.lettuce.core.resource.EpollProvider -- Starting without optional epoll library
-20:28:13.314 [main] DEBUG io.lettuce.core.resource.DefaultEventLoopGroupProvider -- Allocating executor io.netty.channel.nio.NioEventLoopGroup
-20:28:13.314 [main] DEBUG io.lettuce.core.resource.DefaultEventLoopGroupProvider -- Creating executor io.netty.channel.nio.NioEventLoopGroup
-20:28:13.314 [main] DEBUG io.lettuce.core.resource.DefaultEventLoopGroupProvider -- Adding reference to io.netty.channel.nio.NioEventLoopGroup@38d08cb5, existing ref count 0
-20:28:13.341 [main] DEBUG io.lettuce.core.RedisClient -- Resolved SocketAddress localhost/<unresolved>:6379 using redis://localhost?timeout=5s
-20:28:13.341 [main] DEBUG io.lettuce.core.AbstractRedisClient -- Connecting to Redis at localhost/<unresolved>:6379
-20:28:13.347 [main] DEBUG io.netty.channel.DefaultChannelId -- -Dio.netty.processId: 73263 (auto-detected)
-20:28:13.348 [main] DEBUG io.netty.util.NetUtil -- -Djava.net.preferIPv4Stack: false
-20:28:13.348 [main] DEBUG io.netty.util.NetUtil -- -Djava.net.preferIPv6Addresses: false
-20:28:13.350 [main] DEBUG io.netty.util.NetUtilInitializations -- Loopback interface: lo0 (lo0, 0:0:0:0:0:0:0:1%lo0)
-20:28:13.350 [main] DEBUG io.netty.util.NetUtil -- Failed to get SOMAXCONN from sysctl and file /proc/sys/net/core/somaxconn. Default: 128
-20:28:13.350 [main] DEBUG io.netty.channel.DefaultChannelId -- -Dio.netty.machineId: 26:ad:1d:ff:fe:cd:44:1e (auto-detected)
-20:28:13.357 [main] DEBUG io.netty.bootstrap.ChannelInitializerExtensions -- -Dio.netty.bootstrap.extensions: null
-20:28:13.365 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, [id: 0x51e94587] (inactive), epid=0x1, chid=0x1] channelRegistered()
-20:28:13.366 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.maxCapacityPerThread: 4096
-20:28:13.366 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.ratio: 8
-20:28:13.366 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.chunkSize: 32
-20:28:13.366 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.blocking: false
-20:28:13.366 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.batchFastThreadLocalOnly: true
-20:28:13.368 [lettuce-nioEventLoop-5-1] DEBUG io.netty.buffer.AbstractByteBuf -- -Dio.netty.buffer.checkAccessible: true
-20:28:13.368 [lettuce-nioEventLoop-5-1] DEBUG io.netty.buffer.AbstractByteBuf -- -Dio.netty.buffer.checkBounds: true
-20:28:13.368 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.ResourceLeakDetectorFactory -- Loaded default ResourceLeakDetector: io.netty.util.ResourceLeakDetector@403b12f9
-20:28:13.374 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] write(ctx, AsyncCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], promise)
-20:28:13.375 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.377 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Received: 217 bytes, 1 commands in the stack
-20:28:13.377 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Stack contains: 1 commands
-20:28:13.379 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
-20:28:13.381 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Completing command LatencyMeteredCommand [type=HELLO, output=GenericMapOutput [output={server=redis, version=8.6.2, proto=3, id=11, mode=standalone, role=master, modules=name, vectorset=ver, 1=path, =args}, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
-20:28:13.382 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] write(ctx, [AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]], promise)
-20:28:13.382 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Received: 10 bytes, 2 commands in the stack
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Stack contains: 2 commands
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Completing command LatencyMeteredCommand [type=CLIENT, output=StatusOutput [output=OK, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Stack contains: 1 commands
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Completing command LatencyMeteredCommand [type=CLIENT, output=StatusOutput [output=OK, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] channelActive()
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1] activateEndpointAndExecuteBufferedCommands 0 command(s) buffered
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1] activating endpoint
-20:28:13.383 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1] flushCommands()
-20:28:13.384 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1] flushCommands() Flushing 0 commands
-20:28:13.384 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.ConnectionWatchdog -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, last known addr=localhost/127.0.0.1:6379] channelActive()
-20:28:13.384 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x2c34d97e, /127.0.0.1:56394 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] channelActive() done
-20:28:13.384 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.AbstractRedisClient -- Connecting to Redis at localhost/<unresolved>:6379: Success
-20:28:13.412 [main] DEBUG io.lettuce.core.RedisClient -- Resolved SocketAddress localhost/<unresolved>:6379 using redis://localhost?timeout=5s
-20:28:13.412 [main] DEBUG io.lettuce.core.AbstractRedisClient -- Connecting to Redis at localhost/<unresolved>:6379
-20:28:13.413 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, [id: 0xee051c1d] (inactive), epid=0x2, chid=0x2] channelRegistered()
-20:28:13.414 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] write(ctx, AsyncCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], promise)
-20:28:13.414 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.414 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Received: 217 bytes, 1 commands in the stack
-20:28:13.414 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Stack contains: 1 commands
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Completing command LatencyMeteredCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] write(ctx, [AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]], promise)
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Received: 10 bytes, 2 commands in the stack
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Stack contains: 2 commands
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Completing command LatencyMeteredCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Stack contains: 1 commands
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Completing command LatencyMeteredCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] channelActive()
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2] activateEndpointAndExecuteBufferedCommands 0 command(s) buffered
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2] activating endpoint
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2] flushCommands()
-20:28:13.415 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2] flushCommands() Flushing 0 commands
-20:28:13.416 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.ConnectionWatchdog -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, last known addr=localhost/127.0.0.1:6379] channelActive()
-20:28:13.416 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] channelActive() done
-20:28:13.416 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.AbstractRedisClient -- Connecting to Redis at localhost/<unresolved>:6379: Success
-20:28:13.416 [main] INFO com.shardedmc.shared.RedisClient -- Connected to Redis at localhost:6379
-20:28:13.579 [main] INFO com.shardedmc.shard.ShardServer -- Calculated spawn height: Y=55
-20:28:13.579 [main] INFO com.shardedmc.shard.ShardServer -- Creating safe spawn platform at (0, 55, 0)
-java.lang.IllegalArgumentException: Invalid coordinates: -18, 53, -16 for area Vec[x=-16.0, y=-64.0, z=-16.0] Vec[x=0.0, y=320.0, z=0.0]
-	at net.minestom.server.instance.generator.GeneratorImpl$AreaModifierImpl.checkBorder(GeneratorImpl.java:442)
-	at net.minestom.server.instance.generator.GeneratorImpl$AreaModifierImpl.setBlock(GeneratorImpl.java:322)
-	at com.shardedmc.shard.EnhancedWorldGenerator.generateTree(EnhancedWorldGenerator.java:209)
-	at com.shardedmc.shard.EnhancedWorldGenerator.addSurfaceDecorations(EnhancedWorldGenerator.java:162)
-	at com.shardedmc.shard.EnhancedWorldGenerator.generate(EnhancedWorldGenerator.java:88)
-	at net.minestom.server.instance.InstanceContainer.createChunk(InstanceContainer.java:400)
-	at net.minestom.server.instance.InstanceContainer.lambda$retrieveChunk$7(InstanceContainer.java:336)
-	at net.minestom.server.instance.InstanceContainer.lambda$retrieveChunk$9(InstanceContainer.java:362)
-	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329)
-java.lang.IllegalArgumentException: Invalid coordinates: -18, 58, 0 for area Vec[x=-16.0, y=-64.0, z=0.0] Vec[x=0.0, y=320.0, z=16.0]
-	at net.minestom.server.instance.generator.GeneratorImpl$AreaModifierImpl.checkBorder(GeneratorImpl.java:442)
-	at net.minestom.server.instance.generator.GeneratorImpl$AreaModifierImpl.setBlock(GeneratorImpl.java:322)
-	at com.shardedmc.shard.EnhancedWorldGenerator.generateTree(EnhancedWorldGenerator.java:209)
-	at com.shardedmc.shard.EnhancedWorldGenerator.addSurfaceDecorations(EnhancedWorldGenerator.java:162)
-	at com.shardedmc.shard.EnhancedWorldGenerator.generate(EnhancedWorldGenerator.java:88)
-	at net.minestom.server.instance.InstanceContainer.createChunk(InstanceContainer.java:400)
-	at net.minestom.server.instance.InstanceContainer.lambda$retrieveChunk$7(InstanceContainer.java:336)
-	at net.minestom.server.instance.InstanceContainer.lambda$retrieveChunk$9(InstanceContainer.java:362)
-	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329)
-java.lang.IllegalArgumentException: Invalid coordinates: -2, 57, -10 for area Vec[x=0.0, y=-64.0, z=-16.0] Vec[x=16.0, y=320.0, z=0.0]
-	at net.minestom.server.instance.generator.GeneratorImpl$AreaModifierImpl.checkBorder(GeneratorImpl.java:442)
-	at net.minestom.server.instance.generator.GeneratorImpl$AreaModifierImpl.setBlock(GeneratorImpl.java:322)
-	at com.shardedmc.shard.EnhancedWorldGenerator.generateTree(EnhancedWorldGenerator.java:209)
-	at com.shardedmc.shard.EnhancedWorldGenerator.addSurfaceDecorations(EnhancedWorldGenerator.java:162)
-	at com.shardedmc.shard.EnhancedWorldGenerator.generate(EnhancedWorldGenerator.java:88)
-	at net.minestom.server.instance.InstanceContainer.createChunk(InstanceContainer.java:400)
-	at net.minestom.server.instance.InstanceContainer.lambda$retrieveChunk$7(InstanceContainer.java:336)
-	at net.minestom.server.instance.InstanceContainer.lambda$retrieveChunk$9(InstanceContainer.java:362)
-	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329)
-java.lang.IllegalArgumentException: Invalid coordinates: -2, 58, 9 for area Vec[x=0.0, y=-64.0, z=0.0] Vec[x=16.0, y=320.0, z=16.0]
-	at net.minestom.server.instance.generator.GeneratorImpl$AreaModifierImpl.checkBorder(GeneratorImpl.java:442)
-	at net.minestom.server.instance.generator.GeneratorImpl$AreaModifierImpl.setBlock(GeneratorImpl.java:322)
-	at com.shardedmc.shard.EnhancedWorldGenerator.generateTree(EnhancedWorldGenerator.java:209)
-	at com.shardedmc.shard.EnhancedWorldGenerator.addSurfaceDecorations(EnhancedWorldGenerator.java:162)
-	at com.shardedmc.shard.EnhancedWorldGenerator.generate(EnhancedWorldGenerator.java:88)
-	at net.minestom.server.instance.InstanceContainer.createChunk(InstanceContainer.java:400)
-	at net.minestom.server.instance.InstanceContainer.lambda$retrieveChunk$7(InstanceContainer.java:336)
-	at net.minestom.server.instance.InstanceContainer.lambda$retrieveChunk$9(InstanceContainer.java:362)
-	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329)
-20:28:13.612 [main] INFO com.shardedmc.shard.ShardServer -- Safe spawn platform created at Y=53
-20:28:13.621 [main] DEBUG io.lettuce.core.RedisChannelHandler -- dispatching command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.621 [main] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2] write() writeAndFlush command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.621 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] write(ctx, AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], promise)
-20:28:13.621 [main] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2] write() done
-20:28:13.622 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.622 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Received: 43 bytes, 1 commands in the stack
-20:28:13.623 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
-20:28:13.624 [main] DEBUG io.lettuce.core.RedisChannelHandler -- dispatching command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.624 [main] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2] write() writeAndFlush command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.624 [main] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2] write() done
-20:28:13.624 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] write(ctx, AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], promise)
-20:28:13.624 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
-20:28:13.625 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x96cedbfe, /127.0.0.1:56395 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Received: 43 bytes, 1 commands in the stack
-20:28:13.625 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
-20:28:13.625 [main] INFO com.shardedmc.shard.CrossShardEventHandler -- Started listening for cross-shard events
-20:28:13.625 [main] INFO com.shardedmc.shard.ShardHeartbeatService -- Started heartbeat service for shard shard-9403c13b
-20:28:13.628 [main] INFO com.shardedmc.shard.ShardDebugGUI -- Shard Debug GUI registered for shard shard-9403c13b
-20:28:13.628 [main] INFO com.shardedmc.shard.VanillaFeatures -- Vanilla features registered
-20:28:13.629 [main] INFO net.minestom.server.ServerProcessImpl -- Starting Minestom (2025.10.04-1.21.8) server.
-20:28:13.629 [main] INFO net.minestom.server.ServerProcessImpl -- Running in offline mode. Beware that this is not secure and players can impersonate each other.
-20:28:13.630 [main] INFO net.minestom.server.ServerProcessImpl -- Minestom server started successfully.
-20:28:13.630 [main] INFO com.shardedmc.shard.ShardServer -- Shard Server shard-9403c13b started successfully
-20:28:13.630 [main] INFO com.shardedmc.shard.ShardServer -- Players can connect to localhost:25565
-20:28:13.649 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND SETTINGS: ack=false settings={ENABLE_PUSH=0, MAX_CONCURRENT_STREAMS=0, INITIAL_WINDOW_SIZE=1048576, MAX_HEADER_LIST_SIZE=8192}
-20:28:13.649 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND WINDOW_UPDATE: streamId=0 windowSizeIncrement=983041
-20:28:13.653 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND SETTINGS: ack=false settings={MAX_CONCURRENT_STREAMS=2147483647, INITIAL_WINDOW_SIZE=1048576, MAX_HEADER_LIST_SIZE=8192}
-20:28:13.653 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND SETTINGS: ack=true
-20:28:13.656 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND WINDOW_UPDATE: streamId=0 windowSizeIncrement=983041
-20:28:13.657 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND SETTINGS: ack=true
-20:28:13.660 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=3 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/RegisterShard, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:13.661 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=5 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:13.663 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=5 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:13.663 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=3 padding=0 endStream=true length=38 bytes=00000000210a0e73686172642d393430336331336212096c6f63616c686f737418ddc7012064
-20:28:13.665 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND PING: ack=false bytes=1234
-20:28:13.665 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND PING: ack=true bytes=1234
-20:28:13.667 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=5 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:13.668 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=3 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:13.668 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=5 padding=0 endStream=false length=5 bytes=0000000000
-20:28:13.668 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND PING: ack=false bytes=1234
-20:28:13.669 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=5 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:13.670 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=3 padding=0 endStream=false length=38 bytes=00000000210801121d53686172642072656769737465726564207375636365737366756c6c79
-20:28:13.670 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=3 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:13.670 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND PING: ack=true bytes=1234
-20:28:13.670 [ForkJoinPool.commonPool-worker-1] INFO com.shardedmc.shard.ShardServer -- Registered with coordinator. Assigned 0 regions
-20:28:14.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=7 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:14.633 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=7 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:14.636 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=7 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:14.637 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=7 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:14.637 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=7 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:15.627 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=9 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:15.628 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=9 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:15.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=9 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:15.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=9 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:15.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=9 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:16.629 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=11 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:16.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=11 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:16.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=11 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:16.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=11 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:16.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=11 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:17.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=13 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:17.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=13 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:17.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=13 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:17.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=13 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:17.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=13 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:18.627 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=15 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:18.628 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=15 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:18.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=15 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:18.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=15 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:18.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=15 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:19.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=17 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:19.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=17 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:19.633 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=17 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:19.633 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=17 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:19.633 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=17 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:20.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=19 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:20.633 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=19 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:20.636 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=19 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:20.637 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=19 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:20.637 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=19 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:21.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=21 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:21.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=21 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:21.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=21 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:21.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=21 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:21.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=21 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:22.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=23 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:22.633 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=23 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:22.636 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=23 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:22.636 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=23 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:22.637 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=23 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:23.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=25 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:23.631 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=25 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:23.633 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=25 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:23.633 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=25 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:23.633 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=25 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:24.628 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=27 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:24.628 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=27 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:24.629 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=27 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:24.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=27 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:24.630 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=27 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
-20:28:25.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=29 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
-20:28:25.632 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=29 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3934303363313362
-20:28:25.635 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=29 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
-20:28:25.635 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=29 padding=0 endStream=false length=7 bytes=00000000020801
-20:28:25.635 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0xd4d0d74a, L:/127.0.0.1:56396 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=29 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:40.349 [main] INFO com.shardedmc.shard.ShardServer -- Starting Shard Server: shard-64f0f569 on port 25565
+20:34:40.883 [main] DEBUG io.netty.util.internal.logging.InternalLoggerFactory -- Using SLF4J as the default logging framework
+20:34:40.883 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- -Dio.netty.noUnsafe: false
+20:34:40.883 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- Java version: 21
+20:34:40.883 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- sun.misc.Unsafe.theUnsafe: available
+20:34:40.883 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- sun.misc.Unsafe.copyMemory: available
+20:34:40.883 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- sun.misc.Unsafe.storeFence: available
+20:34:40.884 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- java.nio.Buffer.address: available
+20:34:40.884 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- direct buffer constructor: unavailable: Reflective setAccessible(true) disabled
+20:34:40.884 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- java.nio.Bits.unaligned: available, true
+20:34:40.884 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- jdk.internal.misc.Unsafe.allocateUninitializedArray(int): unavailable: class io.netty.util.internal.PlatformDependent0$7 cannot access class jdk.internal.misc.Unsafe (in module java.base) because module java.base does not export jdk.internal.misc to unnamed module @7c84195
+20:34:40.884 [main] DEBUG io.netty.util.internal.PlatformDependent0 -- java.nio.DirectByteBuffer.<init>(long, {int,long}): unavailable
+20:34:40.884 [main] DEBUG io.netty.util.internal.PlatformDependent -- sun.misc.Unsafe: available
+20:34:40.884 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.tmpdir: /var/folders/lk/183dy3g91g599hbwwxty7m640000gn/T (java.io.tmpdir)
+20:34:40.884 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.bitMode: 64 (sun.arch.data.model)
+20:34:40.885 [main] DEBUG io.netty.util.internal.PlatformDependent -- Platform: MacOS
+20:34:40.885 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.maxDirectMemory: -1 bytes
+20:34:40.885 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.uninitializedArrayAllocationThreshold: -1
+20:34:40.885 [main] DEBUG io.netty.util.internal.CleanerJava9 -- java.nio.ByteBuffer.cleaner(): available
+20:34:40.885 [main] DEBUG io.netty.util.internal.PlatformDependent -- -Dio.netty.noPreferDirect: false
+20:34:40.904 [main] DEBUG io.netty.channel.MultithreadEventLoopGroup -- -Dio.netty.eventLoopThreads: 20
+20:34:40.907 [main] DEBUG io.netty.util.concurrent.GlobalEventExecutor -- -Dio.netty.globalEventExecutor.quietPeriodSeconds: 1
+20:34:40.909 [main] DEBUG io.netty.util.internal.InternalThreadLocalMap -- -Dio.netty.threadLocalMap.stringBuilder.initialSize: 1024
+20:34:40.909 [main] DEBUG io.netty.util.internal.InternalThreadLocalMap -- -Dio.netty.threadLocalMap.stringBuilder.maxSize: 4096
+20:34:40.910 [main] DEBUG io.netty.channel.nio.NioEventLoop -- -Dio.netty.noKeySetOptimization: false
+20:34:40.910 [main] DEBUG io.netty.channel.nio.NioEventLoop -- -Dio.netty.selectorAutoRebuildThreshold: 512
+20:34:40.912 [main] DEBUG io.netty.util.internal.PlatformDependent -- org.jctools-core.MpscChunkedArrayQueue: available
+20:34:40.937 [main] DEBUG io.lettuce.core.resource.AddressResolverGroupProvider -- Starting without optional netty's non-blocking DNS resolver library
+20:34:40.937 [main] DEBUG io.lettuce.core.resource.DefaultClientResources -- -Dio.netty.eventLoopThreads: 10
+20:34:40.938 [main] DEBUG io.lettuce.core.resource.DefaultEventLoopGroupProvider -- Creating executor io.netty.util.concurrent.DefaultEventExecutorGroup
+20:34:40.940 [main] DEBUG io.netty.util.ResourceLeakDetector -- -Dio.netty.leakDetection.level: simple
+20:34:40.940 [main] DEBUG io.netty.util.ResourceLeakDetector -- -Dio.netty.leakDetection.targetRecords: 4
+20:34:40.941 [main] DEBUG io.netty.util.ResourceLeakDetectorFactory -- Loaded default ResourceLeakDetector: io.netty.util.ResourceLeakDetector@423b2b62
+20:34:40.943 [main] DEBUG reactor.util.Loggers -- Using Slf4j logging framework
+20:34:40.955 [main] DEBUG io.lettuce.core.event.jfr.EventRecorderHolder -- Starting with JFR support
+20:34:40.981 [main] DEBUG io.lettuce.core.RedisClient -- Trying to get a Redis connection for: redis://localhost?timeout=5s
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.numHeapArenas: 20
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.numDirectArenas: 20
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.pageSize: 8192
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.maxOrder: 9
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.chunkSize: 4194304
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.smallCacheSize: 256
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.normalCacheSize: 64
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.maxCachedBufferCapacity: 32768
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.cacheTrimInterval: 8192
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.cacheTrimIntervalMillis: 0
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.useCacheForAllThreads: false
+20:34:41.051 [main] DEBUG io.netty.buffer.PooledByteBufAllocator -- -Dio.netty.allocator.maxCachedByteBuffersPerChunk: 1023
+20:34:41.054 [main] DEBUG io.netty.buffer.ByteBufUtil -- -Dio.netty.allocator.type: pooled
+20:34:41.054 [main] DEBUG io.netty.buffer.ByteBufUtil -- -Dio.netty.threadLocalDirectBufferSize: 0
+20:34:41.054 [main] DEBUG io.netty.buffer.ByteBufUtil -- -Dio.netty.maxThreadLocalCharBufferSize: 16384
+20:34:41.054 [main] DEBUG io.lettuce.core.resource.KqueueProvider -- Starting without optional kqueue library
+20:34:41.055 [main] DEBUG io.lettuce.core.resource.IOUringProvider -- Starting without optional io_uring library
+20:34:41.055 [main] DEBUG io.lettuce.core.resource.EpollProvider -- Starting without optional epoll library
+20:34:41.055 [main] DEBUG io.lettuce.core.resource.DefaultEventLoopGroupProvider -- Allocating executor io.netty.channel.nio.NioEventLoopGroup
+20:34:41.055 [main] DEBUG io.lettuce.core.resource.DefaultEventLoopGroupProvider -- Creating executor io.netty.channel.nio.NioEventLoopGroup
+20:34:41.056 [main] DEBUG io.lettuce.core.resource.DefaultEventLoopGroupProvider -- Adding reference to io.netty.channel.nio.NioEventLoopGroup@38d08cb5, existing ref count 0
+20:34:41.082 [main] DEBUG io.lettuce.core.RedisClient -- Resolved SocketAddress localhost/<unresolved>:6379 using redis://localhost?timeout=5s
+20:34:41.082 [main] DEBUG io.lettuce.core.AbstractRedisClient -- Connecting to Redis at localhost/<unresolved>:6379
+20:34:41.090 [main] DEBUG io.netty.channel.DefaultChannelId -- -Dio.netty.processId: 74012 (auto-detected)
+20:34:41.091 [main] DEBUG io.netty.util.NetUtil -- -Djava.net.preferIPv4Stack: false
+20:34:41.091 [main] DEBUG io.netty.util.NetUtil -- -Djava.net.preferIPv6Addresses: false
+20:34:41.093 [main] DEBUG io.netty.util.NetUtilInitializations -- Loopback interface: lo0 (lo0, 0:0:0:0:0:0:0:1%lo0)
+20:34:41.093 [main] DEBUG io.netty.util.NetUtil -- Failed to get SOMAXCONN from sysctl and file /proc/sys/net/core/somaxconn. Default: 128
+20:34:41.094 [main] DEBUG io.netty.channel.DefaultChannelId -- -Dio.netty.machineId: 26:ad:1d:ff:fe:cd:44:1e (auto-detected)
+20:34:41.100 [main] DEBUG io.netty.bootstrap.ChannelInitializerExtensions -- -Dio.netty.bootstrap.extensions: null
+20:34:41.110 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, [id: 0x87b05316] (inactive), epid=0x1, chid=0x1] channelRegistered()
+20:34:41.111 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.maxCapacityPerThread: 4096
+20:34:41.111 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.ratio: 8
+20:34:41.111 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.chunkSize: 32
+20:34:41.111 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.blocking: false
+20:34:41.111 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.Recycler -- -Dio.netty.recycler.batchFastThreadLocalOnly: true
+20:34:41.113 [lettuce-nioEventLoop-5-1] DEBUG io.netty.buffer.AbstractByteBuf -- -Dio.netty.buffer.checkAccessible: true
+20:34:41.113 [lettuce-nioEventLoop-5-1] DEBUG io.netty.buffer.AbstractByteBuf -- -Dio.netty.buffer.checkBounds: true
+20:34:41.113 [lettuce-nioEventLoop-5-1] DEBUG io.netty.util.ResourceLeakDetectorFactory -- Loaded default ResourceLeakDetector: io.netty.util.ResourceLeakDetector@240f0baa
+20:34:41.121 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] write(ctx, AsyncCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], promise)
+20:34:41.122 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.124 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Received: 217 bytes, 1 commands in the stack
+20:34:41.124 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Stack contains: 1 commands
+20:34:41.126 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
+20:34:41.129 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Completing command LatencyMeteredCommand [type=HELLO, output=GenericMapOutput [output={server=redis, version=8.6.2, proto=3, id=13, mode=standalone, role=master, modules=name, vectorset=ver, 1=path, =args}, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
+20:34:41.130 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] write(ctx, [AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]], promise)
+20:34:41.130 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.130 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Received: 10 bytes, 2 commands in the stack
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Stack contains: 2 commands
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Completing command LatencyMeteredCommand [type=CLIENT, output=StatusOutput [output=OK, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Stack contains: 1 commands
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] Completing command LatencyMeteredCommand [type=CLIENT, output=StatusOutput [output=OK, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] channelActive()
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1] activateEndpointAndExecuteBufferedCommands 0 command(s) buffered
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1] activating endpoint
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1] flushCommands()
+20:34:41.131 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1] flushCommands() Flushing 0 commands
+20:34:41.132 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.ConnectionWatchdog -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, last known addr=localhost/127.0.0.1:6379] channelActive()
+20:34:41.132 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0x0246975d, /127.0.0.1:56471 -> localhost/127.0.0.1:6379, epid=0x1, chid=0x1] channelActive() done
+20:34:41.132 [lettuce-nioEventLoop-5-1] DEBUG io.lettuce.core.AbstractRedisClient -- Connecting to Redis at localhost/<unresolved>:6379: Success
+20:34:41.163 [main] DEBUG io.lettuce.core.RedisClient -- Resolved SocketAddress localhost/<unresolved>:6379 using redis://localhost?timeout=5s
+20:34:41.163 [main] DEBUG io.lettuce.core.AbstractRedisClient -- Connecting to Redis at localhost/<unresolved>:6379
+20:34:41.164 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, [id: 0x12106cd2] (inactive), epid=0x2, chid=0x2] channelRegistered()
+20:34:41.165 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] write(ctx, AsyncCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], promise)
+20:34:41.165 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.165 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Received: 217 bytes, 1 commands in the stack
+20:34:41.165 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Stack contains: 1 commands
+20:34:41.166 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
+20:34:41.166 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Completing command LatencyMeteredCommand [type=HELLO, output=GenericMapOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
+20:34:41.166 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] write(ctx, [AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]], promise)
+20:34:41.166 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.166 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Received: 10 bytes, 2 commands in the stack
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Stack contains: 2 commands
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Completing command LatencyMeteredCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Stack contains: 1 commands
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Completing command LatencyMeteredCommand [type=CLIENT, output=StatusOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.AsyncCommand]
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] channelActive()
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2] activateEndpointAndExecuteBufferedCommands 0 command(s) buffered
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2] activating endpoint
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2] flushCommands()
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2] flushCommands() Flushing 0 commands
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.ConnectionWatchdog -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, last known addr=localhost/127.0.0.1:6379] channelActive()
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] channelActive() done
+20:34:41.168 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.AbstractRedisClient -- Connecting to Redis at localhost/<unresolved>:6379: Success
+20:34:41.168 [main] INFO com.shardedmc.shared.RedisClient -- Connected to Redis at localhost:6379
+20:34:41.367 [main] INFO com.shardedmc.shard.ShardServer -- Calculated spawn height: Y=66
+20:34:41.367 [main] INFO com.shardedmc.shard.ShardServer -- Creating safe spawn platform at (0, 66, 0)
+20:34:41.424 [main] INFO com.shardedmc.shard.ShardServer -- Safe spawn platform created at Y=64
+20:34:41.438 [main] DEBUG io.lettuce.core.RedisChannelHandler -- dispatching command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.438 [main] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2] write() writeAndFlush command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.440 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] write(ctx, AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], promise)
+20:34:41.440 [main] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2] write() done
+20:34:41.441 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.441 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Received: 43 bytes, 1 commands in the stack
+20:34:41.442 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
+20:34:41.443 [main] DEBUG io.lettuce.core.RedisChannelHandler -- dispatching command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.443 [main] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2] write() writeAndFlush command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.443 [main] DEBUG io.lettuce.core.protocol.DefaultEndpoint -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2] write() done
+20:34:41.443 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] write(ctx, AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command], promise)
+20:34:41.443 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandEncoder -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379] writing command AsyncCommand [type=SUBSCRIBE, output=PubSubOutput [output=null, error='null'], commandType=io.lettuce.core.protocol.Command]
+20:34:41.444 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.CommandHandler -- [channel=0xa41f2660, /127.0.0.1:56472 -> localhost/127.0.0.1:6379, epid=0x2, chid=0x2] Received: 43 bytes, 1 commands in the stack
+20:34:41.444 [lettuce-nioEventLoop-5-2] DEBUG io.lettuce.core.protocol.RedisStateMachine -- Decode done, empty stack: true
+20:34:41.444 [main] INFO com.shardedmc.shard.CrossShardEventHandler -- Started listening for cross-shard events
+20:34:41.444 [main] INFO com.shardedmc.shard.ShardHeartbeatService -- Started heartbeat service for shard shard-64f0f569
+20:34:41.447 [main] INFO com.shardedmc.shard.ShardDebugGUI -- Shard Debug GUI registered for shard shard-64f0f569
+20:34:41.448 [main] INFO com.shardedmc.shard.VanillaFeatures -- Vanilla features registered
+20:34:41.449 [main] INFO net.minestom.server.ServerProcessImpl -- Starting Minestom (2025.10.04-1.21.8) server.
+20:34:41.449 [main] INFO net.minestom.server.ServerProcessImpl -- Running in offline mode. Beware that this is not secure and players can impersonate each other.
+20:34:41.450 [main] INFO net.minestom.server.ServerProcessImpl -- Minestom server started successfully.
+20:34:41.450 [main] INFO com.shardedmc.shard.ShardServer -- Shard Server shard-64f0f569 started successfully
+20:34:41.451 [main] INFO com.shardedmc.shard.ShardServer -- Players can connect to localhost:25565
+20:34:41.466 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND SETTINGS: ack=false settings={ENABLE_PUSH=0, MAX_CONCURRENT_STREAMS=0, INITIAL_WINDOW_SIZE=1048576, MAX_HEADER_LIST_SIZE=8192}
+20:34:41.467 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND WINDOW_UPDATE: streamId=0 windowSizeIncrement=983041
+20:34:41.475 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND SETTINGS: ack=false settings={MAX_CONCURRENT_STREAMS=2147483647, INITIAL_WINDOW_SIZE=1048576, MAX_HEADER_LIST_SIZE=8192}
+20:34:41.475 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND SETTINGS: ack=true
+20:34:41.478 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND WINDOW_UPDATE: streamId=0 windowSizeIncrement=983041
+20:34:41.478 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND SETTINGS: ack=true
+20:34:41.481 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=3 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:41.483 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=5 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/RegisterShard, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:41.484 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=3 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:41.484 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=5 padding=0 endStream=true length=38 bytes=00000000210a0e73686172642d363466306635363912096c6f63616c686f737418ddc7012064
+20:34:41.494 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND PING: ack=false bytes=1234
+20:34:41.494 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND PING: ack=true bytes=1234
+20:34:41.496 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=3 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:41.497 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=5 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:41.497 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=5 padding=0 endStream=false length=38 bytes=00000000210801121d53686172642072656769737465726564207375636365737366756c6c79
+20:34:41.497 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND PING: ack=false bytes=1234
+20:34:41.499 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=5 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:41.501 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=3 padding=0 endStream=false length=5 bytes=0000000000
+20:34:41.501 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=3 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:41.501 [ForkJoinPool.commonPool-worker-1] INFO com.shardedmc.shard.ShardServer -- Registered with coordinator. Assigned 0 regions
+20:34:41.502 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND PING: ack=true bytes=1234
+20:34:42.448 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=7 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:42.449 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=7 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:42.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=7 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:42.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=7 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:42.453 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=7 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:43.448 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=9 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:43.448 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=9 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:43.450 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=9 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:43.450 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=9 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:43.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=9 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:44.450 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=11 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:44.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=11 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:44.453 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=11 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:44.453 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=11 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:44.454 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=11 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:45.446 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=13 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:45.446 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=13 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:45.447 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=13 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:45.447 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=13 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:45.447 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=13 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:46.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=15 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:46.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=15 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:46.453 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=15 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:46.453 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=15 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:46.454 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=15 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:47.450 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=17 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:47.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=17 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:47.454 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=17 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:47.455 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=17 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:47.455 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=17 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:48.450 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=19 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:48.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=19 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:48.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=19 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:48.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=19 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:48.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=19 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:49.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=21 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:49.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=21 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:49.454 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=21 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:49.455 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=21 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:49.455 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=21 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:50.448 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=23 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:50.449 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=23 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:50.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=23 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:50.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=23 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:50.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=23 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:51.446 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=25 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:51.446 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=25 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:51.448 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=25 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:51.449 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=25 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:51.449 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=25 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:52.450 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=27 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:52.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=27 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:52.453 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=27 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:52.453 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=27 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:52.453 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=27 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:53.450 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=29 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:53.450 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=29 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:53.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=29 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:53.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=29 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:53.452 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=29 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
+20:34:54.447 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND HEADERS: streamId=31 headers=GrpcHttp2OutboundHeaders[:authority: localhost:50051, :path: /shardedmc.CoordinatorService/SendHeartbeat, :method: POST, :scheme: http, content-type: application/grpc, te: trailers, user-agent: grpc-java-netty/1.60.0, grpc-accept-encoding: gzip] streamDependency=0 weight=16 exclusive=false padding=0 endStream=false
+20:34:54.448 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] OUTBOUND DATA: streamId=31 padding=0 endStream=true length=21 bytes=00000000100a0e73686172642d3634663066353639
+20:34:54.450 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=31 headers=GrpcHttp2ResponseHeaders[:status: 200, content-type: application/grpc, grpc-encoding: identity, grpc-accept-encoding: gzip] padding=0 endStream=false
+20:34:54.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND DATA: streamId=31 padding=0 endStream=false length=7 bytes=00000000020801
+20:34:54.451 [grpc-nio-worker-ELG-1-2] DEBUG io.grpc.netty.NettyClientHandler -- [id: 0x7e80f388, L:/127.0.0.1:56473 - R:localhost/127.0.0.1:50051] INBOUND HEADERS: streamId=31 headers=GrpcHttp2ResponseHeaders[grpc-status: 0] padding=0 endStream=true
