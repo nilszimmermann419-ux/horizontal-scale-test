@@ -19,6 +19,18 @@ public class ShardCoordinatorClient implements AutoCloseable {
     private final CoordinatorServiceGrpc.CoordinatorServiceFutureStub futureStub;
     private final CoordinatorServiceGrpc.CoordinatorServiceBlockingStub blockingStub;
     
+    public ShardCoordinatorClient(String coordinatorAddress) {
+        String[] parts = coordinatorAddress.split(":");
+        String host = parts[0];
+        int port = parts.length > 1 ? Integer.parseInt(parts[1]) : 50051;
+        this.channel = ManagedChannelBuilder.forAddress(host, port)
+                .usePlaintext()
+                .maxRetryAttempts(3)
+                .build();
+        this.futureStub = CoordinatorServiceGrpc.newFutureStub(channel);
+        this.blockingStub = CoordinatorServiceGrpc.newBlockingStub(channel);
+    }
+    
     public ShardCoordinatorClient(String host, int port) {
         this.channel = ManagedChannelBuilder.forAddress(host, port)
                 .usePlaintext()
@@ -110,6 +122,23 @@ public class ShardCoordinatorClient implements AutoCloseable {
                 .setGameMode(state.gameMode())
                 .setMetadata(com.google.protobuf.ByteString.copyFrom(state.metadata()))
                 .build();
+    }
+    
+    public boolean isConnected() {
+        return channel != null && !channel.isShutdown() && !channel.isTerminated();
+    }
+    
+    public void connect(String shardId, String host, int port) {
+        // Already connected via constructor
+        registerShard(shardId, host, port, 100, java.util.Collections.emptyList());
+    }
+    
+    public void disconnect() {
+        close();
+    }
+    
+    public void updatePlayerCount(int count) {
+        // This is handled by heartbeat
     }
     
     @Override

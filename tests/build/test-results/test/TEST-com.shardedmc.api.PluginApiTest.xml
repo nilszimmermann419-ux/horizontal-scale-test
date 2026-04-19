@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.shardedmc.api.PluginApiTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-04-19T15:23:24.560Z" hostname="Mac" time="0.012">
+  <properties/>
+  <testcase name="testBlockBreakEventCancellation()" classname="com.shardedmc.api.PluginApiTest" time="0.005"/>
+  <testcase name="testPluginInfo()" classname="com.shardedmc.api.PluginApiTest" time="0.0"/>
+  <testcase name="testVec3dOperations()" classname="com.shardedmc.api.PluginApiTest" time="0.0"/>
+  <testcase name="testEventCreation()" classname="com.shardedmc.api.PluginApiTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

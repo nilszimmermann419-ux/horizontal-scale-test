@@ -130,4 +130,10 @@ public class PlayerBoundaryMonitor {
         lastChunkPositions.remove(playerUuid);
         pendingTransfers.remove(playerUuid);
     }
+    
+    public void start() {
+    }
+    
+    public void stop() {
+    }
 }

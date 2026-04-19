@@ -5,6 +5,7 @@ import com.shardedmc.api.PluginInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -143,6 +144,24 @@ public class ShardedPluginManager {
                 .map(this::disablePlugin)
                 .toList();
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+    }
+    
+    public List<ShardedPlugin> loadPlugins(File pluginsDir) {
+        List<ShardedPlugin> loaded = new ArrayList<>();
+        if (!pluginsDir.exists() || !pluginsDir.isDirectory()) {
+            return loaded;
+        }
+        File[] jars = pluginsDir.listFiles(f -> f.getName().endsWith(".jar"));
+        if (jars == null) return loaded;
+        for (File jar : jars) {
+            try {
+                ShardedPlugin plugin = loadPlugin(jar.toPath()).join();
+                loaded.add(plugin);
+            } catch (Exception e) {
+                logger.error("Failed to load plugin from: {}", jar, e);
+            }
+        }
+        return loaded;
     }
     
     private record LoadedPlugin(ShardedPlugin plugin, PluginClassLoader classLoader, PluginInfo info) {}

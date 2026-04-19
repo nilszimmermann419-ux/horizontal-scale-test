@@ -9,7 +9,7 @@ import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
-import net.minestom.server.instance.block.Block;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +33,7 @@ public class ShardServer {
     private PlayerBoundaryMonitor boundaryMonitor;
     private CrossShardEventHandler crossShardHandler;
     private ShardHeartbeatService heartbeatService;
+    private ShardDebugGUI debugGUI;
     private InstanceContainer instance;
     
     public ShardServer(String shardId, int port, int capacity, 
@@ -61,10 +62,9 @@ public class ShardServer {
         InstanceManager instanceManager = MinecraftServer.getInstanceManager();
         instance = instanceManager.createInstanceContainer();
         
-        // Set up chunk generator (flat world for testing)
-        instance.setGenerator(unit -> {
-            unit.modifier().fillHeight(0, 40, Block.GRASS_BLOCK);
-        });
+        // Set up enhanced world generator with varied terrain
+        EnhancedWorldGenerator worldGenerator = new EnhancedWorldGenerator();
+        instance.setGenerator(worldGenerator);
         
         // Register with coordinator
         registerWithCoordinator();
@@ -76,10 +76,12 @@ public class ShardServer {
         boundaryMonitor = new PlayerBoundaryMonitor(coordinatorClient, shardId);
         crossShardHandler = new CrossShardEventHandler(redisClient, instance);
         heartbeatService = new ShardHeartbeatService(coordinatorClient, shardId, capacity);
+        debugGUI = new ShardDebugGUI(shardId, port, capacity, coordinatorClient);
         
         boundaryMonitor.registerEvents(MinecraftServer.getGlobalEventHandler());
         crossShardHandler.startListening();
         heartbeatService.start();
+        debugGUI.register(MinecraftServer.getGlobalEventHandler());
         
         // Start server
         minecraftServer.start("0.0.0.0", port);
@@ -117,6 +119,7 @@ public class ShardServer {
         
         globalEventHandler.addListener(PlayerDisconnectEvent.class, event -> {
             boundaryMonitor.removePlayer(event.getPlayer().getUuid());
+            debugGUI.removePlayer(event.getPlayer().getUuid());
             logger.info("Player disconnected: {} from shard {}", event.getPlayer().getUsername(), shardId);
         });
     }
