@@ -1,16 +1,16 @@
 package com.shardedmc.shard;
 
 import com.shardedmc.shared.RedisClient;
-import com.shardedmc.shared.ChunkPos;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
+import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.block.Block;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,14 @@ public class ShardServer {
     private CrossShardEventHandler crossShardHandler;
     private ShardHeartbeatService heartbeatService;
     private ShardDebugGUI debugGUI;
+    private VanillaFeatures vanillaFeatures;
     private InstanceContainer instance;
+    private EnhancedWorldGenerator worldGenerator;
+    
+    // Spawn location
+    private static final int SPAWN_X = 0;
+    private static final int SPAWN_Z = 0;
+    private int spawnY = 65; // Will be calculated
     
     public ShardServer(String shardId, int port, int capacity, 
                        String coordinatorHost, int coordinatorPort,
@@ -63,9 +70,16 @@ public class ShardServer {
         InstanceManager instanceManager = MinecraftServer.getInstanceManager();
         instance = instanceManager.createInstanceContainer();
         
-        // Set up enhanced world generator with varied terrain
-        EnhancedWorldGenerator worldGenerator = new EnhancedWorldGenerator();
+        // Set up world generator
+        worldGenerator = new EnhancedWorldGenerator();
         instance.setGenerator(worldGenerator);
+        
+        // Calculate spawn Y based on terrain
+        spawnY = worldGenerator.getTerrainHeightAt(SPAWN_X, SPAWN_Z) + 2;
+        logger.info("Calculated spawn height: Y={}", spawnY);
+        
+        // Create safe spawn platform
+        createSafeSpawn();
         
         // Register with coordinator
         registerWithCoordinator();
@@ -78,19 +92,47 @@ public class ShardServer {
         crossShardHandler = new CrossShardEventHandler(redisClient, instance);
         heartbeatService = new ShardHeartbeatService(coordinatorClient, shardId, capacity);
         debugGUI = new ShardDebugGUI(shardId, port, capacity, coordinatorClient);
+        vanillaFeatures = new VanillaFeatures(instance);
         
         boundaryMonitor.registerEvents(MinecraftServer.getGlobalEventHandler());
         crossShardHandler.startListening();
         heartbeatService.start();
         debugGUI.register(MinecraftServer.getGlobalEventHandler());
+        vanillaFeatures.register(MinecraftServer.getGlobalEventHandler());
         
         // Start server
         minecraftServer.start("0.0.0.0", port);
         
         logger.info("Shard Server {} started successfully", shardId);
+        logger.info("Players can connect to localhost:{}", port);
         
         // Add shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+    }
+    
+    /**
+     * Create a safe spawn platform to ensure players don't spawn in blocks
+     */
+    private void createSafeSpawn() {
+        logger.info("Creating safe spawn platform at ({}, {}, {})", SPAWN_X, spawnY, SPAWN_Z);
+        
+        // Create a 5x5 platform at spawn
+        for (int x = -2; x <= 2; x++) {
+            for (int z = -2; z <= 2; z++) {
+                // Place stone platform
+                instance.setBlock(SPAWN_X + x, spawnY - 2, SPAWN_Z + z, Block.STONE);
+                
+                // Clear area above platform
+                for (int y = spawnY - 1; y <= spawnY + 3; y++) {
+                    instance.setBlock(SPAWN_X + x, y, SPAWN_Z + z, Block.AIR);
+                }
+            }
+        }
+        
+        // Add a marker block at center
+        instance.setBlock(SPAWN_X, spawnY - 2, SPAWN_Z, Block.BEACON);
+        
+        logger.info("Safe spawn platform created at Y={}", spawnY - 2);
     }
     
     private void registerWithCoordinator() {
@@ -115,19 +157,26 @@ public class ShardServer {
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             event.setSpawningInstance(instance);
             
-            // Calculate spawn position based on terrain height at (0, 0)
-            int spawnX = 0;
-            int spawnZ = 0;
-            int terrainHeight = getTerrainHeightAt(spawnX, spawnZ);
-            int spawnY = terrainHeight + 2; // Spawn 2 blocks above terrain
-            
-            // Clear spawn area to prevent spawning in blocks
-            clearSpawnArea(spawnX, spawnY, spawnZ);
-            
-            Pos spawnPos = new Pos(spawnX + 0.5, spawnY, spawnZ + 0.5);
+            // Set spawn point on our safe platform
+            Pos spawnPos = new Pos(SPAWN_X + 0.5, spawnY, SPAWN_Z + 0.5);
             event.getPlayer().setRespawnPoint(spawnPos);
-            logger.info("Player logged in: {} on shard {} at spawn {} (terrain height: {})", 
-                    event.getPlayer().getUsername(), shardId, spawnPos, terrainHeight);
+            
+            logger.info("Player {} configured on shard {} at spawn {}", 
+                    event.getPlayer().getUsername(), shardId, spawnPos);
+        });
+        
+        globalEventHandler.addListener(PlayerSpawnEvent.class, event -> {
+            Player player = event.getPlayer();
+            
+            // Teleport to safe spawn (just in case)
+            Pos safeSpawn = new Pos(SPAWN_X + 0.5, spawnY, SPAWN_Z + 0.5);
+            player.teleport(safeSpawn);
+            
+            // Give starter items
+            VanillaFeatures.giveStarterItems(player);
+            
+            logger.info("Player {} spawned at {} on shard {}", 
+                    player.getUsername(), safeSpawn, shardId);
         });
         
         globalEventHandler.addListener(PlayerDisconnectEvent.class, event -> {
@@ -135,31 +184,6 @@ public class ShardServer {
             debugGUI.removePlayer(event.getPlayer().getUuid());
             logger.info("Player disconnected: {} from shard {}", event.getPlayer().getUsername(), shardId);
         });
-    }
-    
-    /**
-     * Get terrain height at specific coordinates using the world generator
-     */
-    private int getTerrainHeightAt(int x, int z) {
-        // Use the generator to calculate terrain height
-        EnhancedWorldGenerator generator = new EnhancedWorldGenerator();
-        return generator.getTerrainHeightAt(x, z);
-    }
-    
-    /**
-     * Clear a small area around spawn to ensure player doesn't spawn in blocks
-     */
-    private void clearSpawnArea(int x, int y, int z) {
-        // Clear a 3x3x3 area around spawn (but keep the ground)
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = 0; dy <= 2; dy++) {
-                for (int dz = -1; dz <= 1; dz++) {
-                    // Don't clear the ground block (y - 1 relative to player)
-                    if (dy == 0 && dx == 0 && dz == 0) continue;
-                    instance.setBlock(x + dx, y + dy - 1, z + dz, Block.AIR);
-                }
-            }
-        }
     }
     
     public void stop() {
