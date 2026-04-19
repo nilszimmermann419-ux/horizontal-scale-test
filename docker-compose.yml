@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+  coordinator:
+    build:
+      context: .
+      dockerfile: coordinator/Dockerfile
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+    environment:
+      - GRPC_PORT=50051
+      - REST_PORT=8080
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+
+  shard-1:
+    build:
+      context: .
+      dockerfile: shard/Dockerfile
+    ports:
+      - "25565:25565"
+    environment:
+      - SHARD_ID=shard-1
+      - PORT=25565
+      - CAPACITY=100
+      - COORDINATOR_HOST=coordinator
+      - COORDINATOR_PORT=50051
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - coordinator
+
+volumes:
+  redis-data:
