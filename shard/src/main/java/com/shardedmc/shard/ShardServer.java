@@ -8,6 +8,8 @@ import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerChunkLoadEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
+import net.minestom.server.instance.Chunk;
+import net.minestom.server.timer.TaskSchedule;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
@@ -105,6 +107,15 @@ public class ShardServer {
         heartbeatService.start();
         debugGUI.register(MinecraftServer.getGlobalEventHandler());
         vanillaFeatures.register(MinecraftServer.getGlobalEventHandler(), lightingEngine);
+        
+        // Start periodic lighting initialization for loaded chunks
+        MinecraftServer.getSchedulerManager().buildTask(() -> {
+            for (Chunk chunk : instance.getChunks()) {
+                if (chunk != null) {
+                    lightingEngine.initializeChunk(chunk.getChunkX(), chunk.getChunkZ());
+                }
+            }
+        }).repeat(TaskSchedule.tick(20)).schedule();
         
         // Start server
         minecraftServer.start("0.0.0.0", port);

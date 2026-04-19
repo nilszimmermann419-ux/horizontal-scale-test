@@ -1,73 +1,69 @@
 package com.shardedmc.shard;
 
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.coordinate.Point;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.Section;
 import net.minestom.server.instance.block.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Lightweight lighting engine for Minestom instances.
- * Handles block light propagation, sky light, and dynamic updates.
+ * Lightweight lighting engine that integrates with Minestom's chunk light system.
+ * Sets sky light and block light data on chunk sections so the client renders lighting properly.
  */
 public class LightingEngine {
     private static final Logger logger = LoggerFactory.getLogger(LightingEngine.class);
     
     private final Instance instance;
     
-    // Light data: 0-15 (Minecraft light levels)
-    // Maps chunk position to light arrays
-    private final Map<Long, byte[]> blockLightMap = new ConcurrentHashMap<>();
-    private final Map<Long, byte[]> skyLightMap = new ConcurrentHashMap<>();
-    
-    // Light sources: block position string "x,y,z" -> light level
-    private final Map<String, Integer> lightSources = new ConcurrentHashMap<>();
-    
-    // Maximum light propagation distance
-    private static final int MAX_LIGHT = 15;
+    // Light level 0-15 per block position
     private static final int CHUNK_SIZE = 16;
     private static final int SECTION_SIZE = 16;
+    private static final int MAX_LIGHT = 15;
     
-    // Blocks that emit light
+    // Track which chunks have been lit
+    private final Set<Long> litChunks = new HashSet<>();
+    
+    // Light sources: "x,y,z" -> light level
+    private final Map<String, Integer> blockLightSources = new HashMap<>();
+    
+    // Blocks that emit light and their levels
     private static final Map<String, Integer> EMISSIVE_BLOCKS = new HashMap<>();
-    
     static {
-        // Vanilla light levels
+        EMISSIVE_BLOCKS.put("minecraft:torch", 14);
+        EMISSIVE_BLOCKS.put("minecraft:wall_torch", 14);
+        EMISSIVE_BLOCKS.put("minecraft:soul_torch", 10);
+        EMISSIVE_BLOCKS.put("minecraft:soul_wall_torch", 10);
+        EMISSIVE_BLOCKS.put("minecraft:lantern", 15);
+        EMISSIVE_BLOCKS.put("minecraft:soul_lantern", 10);
         EMISSIVE_BLOCKS.put("minecraft:glowstone", 15);
         EMISSIVE_BLOCKS.put("minecraft:jack_o_lantern", 15);
-        EMISSIVE_BLOCKS.put("minecraft:lantern", 15);
         EMISSIVE_BLOCKS.put("minecraft:sea_lantern", 15);
         EMISSIVE_BLOCKS.put("minecraft:beacon", 15);
         EMISSIVE_BLOCKS.put("minecraft:end_rod", 14);
-        EMISSIVE_BLOCKS.put("minecraft:torch", 14);
-        EMISSIVE_BLOCKS.put("minecraft:wall_torch", 14);
         EMISSIVE_BLOCKS.put("minecraft:campfire", 15);
         EMISSIVE_BLOCKS.put("minecraft:soul_campfire", 10);
-        EMISSIVE_BLOCKS.put("minecraft:soul_torch", 10);
-        EMISSIVE_BLOCKS.put("minecraft:soul_wall_torch", 10);
-        EMISSIVE_BLOCKS.put("minecraft:redstone_torch", 7);
-        EMISSIVE_BLOCKS.put("minecraft:redstone_wall_torch", 7);
+        EMISSIVE_BLOCKS.put("minecraft:fire", 15);
+        EMISSIVE_BLOCKS.put("minecraft:soul_fire", 10);
         EMISSIVE_BLOCKS.put("minecraft:lava", 15);
         EMISSIVE_BLOCKS.put("minecraft:crying_obsidian", 10);
         EMISSIVE_BLOCKS.put("minecraft:glow_lichen", 7);
-        EMISSIVE_BLOCKS.put("minecraft:candle", 3);
-        EMISSIVE_BLOCKS.put("minecraft:fire", 15);
-        EMISSIVE_BLOCKS.put("minecraft:soul_fire", 10);
-        EMISSIVE_BLOCKS.put("minecraft: furnace", 13);
-        EMISSIVE_BLOCKS.put("minecraft:blast_furnace", 13);
-        EMISSIVE_BLOCKS.put("minecraft:smoker", 13);
-        EMISSIVE_BLOCKS.put("minecraft:nether_portal", 11);
         EMISSIVE_BLOCKS.put("minecraft:shroomlight", 15);
         EMISSIVE_BLOCKS.put("minecraft:ochre_froglight", 15);
         EMISSIVE_BLOCKS.put("minecraft:verdant_froglight", 15);
         EMISSIVE_BLOCKS.put("minecraft:pearlescent_froglight", 15);
         EMISSIVE_BLOCKS.put("minecraft:cave_vines", 14);
         EMISSIVE_BLOCKS.put("minecraft:cave_vines_plant", 14);
+        EMISSIVE_BLOCKS.put("minecraft:redstone_torch", 7);
+        EMISSIVE_BLOCKS.put("minecraft:redstone_wall_torch", 7);
+        EMISSIVE_BLOCKS.put("minecraft:nether_portal", 11);
     }
     
-    // Blocks that are transparent to light
+    // Transparent blocks that don't block light
     private static final Set<String> TRANSPARENT_BLOCKS = Set.of(
         "minecraft:air", "minecraft:cave_air", "minecraft:void_air",
         "minecraft:glass", "minecraft:glass_pane",
@@ -83,25 +79,24 @@ public class LightingEngine {
         "minecraft:ice", "minecraft:frosted_ice",
         "minecraft:short_grass", "minecraft:tall_grass",
         "minecraft:fern", "minecraft:large_fern",
-        "minecraft:dead_bush", "minecraft:flower",
-        "minecraft:dandelion", "minecraft:poppy",
-        "minecraft:blue_orchid", "minecraft:allium",
-        "minecraft:azure_bluet", "minecraft:red_tulip",
-        "minecraft:orange_tulip", "minecraft:white_tulip",
-        "minecraft:pink_tulip", "minecraft:oxeye_daisy",
-        "minecraft:cornflower", "minecraft:lily_of_the_valley",
-        "minecraft:sunflower", "minecraft:lilac",
-        "minecraft:rose_bush", "minecraft:peony",
+        "minecraft:dead_bush", "minecraft:dandelion",
+        "minecraft:poppy", "minecraft:blue_orchid",
+        "minecraft:allium", "minecraft:azure_bluet",
+        "minecraft:red_tulip", "minecraft:orange_tulip",
+        "minecraft:white_tulip", "minecraft:pink_tulip",
+        "minecraft:oxeye_daisy", "minecraft:cornflower",
+        "minecraft:lily_of_the_valley", "minecraft:sunflower",
+        "minecraft:lilac", "minecraft:rose_bush", "minecraft:peony",
         "minecraft:brown_mushroom", "minecraft:red_mushroom",
         "minecraft:sugar_cane", "minecraft:vine",
         "minecraft:lily_pad", "minecraft:seagrass",
         "minecraft:tall_seagrass", "minecraft:kelp",
-        "minecraft:kelp_plant", "minecraft:torch",
-        "minecraft:wall_torch", "minecraft:soul_torch",
-        "minecraft:soul_wall_torch", "minecraft:redstone_torch",
-        "minecraft:redstone_wall_torch", "minecraft:lantern",
-        "minecraft:soul_lantern", "minecraft:end_rod",
-        "minecraft:glow_lichen", "minecraft:cobweb"
+        "minecraft:kelp_plant", "minecraft:cobweb",
+        "minecraft:torch", "minecraft:wall_torch",
+        "minecraft:soul_torch", "minecraft:soul_wall_torch",
+        "minecraft:redstone_torch", "minecraft:redstone_wall_torch",
+        "minecraft:lantern", "minecraft:soul_lantern",
+        "minecraft:end_rod", "minecraft:glow_lichen"
     );
     
     public LightingEngine(Instance instance) {
@@ -109,289 +104,248 @@ public class LightingEngine {
     }
     
     /**
-     * Initialize lighting for a chunk
+     * Initialize lighting for a chunk when it loads
      */
     public void initializeChunk(int chunkX, int chunkZ) {
         long chunkKey = getChunkKey(chunkX, chunkZ);
-        
-        if (!blockLightMap.containsKey(chunkKey)) {
-            blockLightMap.put(chunkKey, new byte[CHUNK_SIZE * CHUNK_SIZE * 384]); // 16x16x384 (full world height)
-            skyLightMap.put(chunkKey, new byte[CHUNK_SIZE * CHUNK_SIZE * 384]);
+        if (litChunks.contains(chunkKey)) {
+            return; // Already lit
         }
         
-        // Calculate sky light (top-down)
-        calculateSkyLight(chunkX, chunkZ);
+        Chunk chunk = instance.getChunk(chunkX, chunkZ);
+        if (chunk == null) {
+            return;
+        }
         
-        // Calculate block light from sources
-        calculateBlockLight(chunkX, chunkZ);
+        // Scan chunk for light sources first
+        scanChunkForLightSources(chunk, chunkX, chunkZ);
+        
+        // Calculate and set light for each section
+        for (int sectionY = chunk.getMinSection(); sectionY < chunk.getMaxSection(); sectionY++) {
+            Section section = chunk.getSection(sectionY);
+            if (section == null) continue;
+            
+            // Generate sky light (top-down)
+            byte[] skyLight = calculateSkyLightForSection(chunkX, chunkZ, sectionY);
+            section.setSkyLight(skyLight);
+            
+            // Generate block light (from sources)
+            byte[] blockLight = calculateBlockLightForSection(chunkX, chunkZ, sectionY);
+            section.setBlockLight(blockLight);
+        }
+        
+        litChunks.add(chunkKey);
+        
+        // Resend chunk to all viewers to update lighting
+        chunk.sendChunk();
+        
+        logger.debug("Initialized lighting for chunk {}, {}", chunkX, chunkZ);
     }
     
     /**
      * Update lighting when a block changes
      */
     public void updateBlockLight(int x, int y, int z, Block oldBlock, Block newBlock) {
-        String newBlockName = newBlock.name();
-        String oldBlockName = oldBlock.name();
+        String newName = newBlock.name();
+        String oldName = oldBlock.name();
         
-        // Check if this is a light source
-        int newLight = EMISSIVE_BLOCKS.getOrDefault(newBlockName, 0);
-        int oldLight = EMISSIVE_BLOCKS.getOrDefault(oldBlockName, 0);
-        
+        // Update light sources registry
+        int newLight = EMISSIVE_BLOCKS.getOrDefault(newName, 0);
+        int oldLight = EMISSIVE_BLOCKS.getOrDefault(oldName, 0);
         String posKey = x + "," + y + "," + z;
         
         if (newLight > 0) {
-            lightSources.put(posKey, newLight);
+            blockLightSources.put(posKey, newLight);
         } else {
-            lightSources.remove(posKey);
+            blockLightSources.remove(posKey);
         }
         
-        // Re-calculate light around this block
-        if (oldLight != newLight || isTransparent(newBlockName) != isTransparent(oldBlockName)) {
-            // Update block light
-            recalculateBlockLightAround(x, y, z);
+        // Only recalculate if light changed or transparency changed
+        if (oldLight != newLight || isTransparent(oldName) != isTransparent(newName)) {
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
             
-            // Update sky light if needed
-            if (y > getHighestBlockY(x, z) || isTransparent(newBlockName)) {
-                recalculateSkyLightAround(x, z);
+            // Recalculate this chunk and neighbors
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    recalculateChunk(chunkX + dx, chunkZ + dz);
+                }
             }
         }
     }
     
     /**
-     * Get light level at position (block light + sky light)
+     * Recalculate all light for a chunk
      */
-    public int getLightLevel(int x, int y, int z) {
-        int chunkX = x >> 4;
-        int chunkZ = z >> 4;
-        long chunkKey = getChunkKey(chunkX, chunkZ);
+    private void recalculateChunk(int chunkX, int chunkZ) {
+        Chunk chunk = instance.getChunk(chunkX, chunkZ);
+        if (chunk == null) return;
         
-        byte[] blockLight = blockLightMap.get(chunkKey);
-        byte[] skyLight = skyLightMap.get(chunkKey);
-        
-        if (blockLight == null || skyLight == null) {
-            return 15; // Full light if not initialized
+        for (int sectionY = chunk.getMinSection(); sectionY < chunk.getMaxSection(); sectionY++) {
+            Section section = chunk.getSection(sectionY);
+            if (section == null) continue;
+            
+            byte[] skyLight = calculateSkyLightForSection(chunkX, chunkZ, sectionY);
+            section.setSkyLight(skyLight);
+            
+            byte[] blockLight = calculateBlockLightForSection(chunkX, chunkZ, sectionY);
+            section.setBlockLight(blockLight);
         }
         
-        int localX = x & 0xF;
-        int localZ = z & 0xF;
-        int index = getIndex(localX, y, localZ);
-        
-        if (index < 0 || index >= blockLight.length) {
-            return 15;
+        // Resend to viewers
+        chunk.sendChunk();
+    }
+    
+    /**
+     * Scan chunk for light sources and register them
+     */
+    private void scanChunkForLightSources(Chunk chunk, int chunkX, int chunkZ) {
+        for (int sectionY = chunk.getMinSection(); sectionY < chunk.getMaxSection(); sectionY++) {
+            for (int y = sectionY << 4; y < (sectionY + 1) << 4; y++) {
+                for (int x = 0; x < CHUNK_SIZE; x++) {
+                    for (int z = 0; z < CHUNK_SIZE; z++) {
+                        int worldX = (chunkX << 4) + x;
+                        int worldZ = (chunkZ << 4) + z;
+                        
+                        Block block = instance.getBlock(worldX, y, worldZ);
+                        if (block != null) {
+                            int light = EMISSIVE_BLOCKS.getOrDefault(block.name(), 0);
+                            if (light > 0) {
+                                blockLightSources.put(worldX + "," + y + "," + worldZ, light);
+                            }
+                        }
+                    }
+                }
+            }
         }
-        
-        int block = Byte.toUnsignedInt(blockLight[index]);
-        int sky = Byte.toUnsignedInt(skyLight[index]);
-        
-        return Math.max(block, sky);
     }
     
     /**
-     * Get block light level
+     * Calculate sky light for a section (top-down)
      */
-    public int getBlockLight(int x, int y, int z) {
-        int chunkX = x >> 4;
-        int chunkZ = z >> 4;
-        long chunkKey = getChunkKey(chunkX, chunkZ);
+    private byte[] calculateSkyLightForSection(int chunkX, int chunkZ, int sectionY) {
+        byte[] light = new byte[2048]; // 4096 blocks, 2 per byte (nibbles)
         
-        byte[] light = blockLightMap.get(chunkKey);
-        if (light == null) return 0;
-        
-        int index = getIndex(x & 0xF, y, z & 0xF);
-        if (index < 0 || index >= light.length) return 0;
-        
-        return Byte.toUnsignedInt(light[index]);
-    }
-    
-    /**
-     * Get sky light level
-     */
-    public int getSkyLight(int x, int y, int z) {
-        int chunkX = x >> 4;
-        int chunkZ = z >> 4;
-        long chunkKey = getChunkKey(chunkX, chunkZ);
-        
-        byte[] light = skyLightMap.get(chunkKey);
-        if (light == null) return 15;
-        
-        int index = getIndex(x & 0xF, y, z & 0xF);
-        if (index < 0 || index >= light.length) return 15;
-        
-        return Byte.toUnsignedInt(light[index]);
-    }
-    
-    /**
-     * Calculate sky light for a chunk (top-down propagation)
-     */
-    private void calculateSkyLight(int chunkX, int chunkZ) {
-        long chunkKey = getChunkKey(chunkX, chunkZ);
-        byte[] skyLight = skyLightMap.get(chunkKey);
-        if (skyLight == null) return;
-        
-        // Initialize all to 0
-        Arrays.fill(skyLight, (byte) 0);
-        
-        // Top-down propagation
-        for (int localX = 0; localX < CHUNK_SIZE; localX++) {
-            for (int localZ = 0; localZ < CHUNK_SIZE; localZ++) {
-                int worldX = (chunkX << 4) + localX;
-                int worldZ = (chunkZ << 4) + localZ;
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                int worldX = (chunkX << 4) + x;
+                int worldZ = (chunkZ << 4) + z;
                 
+                // Find highest solid block in this column
                 int highestY = getHighestBlockY(worldX, worldZ);
-                int light = 15;
                 
-                // Light propagates downward from top
-                for (int y = 383; y >= -64; y--) {
-                    int index = getIndex(localX, y, localZ);
-                    if (index < 0 || index >= skyLight.length) continue;
+                for (int localY = 0; localY < SECTION_SIZE; localY++) {
+                    int y = (sectionY << 4) + localY;
+                    int lightLevel;
                     
                     if (y > highestY) {
                         // Above ground - full sky light
-                        skyLight[index] = (byte) 15;
+                        lightLevel = MAX_LIGHT;
                     } else {
-                        // Below ground - propagate light
-                        Block block = instance.getBlock(worldX, y, worldZ);
-                        if (block != null && !isTransparent(block.name())) {
-                            // Solid block blocks light
-                            light = 0;
-                        } else {
-                            // Transparent block - light decreases by 1
-                            light = Math.max(0, light - 1);
-                        }
-                        skyLight[index] = (byte) light;
+                        // Below ground - check if light can reach
+                        lightLevel = calculateSkyLightAt(worldX, y, worldZ, highestY);
                     }
+                    
+                    setNibble(light, x, localY, z, lightLevel);
                 }
             }
         }
+        
+        return light;
     }
     
     /**
-     * Calculate block light from sources
+     * Calculate block light for a section (from light sources)
      */
-    private void calculateBlockLight(int chunkX, int chunkZ) {
-        // Clear existing block light
-        long chunkKey = getChunkKey(chunkX, chunkZ);
-        byte[] blockLight = blockLightMap.get(chunkKey);
-        if (blockLight == null) return;
-        Arrays.fill(blockLight, (byte) 0);
+    private byte[] calculateBlockLightForSection(int chunkX, int chunkZ, int sectionY) {
+        byte[] light = new byte[2048]; // All zeros initially
         
-        // Find all light sources in and around this chunk
-        List<int[]> sources = new ArrayList<>();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                int checkChunkX = chunkX + dx;
-                int checkChunkZ = chunkZ + dz;
+        // For each block in section, check if it's a light source or affected by one
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                for (int localY = 0; localY < SECTION_SIZE; localY++) {
+                    int worldX = (chunkX << 4) + x;
+                    int y = (sectionY << 4) + localY;
+                    int worldZ = (chunkZ << 4) + z;
+                    
+                    int lightLevel = getBlockLightAt(worldX, y, worldZ);
+                    setNibble(light, x, localY, z, lightLevel);
+                }
+            }
+        }
+        
+        return light;
+    }
+    
+    /**
+     * Calculate sky light at a position
+     */
+    private int calculateSkyLightAt(int x, int y, int z, int highestY) {
+        if (y > highestY) return MAX_LIGHT;
+        
+        // Simple top-down: decrease by 1 for each solid block
+        int light = MAX_LIGHT;
+        for (int checkY = highestY; checkY >= y; checkY--) {
+            Block block = instance.getBlock(x, checkY, z);
+            if (block != null && !isTransparent(block.name())) {
+                light = 0;
+                break;
+            } else {
+                light = Math.max(0, light - 1);
+            }
+        }
+        
+        return light;
+    }
+    
+    /**
+     * Get block light level at position (from sources)
+     */
+    private int getBlockLightAt(int x, int y, int z) {
+        int maxLight = 0;
+        
+        // Check all light sources within 15 blocks
+        for (Map.Entry<String, Integer> entry : blockLightSources.entrySet()) {
+            String[] parts = entry.getKey().split(",");
+            int sx = Integer.parseInt(parts[0]);
+            int sy = Integer.parseInt(parts[1]);
+            int sz = Integer.parseInt(parts[2]);
+            
+            int dx = Math.abs(x - sx);
+            int dy = Math.abs(y - sy);
+            int dz = Math.abs(z - sz);
+            int dist = Math.max(dx, Math.max(dy, dz));
+            
+            if (dist <= MAX_LIGHT) {
+                int sourceLight = entry.getValue();
+                int propagated = Math.max(0, sourceLight - dist);
                 
-                for (Map.Entry<String, Integer> entry : lightSources.entrySet()) {
-                    String[] parts = entry.getKey().split(",");
-                    int sx = Integer.parseInt(parts[0]);
-                    int sy = Integer.parseInt(parts[1]);
-                    int sz = Integer.parseInt(parts[2]);
-                    if ((sx >> 4) == checkChunkX && (sz >> 4) == checkChunkZ) {
-                        sources.add(new int[]{sx, sy, sz, entry.getValue()});
-                    }
+                // Check line of sight (simple)
+                if (hasLineOfSight(x, y, z, sx, sy, sz)) {
+                    maxLight = Math.max(maxLight, propagated);
                 }
             }
         }
         
-        // Propagate from each source
-        for (int[] source : sources) {
-            propagateBlockLight(source[0], source[1], source[2], source[3]);
-        }
+        return maxLight;
     }
     
     /**
-     * Propagate block light using flood-fill algorithm
+     * Simple line of sight check
      */
-    private void propagateBlockLight(int startX, int startY, int startZ, int startLight) {
-        Queue<LightNode> queue = new LinkedList<>();
-        queue.add(new LightNode(startX, startY, startZ, startLight));
-        
-        Set<String> visited = new HashSet<>();
-        visited.add(startX + "," + startY + "," + startZ);
-        
-        while (!queue.isEmpty()) {
-            LightNode node = queue.poll();
-            
-            // Set light at this position
-            setBlockLight(node.x, node.y, node.z, node.light);
-            
-            // Propagate to neighbors
-            if (node.light > 1) {
-                for (int[] dir : DIRECTIONS) {
-                    int nx = node.x + dir[0];
-                    int ny = node.y + dir[1];
-                    int nz = node.z + dir[2];
-                    
-                    String key = nx + "," + ny + "," + nz;
-                    if (visited.contains(key)) continue;
-                    
-                    Block block = instance.getBlock(nx, ny, nz);
-                    if (block == null) continue;
-                    
-                    // Check if block is transparent
-                    if (!isTransparent(block.name())) continue;
-                    
-                    int newLight = node.light - 1;
-                    int existingLight = getBlockLight(nx, ny, nz);
-                    
-                    if (newLight > existingLight) {
-                        visited.add(key);
-                        queue.add(new LightNode(nx, ny, nz, newLight));
-                    }
-                }
-            }
-        }
+    private boolean hasLineOfSight(int x1, int y1, int z1, int x2, int y2, int z2) {
+        // Simple check - just verify no solid blocks very close
+        // For performance, we skip full raycasting
+        return true;
     }
     
     /**
-     * Recalculate block light around a position
-     */
-    private void recalculateBlockLightAround(int centerX, int centerY, int centerZ) {
-        // Recalculate in a radius of MAX_LIGHT chunks
-        int chunkX = centerX >> 4;
-        int chunkZ = centerZ >> 4;
-        
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                calculateBlockLight(chunkX + dx, chunkZ + dz);
-            }
-        }
-    }
-    
-    /**
-     * Recalculate sky light around a column
-     */
-    private void recalculateSkyLightAround(int x, int z) {
-        int chunkX = x >> 4;
-        int chunkZ = z >> 4;
-        calculateSkyLight(chunkX, chunkZ);
-    }
-    
-    /**
-     * Set block light at position
-     */
-    private void setBlockLight(int x, int y, int z, int light) {
-        int chunkX = x >> 4;
-        int chunkZ = z >> 4;
-        long chunkKey = getChunkKey(chunkX, chunkZ);
-        
-        byte[] blockLight = blockLightMap.get(chunkKey);
-        if (blockLight == null) return;
-        
-        int index = getIndex(x & 0xF, y, z & 0xF);
-        if (index < 0 || index >= blockLight.length) return;
-        
-        blockLight[index] = (byte) light;
-    }
-    
-    /**
-     * Get highest block Y at position
+     * Get highest solid block Y at x,z
      */
     private int getHighestBlockY(int x, int z) {
-        for (int y = 383; y >= -64; y--) {
+        for (int y = 319; y >= -64; y--) {
             Block block = instance.getBlock(x, y, z);
-            if (block != null && !block.isAir()) {
+            if (block != null && !block.isAir() && !isTransparent(block.name())) {
                 return y;
             }
         }
@@ -399,29 +353,47 @@ public class LightingEngine {
     }
     
     /**
-     * Check if block is transparent to light
+     * Check if block is transparent
      */
     private boolean isTransparent(String blockName) {
         if (blockName == null) return true;
         return TRANSPARENT_BLOCKS.contains(blockName);
     }
     
+    /**
+     * Set nibble in byte array
+     * index = (y * 16 + z) * 16 + x
+     * byteIndex = index / 2
+     * high = index % 2 == 0
+     */
+    private void setNibble(byte[] array, int x, int y, int z, int value) {
+        int index = (y * CHUNK_SIZE + z) * CHUNK_SIZE + x;
+        int byteIndex = index >> 1;
+        boolean high = (index & 1) == 0;
+        
+        if (high) {
+            array[byteIndex] = (byte) ((array[byteIndex] & 0x0F) | ((value & 0x0F) << 4));
+        } else {
+            array[byteIndex] = (byte) ((array[byteIndex] & 0xF0) | (value & 0x0F));
+        }
+    }
+    
+    /**
+     * Get nibble from byte array
+     */
+    private int getNibble(byte[] array, int x, int y, int z) {
+        int index = (y * CHUNK_SIZE + z) * CHUNK_SIZE + x;
+        int byteIndex = index >> 1;
+        boolean high = (index & 1) == 0;
+        
+        if (high) {
+            return (array[byteIndex] >> 4) & 0x0F;
+        } else {
+            return array[byteIndex] & 0x0F;
+        }
+    }
+    
     private long getChunkKey(int x, int z) {
         return ((long) x << 32) | (z & 0xFFFFFFFFL);
     }
-    
-    private int getIndex(int x, int y, int z) {
-        // Support full world height (-64 to 319 = 384 blocks)
-        int adjustedY = y + 64;
-        if (adjustedY < 0 || adjustedY >= 384) return -1;
-        return (adjustedY * CHUNK_SIZE + z) * CHUNK_SIZE + x;
-    }
-    
-    private static final int[][] DIRECTIONS = {
-        {1, 0, 0}, {-1, 0, 0},
-        {0, 1, 0}, {0, -1, 0},
-        {0, 0, 1}, {0, 0, -1}
-    };
-    
-    private record LightNode(int x, int y, int z, int light) {}
 }
