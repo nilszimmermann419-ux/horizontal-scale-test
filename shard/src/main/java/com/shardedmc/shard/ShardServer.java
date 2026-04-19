@@ -9,6 +9,7 @@ import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
+import net.minestom.server.instance.block.Block;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,8 +114,20 @@ public class ShardServer {
         
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             event.setSpawningInstance(instance);
-            event.getPlayer().setRespawnPoint(new Pos(0, 42, 0));
-            logger.info("Player logged in: {} on shard {}", event.getPlayer().getUsername(), shardId);
+            
+            // Calculate spawn position based on terrain height at (0, 0)
+            int spawnX = 0;
+            int spawnZ = 0;
+            int terrainHeight = getTerrainHeightAt(spawnX, spawnZ);
+            int spawnY = terrainHeight + 2; // Spawn 2 blocks above terrain
+            
+            // Clear spawn area to prevent spawning in blocks
+            clearSpawnArea(spawnX, spawnY, spawnZ);
+            
+            Pos spawnPos = new Pos(spawnX + 0.5, spawnY, spawnZ + 0.5);
+            event.getPlayer().setRespawnPoint(spawnPos);
+            logger.info("Player logged in: {} on shard {} at spawn {} (terrain height: {})", 
+                    event.getPlayer().getUsername(), shardId, spawnPos, terrainHeight);
         });
         
         globalEventHandler.addListener(PlayerDisconnectEvent.class, event -> {
@@ -122,6 +135,31 @@ public class ShardServer {
             debugGUI.removePlayer(event.getPlayer().getUuid());
             logger.info("Player disconnected: {} from shard {}", event.getPlayer().getUsername(), shardId);
         });
+    }
+    
+    /**
+     * Get terrain height at specific coordinates using the world generator
+     */
+    private int getTerrainHeightAt(int x, int z) {
+        // Use the generator to calculate terrain height
+        EnhancedWorldGenerator generator = new EnhancedWorldGenerator();
+        return generator.getTerrainHeightAt(x, z);
+    }
+    
+    /**
+     * Clear a small area around spawn to ensure player doesn't spawn in blocks
+     */
+    private void clearSpawnArea(int x, int y, int z) {
+        // Clear a 3x3x3 area around spawn (but keep the ground)
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = 0; dy <= 2; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    // Don't clear the ground block (y - 1 relative to player)
+                    if (dy == 0 && dx == 0 && dz == 0) continue;
+                    instance.setBlock(x + dx, y + dy - 1, z + dz, Block.AIR);
+                }
+            }
+        }
     }
     
     public void stop() {

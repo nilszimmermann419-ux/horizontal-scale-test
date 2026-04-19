@@ -34,7 +34,9 @@ public class EnhancedWorldGenerator implements Generator {
         int startZ = start.blockZ();
         int sizeX = size.blockX();
         int sizeZ = size.blockZ();
+        int startY = start.blockY();
         int sizeY = size.blockY();
+        int endY = startY + sizeY;
         
         // Generate terrain height map
         for (int x = 0; x < sizeX; x++) {
@@ -46,46 +48,69 @@ public class EnhancedWorldGenerator implements Generator {
                 double heightNoise = getTerrainHeight(worldX, worldZ);
                 int terrainHeight = (int) (60 + heightNoise * 20); // Base height 60, variation ±20
                 
+                // Clamp terrain height to valid range
+                terrainHeight = Math.max(5, Math.min(terrainHeight, 100));
+                
                 // Determine biome based on temperature and humidity noise
                 double temperature = getNoise(worldX * 0.002, worldZ * 0.002, seed + 1000);
                 double humidity = getNoise(worldX * 0.003, worldZ * 0.003, seed + 2000);
                 
                 BiomeType biome = determineBiome(temperature, humidity);
                 
-                // Generate terrain column
-                for (int y = 0; y < sizeY && y + start.blockY() <= terrainHeight; y++) {
-                    int worldY = start.blockY() + y;
-                    Block block = getBlockForDepth(worldY, terrainHeight, biome);
-                    unit.modifier().setBlock(worldX, worldY, worldZ, block);
-                }
-                
-                // Fill below terrain with stone
-                for (int y = 0; y < sizeY && y + start.blockY() < terrainHeight - 3; y++) {
-                    int worldY = start.blockY() + y;
-                    if (worldY < terrainHeight - 3) {
-                        // Add caves
-                        if (!isCave(worldX, worldY, worldZ)) {
-                            unit.modifier().setBlock(worldX, worldY, worldZ, Block.STONE);
+                // Fill from bottom up to terrain height
+                for (int y = startY; y < endY && y <= terrainHeight; y++) {
+                    int depth = terrainHeight - y;
+                    Block block;
+                    
+                    if (y < 3) {
+                        block = Block.BEDROCK;
+                    } else if (depth > 3) {
+                        // Deep underground - stone with caves
+                        if (y < 50 && y > 5 && isCave(worldX, y, worldZ)) {
+                            block = Block.AIR;
+                        } else {
+                            block = Block.STONE;
+                            // Add ores
+                            if (depth > 5) {
+                                block = getOreBlock(worldX, y, worldZ, block);
+                            }
                         }
+                    } else if (depth > 0) {
+                        // Subsurface - dirt or sand
+                        block = switch (biome) {
+                            case DESERT -> Block.SAND;
+                            case SNOWY -> Block.DIRT;
+                            default -> Block.DIRT;
+                        };
+                    } else {
+                        // Surface block
+                        block = switch (biome) {
+                            case DESERT -> Block.SAND;
+                            case SNOWY -> Block.SNOW_BLOCK;
+                            default -> Block.GRASS_BLOCK;
+                        };
+                    }
+                    
+                    if (block != Block.AIR) {
+                        unit.modifier().setBlock(worldX, y, worldZ, block);
                     }
                 }
                 
-                // Generate bedrock at bottom
-                if (start.blockY() <= 0) {
-                    for (int y = 0; y < sizeY && start.blockY() + y < 5; y++) {
-                        int worldY = start.blockY() + y;
-                        if (worldY >= 0 && worldY < 3) {
-                            unit.modifier().setBlock(worldX, worldY, worldZ, Block.BEDROCK);
-                        }
-                    }
-                }
-                
-                // Add surface decorations (trees, grass, etc.)
-                if (start.blockY() <= terrainHeight && terrainHeight < start.blockY() + sizeY) {
-                    addSurfaceDecorations(unit, worldX, terrainHeight + 1, worldZ, biome);
+                // Add surface decorations
+                int surfaceY = terrainHeight + 1;
+                if (surfaceY >= startY && surfaceY < endY) {
+                    addSurfaceDecorations(unit, worldX, surfaceY, worldZ, biome);
                 }
             }
         }
+    }
+    
+    /**
+     * Get the terrain height at a specific location (for spawn calculation)
+     */
+    public int getTerrainHeightAt(int worldX, int worldZ) {
+        double heightNoise = getTerrainHeight(worldX, worldZ);
+        return Math.max(5, Math.min((int) (60 + heightNoise * 20), 100));
     }
     
     /**
@@ -103,10 +128,10 @@ public class EnhancedWorldGenerator implements Generator {
             frequency *= 2.0;
         }
         
-        // Sharpen peaks
-        height = Math.pow(Math.abs(height), 1.2) * Math.signum(height);
+        // Normalize to roughly [-1, 1]
+        height = height / 1.875;
         
-        return height;
+        return Math.max(-1.0, Math.min(1.0, height));
     }
     
     /**
@@ -141,38 +166,28 @@ public class EnhancedWorldGenerator implements Generator {
     }
     
     /**
-     * Get block type based on depth and biome
-     */
-    private Block getBlockForDepth(int y, int terrainHeight, BiomeType biome) {
-        int depth = terrainHeight - y;
-        
-        if (depth == 0) {
-            // Surface block
-            return switch (biome) {
-                case DESERT -> Block.SAND;
-                case SNOWY -> Block.SNOW_BLOCK;
-                default -> Block.GRASS_BLOCK;
-            };
-        } else if (depth <= 3) {
-            // Subsurface
-            return switch (biome) {
-                case DESERT -> Block.SAND;
-                case SNOWY -> Block.DIRT;
-                default -> Block.DIRT;
-            };
-        } else {
-            return Block.STONE;
-        }
-    }
-    
-    /**
-     * Simple cave generation
+     * Check if position is a cave
      */
     private boolean isCave(int x, int y, int z) {
         if (y > 50 || y < 5) return false;
         
         double caveNoise = getNoise(x * 0.05, y * 0.08, seed + 5000L);
         return caveNoise > 0.7;
+    }
+    
+    /**
+     * Get ore block based on position and chance
+     */
+    private Block getOreBlock(int x, int y, int z, Block defaultBlock) {
+        Random oreRandom = new Random(x * 234987L + y * 918273L + z * 555555L + seed);
+        double chance = oreRandom.nextDouble();
+        
+        if (y < 16 && chance < 0.001) return Block.DIAMOND_ORE;
+        if (y < 30 && chance < 0.003) return Block.GOLD_ORE;
+        if (y < 50 && chance < 0.008) return Block.IRON_ORE;
+        if (y < 60 && chance < 0.01) return Block.COAL_ORE;
+        
+        return defaultBlock;
     }
     
     /**
@@ -184,33 +199,33 @@ public class EnhancedWorldGenerator implements Generator {
         
         switch (biome) {
             case FOREST -> {
-                // Trees (10% chance)
-                if (posRandom.nextDouble() < 0.10) {
+                // Trees (8% chance) - reduced to not spawn too many
+                if (posRandom.nextDouble() < 0.08) {
                     generateTree(unit, x, y, z);
                 }
-                // Grass (60% chance)
-                else if (posRandom.nextDouble() < 0.60) {
+                // Grass (50% chance)
+                else if (posRandom.nextDouble() < 0.50) {
                     unit.modifier().setBlock(x, y, z, Block.SHORT_GRASS);
                 }
             }
             case PLAINS -> {
-                // Grass (80% chance)
-                if (posRandom.nextDouble() < 0.80) {
+                // Grass (70% chance)
+                if (posRandom.nextDouble() < 0.70) {
                     unit.modifier().setBlock(x, y, z, Block.SHORT_GRASS);
                 }
-                // Flowers (5% chance)
-                else if (posRandom.nextDouble() < 0.05) {
+                // Flowers (3% chance)
+                else if (posRandom.nextDouble() < 0.03) {
                     Block flower = posRandom.nextBoolean() ? Block.POPPY : Block.DANDELION;
                     unit.modifier().setBlock(x, y, z, flower);
                 }
             }
             case TAIGA -> {
-                // Spruce trees (8% chance)
-                if (posRandom.nextDouble() < 0.08) {
+                // Spruce trees (5% chance)
+                if (posRandom.nextDouble() < 0.05) {
                     generateSpruceTree(unit, x, y, z);
                 }
-                // Grass (40% chance)
-                else if (posRandom.nextDouble() < 0.40) {
+                // Grass (30% chance)
+                else if (posRandom.nextDouble() < 0.30) {
                     unit.modifier().setBlock(x, y, z, Block.SHORT_GRASS);
                 }
             }
@@ -219,12 +234,12 @@ public class EnhancedWorldGenerator implements Generator {
                 unit.modifier().setBlock(x, y, z, Block.SNOW);
             }
             case DESERT -> {
-                // Cacti (2% chance)
-                if (posRandom.nextDouble() < 0.02) {
+                // Cacti (1% chance)
+                if (posRandom.nextDouble() < 0.01) {
                     generateCactus(unit, x, y, z);
                 }
-                // Dead bushes (5% chance)
-                else if (posRandom.nextDouble() < 0.05) {
+                // Dead bushes (3% chance)
+                else if (posRandom.nextDouble() < 0.03) {
                     unit.modifier().setBlock(x, y, z, Block.DEAD_BUSH);
                 }
             }
@@ -292,37 +307,6 @@ public class EnhancedWorldGenerator implements Generator {
         int height = 1 + random.nextInt(2);
         for (int i = 0; i < height; i++) {
             unit.modifier().setBlock(x, y + i, z, Block.CACTUS);
-        }
-    }
-    
-    /**
-     * Generate ore veins
-     */
-    private void generateOres(GenerationUnit unit, int x, int y, int z) {
-        // Coal (common)
-        if (y < 60 && random.nextDouble() < 0.01) {
-            generateOreVein(unit, x, y, z, Block.COAL_ORE, 8);
-        }
-        // Iron
-        if (y < 50 && random.nextDouble() < 0.008) {
-            generateOreVein(unit, x, y, z, Block.IRON_ORE, 6);
-        }
-        // Gold
-        if (y < 30 && random.nextDouble() < 0.003) {
-            generateOreVein(unit, x, y, z, Block.GOLD_ORE, 4);
-        }
-        // Diamond
-        if (y < 16 && random.nextDouble() < 0.001) {
-            generateOreVein(unit, x, y, z, Block.DIAMOND_ORE, 3);
-        }
-    }
-    
-    private void generateOreVein(GenerationUnit unit, int x, int y, int z, Block ore, int size) {
-        for (int i = 0; i < size; i++) {
-            int ox = x + random.nextInt(3) - 1;
-            int oy = y + random.nextInt(3) - 1;
-            int oz = z + random.nextInt(3) - 1;
-            unit.modifier().setBlock(ox, oy, oz, ore);
         }
     }
     
