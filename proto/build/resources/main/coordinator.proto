@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+package shardedmc;
+
+option java_multiple_files = true;
+option java_package = "com.shardedmc.proto";
+option java_outer_classname = "CoordinatorProto";
+
+// Common messages
+message Vec3d {
+    double x = 1;
+    double y = 2;
+    double z = 3;
+}
+
+message Vec3i {
+    int32 x = 1;
+    int32 y = 2;
+    int32 z = 3;
+}
+
+message ChunkPos {
+    int32 x = 1;
+    int32 z = 2;
+}
+
+message PlayerState {
+    string uuid = 1;
+    string username = 2;
+    Vec3d position = 3;
+    Vec3d velocity = 4;
+    double health = 5;
+    bytes inventory = 6;
+    int32 game_mode = 7;
+    bytes metadata = 8;
+}
+
+message EntityState {
+    string uuid = 1;
+    string type = 2;
+    Vec3d position = 3;
+    Vec3d velocity = 4;
+    double health = 5;
+    bytes metadata = 6;
+}
+
+// Shard registration
+message ShardInfo {
+    string shard_id = 1;
+    string address = 2;
+    int32 port = 3;
+    int32 capacity = 4;
+    repeated ChunkPos regions = 5;
+}
+
+message RegistrationResponse {
+    bool success = 1;
+    string message = 2;
+    repeated ChunkPos assigned_regions = 3;
+}
+
+// Heartbeat
+message HeartbeatRequest {
+    string shard_id = 1;
+    double load = 2;
+    int32 player_count = 3;
+    int32 memory_usage_mb = 4;
+    repeated ChunkPos regions = 5;
+}
+
+message HeartbeatResponse {
+    bool healthy = 1;
+    repeated ChunkPos reassignments = 2;
+    bool should_shutdown = 3;
+}
+
+// Player transfer
+message TransferRequest {
+    string player_uuid = 1;
+    string source_shard_id = 2;
+    string target_shard_id = 3;
+    PlayerState player_state = 4;
+}
+
+message TransferResponse {
+    bool accepted = 1;
+    string message = 2;
+}
+
+message TransferConfirmation {
+    string player_uuid = 1;
+    string source_shard_id = 2;
+    string target_shard_id = 3;
+    bool success = 4;
+}
+
+message ConfirmationResponse {
+    bool acknowledged = 1;
+}
+
+// Chunk management
+message ChunkLoadRequest {
+    string shard_id = 1;
+    ChunkPos chunk_pos = 2;
+    bool force = 3;
+}
+
+message ChunkLoadResponse {
+    bool success = 1;
+    string owner_shard_id = 2;
+    bytes chunk_data = 3;
+}
+
+message ChunkUnloadRequest {
+    string shard_id = 1;
+    ChunkPos chunk_pos = 2;
+}
+
+message ChunkUnloadResponse {
+    bool success = 1;
+}
+
+// Entity sync
+message EntityStateSync {
+    string shard_id = 1;
+    repeated EntityState entities = 2;
+    bool delta = 3;
+}
+
+message SyncResponse {
+    bool success = 1;
+    int32 synced_count = 2;
+}
+
+// Coordinator service
+service CoordinatorService {
+    rpc RegisterShard(ShardInfo) returns (RegistrationResponse);
+    rpc SendHeartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+    
+    rpc RequestPlayerTransfer(TransferRequest) returns (TransferResponse);
+    rpc ConfirmPlayerTransfer(TransferConfirmation) returns (ConfirmationResponse);
+    
+    rpc RequestChunkLoad(ChunkLoadRequest) returns (ChunkLoadResponse);
+    rpc RequestChunkUnload(ChunkUnloadRequest) returns (ChunkUnloadResponse);
+    
+    rpc SyncEntityState(EntityStateSync) returns (SyncResponse);
+}

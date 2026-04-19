@@ -7,6 +7,7 @@ dependencies {
     implementation("io.grpc:grpc-protobuf:${property("grpcVersion")}")
     implementation("io.grpc:grpc-stub:${property("grpcVersion")}")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
+    implementation("com.google.protobuf:protobuf-java:${property("protobufVersion")}")
     
     protobuf("com.google.protobuf:protobuf-java:${property("protobufVersion")}")
 }

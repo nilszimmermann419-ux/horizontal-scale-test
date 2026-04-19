@@ -9,8 +9,7 @@ allprojects {
 
     repositories {
         mavenCentral()
-        maven("https://repo.minestom.com/releases")
-        maven("https://repo.minestom.com/snapshots")
+        // minestom is on maven central now
     }
 }
 
