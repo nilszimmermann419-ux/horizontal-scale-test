@@ -13,13 +13,13 @@ public class CoordinatorServiceImpl extends CoordinatorServiceGrpc.CoordinatorSe
     private static final Logger logger = LoggerFactory.getLogger(CoordinatorServiceImpl.class);
     
     private final ShardRegistry shardRegistry;
-    private final ChunkAllocationManager chunkAllocation;
+    private final ChunkManager chunkManager;
     private final PlayerRoutingService playerRouting;
     
-    public CoordinatorServiceImpl(ShardRegistry shardRegistry, ChunkAllocationManager chunkAllocation, 
+    public CoordinatorServiceImpl(ShardRegistry shardRegistry, ChunkManager chunkManager, 
                                    PlayerRoutingService playerRouting) {
         this.shardRegistry = shardRegistry;
-        this.chunkAllocation = chunkAllocation;
+        this.chunkManager = chunkManager;
         this.playerRouting = playerRouting;
     }
     
@@ -32,7 +32,7 @@ public class CoordinatorServiceImpl extends CoordinatorServiceGrpc.CoordinatorSe
         shardRegistry.registerShard(request.getShardId(), request.getAddress(), 
                         request.getPort(), request.getCapacity())
                 .thenAccept(v -> {
-                    List<com.shardedmc.shared.ChunkPos> assigned = chunkAllocation.allocateRegionsForShard(
+                    List<com.shardedmc.shared.ChunkPos> assigned = chunkManager.allocateRegionsForShard(
                             request.getShardId(), 4); // Allocate 4 regions initially
                     
                     RegistrationResponse response = RegistrationResponse.newBuilder()
@@ -126,7 +126,7 @@ public class CoordinatorServiceImpl extends CoordinatorServiceGrpc.CoordinatorSe
     
     @Override
     public void requestChunkLoad(ChunkLoadRequest request, StreamObserver<ChunkLoadResponse> responseObserver) {
-        chunkAllocation.getShardForChunk(request.getChunkPos().getX(), request.getChunkPos().getZ())
+        chunkManager.getShardForChunk(request.getChunkPos().getX(), request.getChunkPos().getZ())
                 .thenAccept(ownerOpt -> {
                     ChunkLoadResponse response = ChunkLoadResponse.newBuilder()
                             .setSuccess(ownerOpt.isPresent())

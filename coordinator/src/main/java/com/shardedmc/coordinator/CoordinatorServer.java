@@ -24,7 +24,7 @@ public class CoordinatorServer {
     private RestServer restServer;
     private RedisClient redisClient;
     private ShardRegistry shardRegistry;
-    private ChunkAllocationManager chunkAllocation;
+    private ChunkManager chunkManager;
     private PlayerRoutingService playerRouting;
     
     public CoordinatorServer(int grpcPort, int restPort, String redisHost, int redisPort) {
@@ -42,11 +42,11 @@ public class CoordinatorServer {
         
         // Initialize services
         shardRegistry = new ShardRegistry(redisClient);
-        chunkAllocation = new ChunkAllocationManager(redisClient, shardRegistry);
-        playerRouting = new PlayerRoutingService(redisClient, shardRegistry, chunkAllocation);
+        chunkManager = new ChunkManager(redisClient, shardRegistry);
+        playerRouting = new PlayerRoutingService(redisClient, shardRegistry, chunkManager);
         
         // Start gRPC server
-        CoordinatorServiceImpl serviceImpl = new CoordinatorServiceImpl(shardRegistry, chunkAllocation, playerRouting);
+        CoordinatorServiceImpl serviceImpl = new CoordinatorServiceImpl(shardRegistry, chunkManager, playerRouting);
         grpcServer = ServerBuilder.forPort(grpcPort)
                 .addService(serviceImpl)
                 .build()

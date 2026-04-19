@@ -14,16 +14,16 @@ public class PlayerRoutingService {
     
     private final RedisClient redis;
     private final ShardRegistry shardRegistry;
-    private final ChunkAllocationManager chunkAllocation;
+    private final ChunkManager chunkManager;
     
-    public PlayerRoutingService(RedisClient redis, ShardRegistry shardRegistry, ChunkAllocationManager chunkAllocation) {
+    public PlayerRoutingService(RedisClient redis, ShardRegistry shardRegistry, ChunkManager chunkManager) {
         this.redis = redis;
         this.shardRegistry = shardRegistry;
-        this.chunkAllocation = chunkAllocation;
+        this.chunkManager = chunkManager;
     }
     
     public CompletableFuture<Optional<ShardRegistry.ShardInfo>> routePlayer(String playerUuid, int chunkX, int chunkZ) {
-        return chunkAllocation.getShardForChunk(chunkX, chunkZ)
+        return chunkManager.getShardForChunk(chunkX, chunkZ)
                 .thenApply(shardIdOpt -> shardIdOpt.flatMap(shardId -> {
                     ShardRegistry.ShardInfo shard = shardRegistry.getShard(shardId).orElse(null);
                     if (shard != null && shard.hasCapacity()) {

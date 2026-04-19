@@ -1,6 +1,6 @@
 package com.shardedmc.coordinator.rest;
 
-import com.shardedmc.coordinator.ChunkAllocationManager;
+import com.shardedmc.coordinator.ChunkManager;
 import com.shardedmc.coordinator.PlayerRoutingService;
 import com.shardedmc.coordinator.ShardRegistry;
 import io.javalin.Javalin;
@@ -16,13 +16,13 @@ public class CoordinatorController {
     private static final Logger logger = LoggerFactory.getLogger(CoordinatorController.class);
     
     private final ShardRegistry shardRegistry;
-    private final ChunkAllocationManager chunkAllocation;
+    private final ChunkManager chunkManager;
     private final PlayerRoutingService playerRouting;
     
-    public CoordinatorController(ShardRegistry shardRegistry, ChunkAllocationManager chunkAllocation,
+    public CoordinatorController(ShardRegistry shardRegistry, ChunkManager chunkManager,
                                   PlayerRoutingService playerRouting) {
         this.shardRegistry = shardRegistry;
-        this.chunkAllocation = chunkAllocation;
+        this.chunkManager = chunkManager;
         this.playerRouting = playerRouting;
     }
     
@@ -69,7 +69,7 @@ public class CoordinatorController {
         map.put("playerCount", shard.playerCount());
         map.put("load", shard.load());
         map.put("status", shard.status());
-        map.put("regions", chunkAllocation.getRegionsForShard(shardId));
+        map.put("regions", chunkManager.getOwnedChunks(shardId));
         
         ctx.json(map);
     }
@@ -96,7 +96,7 @@ public class CoordinatorController {
         int x = Integer.parseInt(ctx.pathParam("x"));
         int z = Integer.parseInt(ctx.pathParam("z"));
         
-        chunkAllocation.getShardForChunk(x, z)
+        chunkManager.getShardForChunk(x, z)
                 .thenAccept(ownerOpt -> {
                     if (ownerOpt.isEmpty()) {
                         ctx.status(404).json(Map.of("error", "Chunk not assigned"));
