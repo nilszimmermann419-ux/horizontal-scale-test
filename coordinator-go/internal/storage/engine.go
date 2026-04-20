@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"sync"
 )
 
 // Engine is the interface for the custom storage backend
@@ -79,48 +80,131 @@ type Vec3D struct {
 
 // NewEngine creates a new storage engine
 func NewEngine(path string) (Engine, error) {
-	return &memoryEngine{}, nil
+	return newMemoryEngine(), nil
 }
 
-type memoryEngine struct{}
+type memoryEngine struct {
+	mu       sync.RWMutex
+	chunks   map[string]*ChunkData
+	players  map[string]*PlayerData
+	entities map[string]*EntityData
+	blocks   map[string]uint16
+}
+
+func newMemoryEngine() *memoryEngine {
+	return &memoryEngine{
+		chunks:   make(map[string]*ChunkData),
+		players:  make(map[string]*PlayerData),
+		entities: make(map[string]*EntityData),
+		blocks:   make(map[string]uint16),
+	}
+}
+
+func chunkKey(world, dimension string, x, z int32) string {
+	return fmt.Sprintf("%s:%s:%d:%d", world, dimension, x, z)
+}
+
+func blockKey(world, dimension string, x, y, z int32) string {
+	return fmt.Sprintf("%s:%s:%d:%d:%d", world, dimension, x, y, z)
+}
 
 func (e *memoryEngine) GetChunk(ctx context.Context, world, dimension string, x, z int32) (*ChunkData, error) {
-	return nil, fmt.Errorf("not implemented")
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	key := chunkKey(world, dimension, x, z)
+	chunk, ok := e.chunks[key]
+	if !ok {
+		return nil, fmt.Errorf("chunk not found: %s", key)
+	}
+	return chunk, nil
 }
 
 func (e *memoryEngine) PutChunk(ctx context.Context, world, dimension string, x, z int32, data *ChunkData) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	key := chunkKey(world, dimension, x, z)
+	e.chunks[key] = data
 	return nil
 }
 
 func (e *memoryEngine) DeleteChunk(ctx context.Context, world, dimension string, x, z int32) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	key := chunkKey(world, dimension, x, z)
+	delete(e.chunks, key)
 	return nil
 }
 
 func (e *memoryEngine) GetPlayerData(ctx context.Context, uuid string) (*PlayerData, error) {
-	return nil, fmt.Errorf("not implemented")
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	player, ok := e.players[uuid]
+	if !ok {
+		return nil, fmt.Errorf("player not found: %s", uuid)
+	}
+	return player, nil
 }
 
 func (e *memoryEngine) PutPlayerData(ctx context.Context, uuid string, data *PlayerData) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	e.players[uuid] = data
 	return nil
 }
 
 func (e *memoryEngine) GetEntities(ctx context.Context, world, dimension string, minX, minZ, maxX, maxZ int32) ([]*EntityData, error) {
-	return nil, nil
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	var result []*EntityData
+	for _, entity := range e.entities {
+		if entity.Position.X >= float64(minX) && entity.Position.X <= float64(maxX) &&
+			entity.Position.Z >= float64(minZ) && entity.Position.Z <= float64(maxZ) {
+			result = append(result, entity)
+		}
+	}
+	return result, nil
 }
 
 func (e *memoryEngine) PutEntity(ctx context.Context, world, dimension string, data *EntityData) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	e.entities[data.UUID] = data
 	return nil
 }
 
 func (e *memoryEngine) DeleteEntity(ctx context.Context, world, dimension string, uuid string) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	delete(e.entities, uuid)
 	return nil
 }
 
 func (e *memoryEngine) GetBlock(ctx context.Context, world, dimension string, x, y, z int32) (uint16, error) {
-	return 0, nil
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	key := blockKey(world, dimension, x, y, z)
+	block, ok := e.blocks[key]
+	if !ok {
+		return 0, nil // Air
+	}
+	return block, nil
 }
 
 func (e *memoryEngine) PutBlock(ctx context.Context, world, dimension string, x, y, z int32, blockID uint16) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	key := blockKey(world, dimension, x, y, z)
+	e.blocks[key] = blockID
 	return nil
 }
 
