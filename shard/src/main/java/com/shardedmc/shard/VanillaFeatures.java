@@ -16,6 +16,7 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.event.player.PlayerBlockPlaceEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
+import com.shardedmc.shared.RedisClient;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
@@ -34,10 +35,17 @@ public class VanillaFeatures {
     
     private final Instance instance;
     private LightingEngine lightingEngine;
+    private RedisClient redisClient;
     private final Random random = new Random();
+    private static final String BLOCK_UPDATES_CHANNEL = "world:block_updates";
     
     public VanillaFeatures(Instance instance) {
         this.instance = instance;
+    }
+    
+    public VanillaFeatures(Instance instance, RedisClient redisClient) {
+        this.instance = instance;
+        this.redisClient = redisClient;
     }
     
     public void register(GlobalEventHandler eventHandler) {
@@ -97,6 +105,13 @@ public class VanillaFeatures {
             );
         }
         
+        // Broadcast block removal to other shards
+        if (redisClient != null) {
+            String message = String.format("%d,%d,%d,%s", 
+                pos.blockX(), pos.blockY(), pos.blockZ(), Block.AIR.name());
+            redisClient.publish(BLOCK_UPDATES_CHANNEL, message);
+        }
+        
         logger.debug("Player {} broke {} at {}", player.getUsername(), block.name(), pos);
     }
     
@@ -118,6 +133,14 @@ public class VanillaFeatures {
                     pos.blockX(), pos.blockY(), pos.blockZ(),
                     Block.AIR, event.getBlock()
             );
+        }
+        
+        // Broadcast block placement to other shards
+        if (redisClient != null) {
+            Pos pos = new Pos(event.getBlockPosition());
+            String message = String.format("%d,%d,%d,%s", 
+                pos.blockX(), pos.blockY(), pos.blockZ(), event.getBlock().name());
+            redisClient.publish(BLOCK_UPDATES_CHANNEL, message);
         }
     }
     

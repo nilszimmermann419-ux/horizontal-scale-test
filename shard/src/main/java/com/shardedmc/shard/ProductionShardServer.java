@@ -2,6 +2,7 @@ package com.shardedmc.shard;
 
 import com.shardedmc.api.ShardedPlugin;
 import com.shardedmc.plugin.ShardedPluginManager;
+import com.shardedmc.shared.RedisClient;
 import com.shardedmc.shared.config.ConfigLoader;
 import com.shardedmc.shared.config.ShardConfig;
 import com.shardedmc.shared.health.HealthCheck;
@@ -46,6 +47,7 @@ public class ProductionShardServer {
     private final InstanceManager instanceManager;
     private InstanceContainer instance;
     private final ShardCoordinatorClient coordinatorClient;
+    private final RedisClient redisClient;
     private final ShardHeartbeatService heartbeatService;
     private final PlayerBoundaryMonitor boundaryMonitor;
     private final CrossShardEventHandler eventHandler;
@@ -70,9 +72,10 @@ public class ProductionShardServer {
         this.minecraftServer = MinecraftServer.init();
         this.instanceManager = MinecraftServer.getInstanceManager();
         this.coordinatorClient = new ShardCoordinatorClient(config.getCoordinatorAddress());
+        this.redisClient = new RedisClient("localhost", 6379);
         this.heartbeatService = new ShardHeartbeatService(coordinatorClient, config.getShardId(), config.getMaxPlayers());
-        this.boundaryMonitor = new PlayerBoundaryMonitor(coordinatorClient, config.getShardId());
-        this.eventHandler = new CrossShardEventHandler(null, instance);
+        this.boundaryMonitor = new PlayerBoundaryMonitor(coordinatorClient, redisClient, config.getShardId());
+        this.eventHandler = new CrossShardEventHandler(redisClient, instance);
         this.pluginLoader = new ShardedPluginManager(getClass().getClassLoader());
         
         setupHealthChecks();

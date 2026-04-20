@@ -101,6 +101,21 @@ public final class CoordinatorProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_shardedmc_ChunkUnloadResponse_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_shardedmc_LockRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_shardedmc_LockRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_shardedmc_LockResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_shardedmc_LockResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_shardedmc_Empty_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_shardedmc_Empty_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_shardedmc_EntityStateSync_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -159,26 +174,33 @@ public final class CoordinatorProto {
       "\001(\014\"N\n\022ChunkUnloadRequest\022\020\n\010shard_id\030\001 " +
       "\001(\t\022&\n\tchunk_pos\030\002 \001(\0132\023.shardedmc.Chunk" +
       "Pos\"&\n\023ChunkUnloadResponse\022\017\n\007success\030\001 " +
-      "\001(\010\"\\\n\017EntityStateSync\022\020\n\010shard_id\030\001 \001(\t" +
-      "\022(\n\010entities\030\002 \003(\0132\026.shardedmc.EntitySta" +
-      "te\022\r\n\005delta\030\003 \001(\010\"5\n\014SyncResponse\022\017\n\007suc" +
-      "cess\030\001 \001(\010\022\024\n\014synced_count\030\002 \001(\0052\301\004\n\022Coo" +
-      "rdinatorService\022F\n\rRegisterShard\022\024.shard" +
-      "edmc.ShardInfo\032\037.shardedmc.RegistrationR" +
-      "esponse\022J\n\rSendHeartbeat\022\033.shardedmc.Hea" +
-      "rtbeatRequest\032\034.shardedmc.HeartbeatRespo" +
-      "nse\022P\n\025RequestPlayerTransfer\022\032.shardedmc" +
-      ".TransferRequest\032\033.shardedmc.TransferRes" +
-      "ponse\022Y\n\025ConfirmPlayerTransfer\022\037.sharded" +
-      "mc.TransferConfirmation\032\037.shardedmc.Conf" +
-      "irmationResponse\022M\n\020RequestChunkLoad\022\033.s" +
-      "hardedmc.ChunkLoadRequest\032\034.shardedmc.Ch" +
-      "unkLoadResponse\022S\n\022RequestChunkUnload\022\035." +
-      "shardedmc.ChunkUnloadRequest\032\036.shardedmc" +
-      ".ChunkUnloadResponse\022F\n\017SyncEntityState\022" +
-      "\032.shardedmc.EntityStateSync\032\027.shardedmc." +
-      "SyncResponseB)\n\023com.shardedmc.protoB\020Coo" +
-      "rdinatorProtoP\001b\006proto3"
+      "\001(\010\"G\n\013LockRequest\022\020\n\010shard_id\030\001 \001(\t\022&\n\t" +
+      "chunk_pos\030\002 \001(\0132\023.shardedmc.ChunkPos\"7\n\014" +
+      "LockResponse\022\017\n\007success\030\001 \001(\010\022\026\n\016owner_s" +
+      "hard_id\030\002 \001(\t\"\007\n\005Empty\"\\\n\017EntityStateSyn" +
+      "c\022\020\n\010shard_id\030\001 \001(\t\022(\n\010entities\030\002 \003(\0132\026." +
+      "shardedmc.EntityState\022\r\n\005delta\030\003 \001(\010\"5\n\014" +
+      "SyncResponse\022\017\n\007success\030\001 \001(\010\022\024\n\014synced_" +
+      "count\030\002 \001(\0052\304\005\n\022CoordinatorService\022F\n\rRe" +
+      "gisterShard\022\024.shardedmc.ShardInfo\032\037.shar" +
+      "dedmc.RegistrationResponse\022J\n\rSendHeartb" +
+      "eat\022\033.shardedmc.HeartbeatRequest\032\034.shard" +
+      "edmc.HeartbeatResponse\022P\n\025RequestPlayerT" +
+      "ransfer\022\032.shardedmc.TransferRequest\032\033.sh" +
+      "ardedmc.TransferResponse\022Y\n\025ConfirmPlaye" +
+      "rTransfer\022\037.shardedmc.TransferConfirmati" +
+      "on\032\037.shardedmc.ConfirmationResponse\022M\n\020R" +
+      "equestChunkLoad\022\033.shardedmc.ChunkLoadReq" +
+      "uest\032\034.shardedmc.ChunkLoadResponse\022S\n\022Re" +
+      "questChunkUnload\022\035.shardedmc.ChunkUnload" +
+      "Request\032\036.shardedmc.ChunkUnloadResponse\022" +
+      "C\n\020RequestChunkLock\022\026.shardedmc.LockRequ" +
+      "est\032\027.shardedmc.LockResponse\022<\n\020ReleaseC" +
+      "hunkLock\022\026.shardedmc.LockRequest\032\020.shard" +
+      "edmc.Empty\022F\n\017SyncEntityState\022\032.shardedm" +
+      "c.EntityStateSync\032\027.shardedmc.SyncRespon" +
+      "seB)\n\023com.shardedmc.protoB\020CoordinatorPr" +
+      "otoP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -286,14 +308,32 @@ public final class CoordinatorProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_shardedmc_ChunkUnloadResponse_descriptor,
         new java.lang.String[] { "Success", });
-    internal_static_shardedmc_EntityStateSync_descriptor =
+    internal_static_shardedmc_LockRequest_descriptor =
       getDescriptor().getMessageTypes().get(17);
+    internal_static_shardedmc_LockRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_shardedmc_LockRequest_descriptor,
+        new java.lang.String[] { "ShardId", "ChunkPos", });
+    internal_static_shardedmc_LockResponse_descriptor =
+      getDescriptor().getMessageTypes().get(18);
+    internal_static_shardedmc_LockResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_shardedmc_LockResponse_descriptor,
+        new java.lang.String[] { "Success", "OwnerShardId", });
+    internal_static_shardedmc_Empty_descriptor =
+      getDescriptor().getMessageTypes().get(19);
+    internal_static_shardedmc_Empty_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_shardedmc_Empty_descriptor,
+        new java.lang.String[] { });
+    internal_static_shardedmc_EntityStateSync_descriptor =
+      getDescriptor().getMessageTypes().get(20);
     internal_static_shardedmc_EntityStateSync_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_shardedmc_EntityStateSync_descriptor,
         new java.lang.String[] { "ShardId", "Entities", "Delta", });
     internal_static_shardedmc_SyncResponse_descriptor =
-      getDescriptor().getMessageTypes().get(18);
+      getDescriptor().getMessageTypes().get(21);
     internal_static_shardedmc_SyncResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_shardedmc_SyncResponse_descriptor,

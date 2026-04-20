@@ -63,6 +63,8 @@ public class AdvancedWorldGenerator implements Generator {
         int startY = start.blockY();
         int sizeY = size.blockY();
         int endY = startY + sizeY;
+        int endX = startX + sizeX;
+        int endZ = startZ + sizeZ;
         
         // Pre-calculate biome and height maps
         BiomeType[][] biomeMap = new BiomeType[sizeX][sizeZ];
@@ -94,19 +96,20 @@ public class AdvancedWorldGenerator implements Generator {
                     if (y <= terrainHeight) {
                         Block block = getBlockForDepth(worldX, y, worldZ, terrainHeight, biome);
                         if (block != null) {
-                            unit.modifier().setBlock(worldX, y, worldZ, block);
+                            unit.modifier().setBlock(x, y, z, block);
                         }
                     } else if (y <= getWaterLevel() && biome != BiomeType.OCEAN_DEEP) {
                         // Water above terrain but below water level
                         if (biome == BiomeType.OCEAN || biome == BiomeType.RIVER || biome == BiomeType.BEACH) {
-                            unit.modifier().setBlock(worldX, y, worldZ, Block.WATER);
+                            unit.modifier().setBlock(x, y, z, Block.WATER);
                         }
                     }
                 }
                 
-                // Surface decorations
-                if (terrainHeight + 1 >= startY && terrainHeight + 1 < endY) {
-                    addSurfaceDecorations(unit, worldX, terrainHeight + 1, worldZ, biome, terrainHeight);
+                // Surface decorations - only place if within unit bounds
+                int surfaceY = terrainHeight + 1;
+                if (surfaceY >= startY && surfaceY < endY) {
+                    addSurfaceDecorations(unit, x, surfaceY, z, biome, terrainHeight, sizeX, sizeZ);
                 }
             }
         }
@@ -304,7 +307,7 @@ public class AdvancedWorldGenerator implements Generator {
         return defaultBlock;
     }
     
-    private void addSurfaceDecorations(GenerationUnit unit, int x, int y, int z, BiomeType biome, int terrainHeight) {
+    private void addSurfaceDecorations(GenerationUnit unit, int x, int y, int z, BiomeType biome, int terrainHeight, int sizeX, int sizeZ) {
         Random posRandom = new Random(x * 341873128712L + z * 132897987541L + seed);
         
         // Don't decorate underwater
@@ -320,7 +323,7 @@ public class AdvancedWorldGenerator implements Generator {
         
         switch (biome) {
             case FOREST -> {
-                if (posRandom.nextDouble() < 0.12) {
+                if (posRandom.nextDouble() < 0.12 && x > 2 && x < sizeX - 2 && z > 2 && z < sizeZ - 2) {
                     generateTree(unit, x, y, z, TreeType.OAK);
                 } else if (posRandom.nextDouble() < 0.6) {
                     unit.modifier().setBlock(x, y, z, Block.SHORT_GRASS);
@@ -342,7 +345,7 @@ public class AdvancedWorldGenerator implements Generator {
                 }
             }
             case TAIGA -> {
-                if (posRandom.nextDouble() < 0.1) {
+                if (posRandom.nextDouble() < 0.1 && x > 2 && x < sizeX - 2 && z > 2 && z < sizeZ - 2) {
                     generateTree(unit, x, y, z, TreeType.SPRUCE);
                 } else if (posRandom.nextDouble() < 0.4) {
                     unit.modifier().setBlock(x, y, z, Block.SHORT_GRASS);
@@ -351,33 +354,33 @@ public class AdvancedWorldGenerator implements Generator {
                 }
             }
             case SNOWY_TAIGA -> {
-                if (posRandom.nextDouble() < 0.08) {
+                if (posRandom.nextDouble() < 0.08 && x > 2 && x < sizeX - 2 && z > 2 && z < sizeZ - 2) {
                     generateTree(unit, x, y, z, TreeType.SPRUCE);
                 } else if (posRandom.nextDouble() < 0.3) {
                     unit.modifier().setBlock(x, y, z, Block.SHORT_GRASS);
                 }
                 // Snow on top
-                unit.modifier().setBlock(x, y + 1, z, Block.SNOW);
+                if (y + 1 < 320) unit.modifier().setBlock(x, y + 1, z, Block.SNOW);
             }
             case SNOWY_PLAINS -> {
                 unit.modifier().setBlock(x, y, z, Block.SNOW);
             }
             case DESERT -> {
-                if (posRandom.nextDouble() < 0.02) {
+                if (posRandom.nextDouble() < 0.02 && x > 1 && x < sizeX - 1 && z > 1 && z < sizeZ - 1) {
                     generateCactus(unit, x, y, z);
                 } else if (posRandom.nextDouble() < 0.01) {
                     unit.modifier().setBlock(x, y, z, Block.DEAD_BUSH);
                 }
             }
             case BADLANDS -> {
-                if (posRandom.nextDouble() < 0.01) {
+                if (posRandom.nextDouble() < 0.01 && x > 1 && x < sizeX - 1 && z > 1 && z < sizeZ - 1) {
                     generateCactus(unit, x, y, z);
                 } else if (posRandom.nextDouble() < 0.02) {
                     unit.modifier().setBlock(x, y, z, Block.DEAD_BUSH);
                 }
             }
             case JUNGLE -> {
-                if (posRandom.nextDouble() < 0.15) {
+                if (posRandom.nextDouble() < 0.15 && x > 3 && x < sizeX - 3 && z > 3 && z < sizeZ - 3) {
                     generateTree(unit, x, y, z, TreeType.JUNGLE);
                 } else if (posRandom.nextDouble() < 0.7) {
                     unit.modifier().setBlock(x, y, z, Block.FERN);
@@ -386,7 +389,7 @@ public class AdvancedWorldGenerator implements Generator {
                 }
             }
             case SWAMP -> {
-                if (posRandom.nextDouble() < 0.06) {
+                if (posRandom.nextDouble() < 0.06 && x > 2 && x < sizeX - 2 && z > 2 && z < sizeZ - 2) {
                     generateTree(unit, x, y, z, TreeType.OAK); // Swamp oaks
                 } else if (posRandom.nextDouble() < 0.5) {
                     unit.modifier().setBlock(x, y, z, Block.SHORT_GRASS);
@@ -399,7 +402,7 @@ public class AdvancedWorldGenerator implements Generator {
                 }
             }
             case SAVANNA -> {
-                if (posRandom.nextDouble() < 0.04) {
+                if (posRandom.nextDouble() < 0.04 && x > 2 && x < sizeX - 2 && z > 2 && z < sizeZ - 2) {
                     generateTree(unit, x, y, z, TreeType.ACACIA);
                 } else if (posRandom.nextDouble() < 0.5) {
                     unit.modifier().setBlock(x, y, z, Block.SHORT_GRASS);

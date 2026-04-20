@@ -3,7 +3,6 @@ package com.shardedmc.coordinator;
 import com.shardedmc.shared.ChunkPos;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
-import net.minestom.server.network.packet.server.handshake.HandshakePacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

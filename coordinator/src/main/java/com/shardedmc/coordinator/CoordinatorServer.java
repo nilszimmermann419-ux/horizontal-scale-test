@@ -55,7 +55,7 @@ public class CoordinatorServer {
         logger.info("gRPC server started on port {}", grpcPort);
         
         // Start REST server
-        CoordinatorController controller = new CoordinatorController(shardRegistry, chunkAllocation, playerRouting);
+        CoordinatorController controller = new CoordinatorController(shardRegistry, chunkManager, playerRouting);
         restServer = new RestServer(restPort);
         restServer.start(controller);
         

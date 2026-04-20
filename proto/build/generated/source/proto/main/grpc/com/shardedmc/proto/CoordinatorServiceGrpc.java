@@ -204,6 +204,68 @@ public final class CoordinatorServiceGrpc {
     return getRequestChunkUnloadMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<com.shardedmc.proto.LockRequest,
+      com.shardedmc.proto.LockResponse> getRequestChunkLockMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "RequestChunkLock",
+      requestType = com.shardedmc.proto.LockRequest.class,
+      responseType = com.shardedmc.proto.LockResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<com.shardedmc.proto.LockRequest,
+      com.shardedmc.proto.LockResponse> getRequestChunkLockMethod() {
+    io.grpc.MethodDescriptor<com.shardedmc.proto.LockRequest, com.shardedmc.proto.LockResponse> getRequestChunkLockMethod;
+    if ((getRequestChunkLockMethod = CoordinatorServiceGrpc.getRequestChunkLockMethod) == null) {
+      synchronized (CoordinatorServiceGrpc.class) {
+        if ((getRequestChunkLockMethod = CoordinatorServiceGrpc.getRequestChunkLockMethod) == null) {
+          CoordinatorServiceGrpc.getRequestChunkLockMethod = getRequestChunkLockMethod =
+              io.grpc.MethodDescriptor.<com.shardedmc.proto.LockRequest, com.shardedmc.proto.LockResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "RequestChunkLock"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.shardedmc.proto.LockRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.shardedmc.proto.LockResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new CoordinatorServiceMethodDescriptorSupplier("RequestChunkLock"))
+              .build();
+        }
+      }
+    }
+    return getRequestChunkLockMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<com.shardedmc.proto.LockRequest,
+      com.shardedmc.proto.Empty> getReleaseChunkLockMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ReleaseChunkLock",
+      requestType = com.shardedmc.proto.LockRequest.class,
+      responseType = com.shardedmc.proto.Empty.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<com.shardedmc.proto.LockRequest,
+      com.shardedmc.proto.Empty> getReleaseChunkLockMethod() {
+    io.grpc.MethodDescriptor<com.shardedmc.proto.LockRequest, com.shardedmc.proto.Empty> getReleaseChunkLockMethod;
+    if ((getReleaseChunkLockMethod = CoordinatorServiceGrpc.getReleaseChunkLockMethod) == null) {
+      synchronized (CoordinatorServiceGrpc.class) {
+        if ((getReleaseChunkLockMethod = CoordinatorServiceGrpc.getReleaseChunkLockMethod) == null) {
+          CoordinatorServiceGrpc.getReleaseChunkLockMethod = getReleaseChunkLockMethod =
+              io.grpc.MethodDescriptor.<com.shardedmc.proto.LockRequest, com.shardedmc.proto.Empty>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ReleaseChunkLock"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.shardedmc.proto.LockRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.shardedmc.proto.Empty.getDefaultInstance()))
+              .setSchemaDescriptor(new CoordinatorServiceMethodDescriptorSupplier("ReleaseChunkLock"))
+              .build();
+        }
+      }
+    }
+    return getReleaseChunkLockMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<com.shardedmc.proto.EntityStateSync,
       com.shardedmc.proto.SyncResponse> getSyncEntityStateMethod;
 
@@ -330,6 +392,20 @@ public final class CoordinatorServiceGrpc {
 
     /**
      */
+    default void requestChunkLock(com.shardedmc.proto.LockRequest request,
+        io.grpc.stub.StreamObserver<com.shardedmc.proto.LockResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getRequestChunkLockMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void releaseChunkLock(com.shardedmc.proto.LockRequest request,
+        io.grpc.stub.StreamObserver<com.shardedmc.proto.Empty> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getReleaseChunkLockMethod(), responseObserver);
+    }
+
+    /**
+     */
     default void syncEntityState(com.shardedmc.proto.EntityStateSync request,
         io.grpc.stub.StreamObserver<com.shardedmc.proto.SyncResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getSyncEntityStateMethod(), responseObserver);
@@ -419,6 +495,22 @@ public final class CoordinatorServiceGrpc {
 
     /**
      */
+    public void requestChunkLock(com.shardedmc.proto.LockRequest request,
+        io.grpc.stub.StreamObserver<com.shardedmc.proto.LockResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getRequestChunkLockMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void releaseChunkLock(com.shardedmc.proto.LockRequest request,
+        io.grpc.stub.StreamObserver<com.shardedmc.proto.Empty> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getReleaseChunkLockMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
     public void syncEntityState(com.shardedmc.proto.EntityStateSync request,
         io.grpc.stub.StreamObserver<com.shardedmc.proto.SyncResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
@@ -485,6 +577,20 @@ public final class CoordinatorServiceGrpc {
     public com.shardedmc.proto.ChunkUnloadResponse requestChunkUnload(com.shardedmc.proto.ChunkUnloadRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getRequestChunkUnloadMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public com.shardedmc.proto.LockResponse requestChunkLock(com.shardedmc.proto.LockRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getRequestChunkLockMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public com.shardedmc.proto.Empty releaseChunkLock(com.shardedmc.proto.LockRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getReleaseChunkLockMethod(), getCallOptions(), request);
     }
 
     /**
@@ -564,6 +670,22 @@ public final class CoordinatorServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<com.shardedmc.proto.LockResponse> requestChunkLock(
+        com.shardedmc.proto.LockRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getRequestChunkLockMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<com.shardedmc.proto.Empty> releaseChunkLock(
+        com.shardedmc.proto.LockRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getReleaseChunkLockMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<com.shardedmc.proto.SyncResponse> syncEntityState(
         com.shardedmc.proto.EntityStateSync request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
@@ -577,7 +699,9 @@ public final class CoordinatorServiceGrpc {
   private static final int METHODID_CONFIRM_PLAYER_TRANSFER = 3;
   private static final int METHODID_REQUEST_CHUNK_LOAD = 4;
   private static final int METHODID_REQUEST_CHUNK_UNLOAD = 5;
-  private static final int METHODID_SYNC_ENTITY_STATE = 6;
+  private static final int METHODID_REQUEST_CHUNK_LOCK = 6;
+  private static final int METHODID_RELEASE_CHUNK_LOCK = 7;
+  private static final int METHODID_SYNC_ENTITY_STATE = 8;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -619,6 +743,14 @@ public final class CoordinatorServiceGrpc {
         case METHODID_REQUEST_CHUNK_UNLOAD:
           serviceImpl.requestChunkUnload((com.shardedmc.proto.ChunkUnloadRequest) request,
               (io.grpc.stub.StreamObserver<com.shardedmc.proto.ChunkUnloadResponse>) responseObserver);
+          break;
+        case METHODID_REQUEST_CHUNK_LOCK:
+          serviceImpl.requestChunkLock((com.shardedmc.proto.LockRequest) request,
+              (io.grpc.stub.StreamObserver<com.shardedmc.proto.LockResponse>) responseObserver);
+          break;
+        case METHODID_RELEASE_CHUNK_LOCK:
+          serviceImpl.releaseChunkLock((com.shardedmc.proto.LockRequest) request,
+              (io.grpc.stub.StreamObserver<com.shardedmc.proto.Empty>) responseObserver);
           break;
         case METHODID_SYNC_ENTITY_STATE:
           serviceImpl.syncEntityState((com.shardedmc.proto.EntityStateSync) request,
@@ -685,6 +817,20 @@ public final class CoordinatorServiceGrpc {
               com.shardedmc.proto.ChunkUnloadResponse>(
                 service, METHODID_REQUEST_CHUNK_UNLOAD)))
         .addMethod(
+          getRequestChunkLockMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              com.shardedmc.proto.LockRequest,
+              com.shardedmc.proto.LockResponse>(
+                service, METHODID_REQUEST_CHUNK_LOCK)))
+        .addMethod(
+          getReleaseChunkLockMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              com.shardedmc.proto.LockRequest,
+              com.shardedmc.proto.Empty>(
+                service, METHODID_RELEASE_CHUNK_LOCK)))
+        .addMethod(
           getSyncEntityStateMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
@@ -745,6 +891,8 @@ public final class CoordinatorServiceGrpc {
               .addMethod(getConfirmPlayerTransferMethod())
               .addMethod(getRequestChunkLoadMethod())
               .addMethod(getRequestChunkUnloadMethod())
+              .addMethod(getRequestChunkLockMethod())
+              .addMethod(getReleaseChunkLockMethod())
               .addMethod(getSyncEntityStateMethod())
               .build();
         }

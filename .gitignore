@@ -2,34 +2,99 @@
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
-
-# IDE
-.idea/
-*.iml
-*.ipr
-*.iws
-.vscode/
-*.swp
-*.swo
-
-# Logs
-*.log
-nohup.out
-
-# OS
-.DS_Store
-Thumbs.db
+!gradle/wrapper/gradle-wrapper.properties
+gradlew
+gradlew.bat
+gradle/
 
 # Java
 *.class
 *.jar
 *.war
 *.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+# IDE - IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# IDE - Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# IDE - VS Code
+.vscode/
+*.code-workspace
 
 # Minecraft
-server/
-plugins/
+worlds/
 world/
+*.mca
+*.dat
+*.dat_old
+playerdata/
+region/
+level.dat
+session.lock
 
-# Config with secrets
-.env
+# Logs
+*.log
+logs/
+log/
+
+# OS specific
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Node.js (for tests)
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# Redis
+dump.rdb
+appendonly.aof
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Test outputs
+test-results/
+coverage/
+
+# Configuration with secrets
+*.env
+.env.local
+.env.*.local
+
+# Javadoc
+javadoc/
+docs/javadoc/
+
+# Kotlin
+*.kotlin_module
+
+# Annotation processing
+.apt_generated/
+.apt_generated_tests/
+
+# Misc
+*.hprof
+hs_err_pid*
+replay_pid*

@@ -120,6 +120,21 @@ message ChunkUnloadResponse {
     bool success = 1;
 }
 
+// Chunk locking
+message LockRequest {
+    string shard_id = 1;
+    ChunkPos chunk_pos = 2;
+}
+
+message LockResponse {
+    bool success = 1;
+    string owner_shard_id = 2;
+}
+
+// Empty message for methods that don't need parameters
+message Empty {
+}
+
 // Entity sync
 message EntityStateSync {
     string shard_id = 1;
@@ -142,6 +157,8 @@ service CoordinatorService {
     
     rpc RequestChunkLoad(ChunkLoadRequest) returns (ChunkLoadResponse);
     rpc RequestChunkUnload(ChunkUnloadRequest) returns (ChunkUnloadResponse);
+    rpc RequestChunkLock(LockRequest) returns (LockResponse);
+    rpc ReleaseChunkLock(LockRequest) returns (Empty);
     
     rpc SyncEntityState(EntityStateSync) returns (SyncResponse);
 }

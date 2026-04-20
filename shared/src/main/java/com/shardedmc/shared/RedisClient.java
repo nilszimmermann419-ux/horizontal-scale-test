@@ -112,6 +112,22 @@ public class RedisClient implements AutoCloseable {
         return syncCommands.hget(key, field);
     }
     
+    public String get(String key) {
+        return syncCommands.get(key);
+    }
+    
+    public void setex(String key, long seconds, String value) {
+        syncCommands.setex(key, seconds, value);
+    }
+    
+    public void set(String key, String value) {
+        syncCommands.set(key, value);
+    }
+    
+    public long del(String key) {
+        return syncCommands.del(key);
+    }
+    
     // Pipelining for batch operations
     public void pipeline(Consumer<RedisAsyncCommands<String, String>> operations) {
         var commands = connection.async();

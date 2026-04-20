@@ -183,7 +183,7 @@ public class VanillaSurvival {
         // Drop experience
         int exp = survivalData.getOrDefault(uuid, new PlayerSurvivalData()).experience;
         if (exp > 0) {
-            ExperienceOrb expOrb = new ExperienceOrb(exp);
+            ExperienceOrb expOrb = new ExperienceOrb((short) Math.min(exp, Short.MAX_VALUE));
             expOrb.setInstance(instance, player.getPosition());
         }
         
@@ -293,9 +293,9 @@ public class VanillaSurvival {
                 // Add exhaustion to attacker
                 addExhaustion(playerAttacker, 0.1f);
                 
-            } else {
+            } else if (target instanceof net.minestom.server.entity.LivingEntity livingTarget) {
                 // PvE
-                target.damage(DamageType.PLAYER_ATTACK, damage);
+                livingTarget.damage(net.minestom.server.entity.damage.Damage.fromEntity(playerAttacker, damage));
             }
             
             // Damage weapon
@@ -521,7 +521,7 @@ public class VanillaSurvival {
         
         // Default: drop block itself
         try {
-            Material mat = Material.valueOf(name.toUpperCase().replace("MINECRAFT:", ""));
+            Material mat = Material.fromKey(name.toLowerCase().replace("minecraft:", ""));
             return new ItemStack[]{ItemStack.of(mat, 1)};
         } catch (Exception e) {
             return new ItemStack[]{};
