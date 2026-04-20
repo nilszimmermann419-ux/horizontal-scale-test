@@ -6,12 +6,8 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.*;
-import net.minestom.server.instance.Chunk;
-import net.minestom.server.instance.DynamicChunk;
 import net.minestom.server.instance.InstanceContainer;
-import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.timer.TaskSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +34,8 @@ public class ShardServer {
     private InstanceContainer instance;
     private AdvancedWorldGenerator worldGenerator;
     private WorldSyncManager worldSync;
+    private DimensionManager dimensionManager;
+    private com.shardedmc.shard.vanilla.PortalHandler portalHandler;
     
     // Chunks this shard owns
     private final Set<ChunkPos> ownedChunks = ConcurrentHashMap.newKeySet();
@@ -78,14 +76,16 @@ public class ShardServer {
         // Initialize MinecraftServer
         MinecraftServer minecraftServer = MinecraftServer.init();
         
-        // Create instance
-        InstanceManager instanceManager = MinecraftServer.getInstanceManager();
-        instance = instanceManager.createInstanceContainer();
-        
         // Set up shared chunk loader so all shards see the same world
         long worldSeed = 12345L;
         SharedChunkLoader chunkLoader = new SharedChunkLoader(redisClient, "main", worldSeed);
-        instance.setChunkLoader(chunkLoader);
+        
+        // Initialize dimension manager with all dimensions
+        dimensionManager = new DimensionManager(chunkLoader);
+        dimensionManager.initializeDimensions();
+        
+        // Get the default (overworld) instance
+        instance = dimensionManager.getDefaultInstance();
         
         // Initialize lighting engine
         LightingEngine lightingEngine = new LightingEngine(instance);
@@ -103,6 +103,10 @@ public class ShardServer {
         // Register vanilla mechanics (combat, blocks, crafting, etc.)
         VanillaMechanics mechanics = new VanillaMechanics();
         mechanics.register(MinecraftServer.getGlobalEventHandler());
+        
+        // Set up portal handler for dimension transitions
+        portalHandler = new com.shardedmc.shard.vanilla.PortalHandler(dimensionManager);
+        portalHandler.register(MinecraftServer.getGlobalEventHandler());
         
         // Register debug commands
         DebugCommands.registerAll();
