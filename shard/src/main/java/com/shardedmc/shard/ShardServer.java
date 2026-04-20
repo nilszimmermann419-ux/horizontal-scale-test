@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 /**
@@ -37,11 +37,11 @@ public class ShardServer {
     private DimensionManager dimensionManager;
     private com.shardedmc.shard.vanilla.PortalHandler portalHandler;
     
-    // Chunks this shard owns
-    private final Set<ChunkPos> ownedChunks = ConcurrentHashMap.newKeySet();
+    // Chunks this shard owns - using Long keys to avoid ChunkPos allocation in hot paths
+    private final Set<Long> ownedChunks = ConcurrentHashMap.newKeySet();
     
-    // Chunks this shard subscribes to (read-only)
-    private final Set<ChunkPos> subscribedChunks = ConcurrentHashMap.newKeySet();
+    // Chunks this shard subscribes to (read-only) - using Long keys to avoid ChunkPos allocation
+    private final Set<Long> subscribedChunks = ConcurrentHashMap.newKeySet();
     
     // Scheduled executor for background tasks
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
@@ -161,7 +161,8 @@ public class ShardServer {
             int chunkZ = event.getChunkZ();
             
             // Request ownership if not already owned
-            if (!ownedChunks.contains(new ChunkPos(chunkX, chunkZ))) {
+            long chunkKey = getChunkKey(chunkX, chunkZ);
+            if (!ownedChunks.contains(chunkKey)) {
                 requestChunkOwnership(chunkX, chunkZ);
             }
         });
@@ -220,9 +221,10 @@ public class ShardServer {
             int chunkZ = event.getNewPosition().chunkZ();
             
             // If entering a chunk owned by another shard, request transfer
-            if (!isChunkOwned(chunkX, chunkZ) && !subscribedChunks.contains(new ChunkPos(chunkX, chunkZ))) {
+            long chunkKey = getChunkKey(chunkX, chunkZ);
+            if (!isChunkOwned(chunkX, chunkZ) && !subscribedChunks.contains(chunkKey)) {
                 // Subscribe to this chunk for read-only access
-                subscribedChunks.add(new ChunkPos(chunkX, chunkZ));
+                subscribedChunks.add(chunkKey);
             }
         });
         
@@ -234,18 +236,18 @@ public class ShardServer {
     }
     
     private void requestChunkOwnership(int chunkX, int chunkZ) {
-        ChunkPos pos = new ChunkPos(chunkX, chunkZ);
+        long chunkKey = getChunkKey(chunkX, chunkZ);
         
         masterClient.requestChunkOwnership(shardId, chunkX, chunkZ)
                 .thenAccept(owned -> {
                     if (owned) {
-                        ownedChunks.add(pos);
-                        subscribedChunks.remove(pos);
+                        ownedChunks.add(chunkKey);
+                        subscribedChunks.remove(chunkKey);
                         logger.debug("Shard {} acquired ownership of chunk {}, {}", 
                                 shardId, chunkX, chunkZ);
                     } else {
                         // Another shard owns this chunk, subscribe to it
-                        subscribedChunks.add(pos);
+                        subscribedChunks.add(chunkKey);
                         logger.debug("Shard {} subscribed to chunk {}, {}", 
                                 shardId, chunkX, chunkZ);
                     }
@@ -253,7 +255,11 @@ public class ShardServer {
     }
     
     private boolean isChunkOwned(int chunkX, int chunkZ) {
-        return ownedChunks.contains(new ChunkPos(chunkX, chunkZ));
+        return ownedChunks.contains(getChunkKey(chunkX, chunkZ));
+    }
+    
+    private long getChunkKey(int x, int z) {
+        return ((long) x << 32) | (z & 0xFFFFFFFFL);
     }
     
     private void startHeartbeat() {
@@ -293,19 +299,4 @@ public class ShardServer {
         server.start();
     }
     
-    // Simple ChunkPos record for internal use
-    private record ChunkPos(int x, int z) {
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ChunkPos chunkPos = (ChunkPos) o;
-            return x == chunkPos.x && z == chunkPos.z;
-        }
-        
-        @Override
-        public int hashCode() {
-            return Objects.hash(x, z);
-        }
-    }
 }
