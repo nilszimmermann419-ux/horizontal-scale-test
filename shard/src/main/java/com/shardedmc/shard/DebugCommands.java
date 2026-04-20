@@ -3,6 +3,7 @@ package com.shardedmc.shard;
 import com.shardedmc.shard.debug.ShardMonitor;
 import com.shardedmc.shard.debug.ShardMonitor.MemoryStats;
 import com.shardedmc.shard.debug.ShardMonitor.TickStats;
+import com.shardedmc.shard.vanilla.NPCManager;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -78,7 +79,10 @@ public class DebugCommands {
         registerDebugPanelCommand();
         startDebugPanelTask();
 
-        logger.info("Debug commands registered (18 commands + debug panel)");
+        // NPC commands
+        registerNPCCommand();
+
+        logger.info("Debug commands registered (19 commands + debug panel)");
     }
 
     // ==================== Original Debug Commands ====================
@@ -868,5 +872,95 @@ public class DebugCommands {
                 player.hideBossBar(bossBar);
             }
         }
+    }
+
+    // ==================== NPC Commands ====================
+
+    private static NPCManager npcManager;
+
+    public static void setNPCManager(NPCManager manager) {
+        npcManager = manager;
+    }
+
+    private static void registerNPCCommand() {
+        Command cmd = new Command("npc");
+        var actionArg = ArgumentType.Word("action").from("spawn", "remove", "list");
+        var nameArg = ArgumentType.String("name");
+        var idArg = ArgumentType.Integer("id").min(1);
+
+        // /npc spawn <name>
+        cmd.addSyntax((sender, context) -> {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage(Component.text("Only players can spawn NPCs", NamedTextColor.RED));
+                return;
+            }
+            if (npcManager == null) {
+                player.sendMessage(Component.text("NPC system is not initialized", NamedTextColor.RED));
+                return;
+            }
+            String name = context.get(nameArg);
+            Pos pos = player.getPosition().add(1, 0, 0);
+            NPCManager.NPC npc = npcManager.spawnNPC(player.getInstance(), pos, name);
+            player.sendMessage(Component.text("✓ Spawned NPC '", NamedTextColor.GREEN)
+                    .append(Component.text(name, NamedTextColor.YELLOW))
+                    .append(Component.text("' (ID: " + npc.id + ")", NamedTextColor.GREEN)));
+            logger.info("Player {} spawned NPC '{}' (ID: {}) at {}", player.getUsername(), name, npc.id, pos);
+        }, actionArg, nameArg);
+
+        // /npc remove <id>
+        cmd.addSyntax((sender, context) -> {
+            if (!(sender instanceof Player player)) return;
+            if (npcManager == null) {
+                player.sendMessage(Component.text("NPC system is not initialized", NamedTextColor.RED));
+                return;
+            }
+            int id = context.get(idArg);
+            if (npcManager.removeNPC(id)) {
+                player.sendMessage(Component.text("✓ Removed NPC ID: " + id, NamedTextColor.GREEN));
+            } else {
+                player.sendMessage(Component.text("✗ NPC ID " + id + " not found", NamedTextColor.RED));
+            }
+        }, actionArg, idArg);
+
+        // /npc list
+        cmd.addSyntax((sender, context) -> {
+            if (!(sender instanceof Player player)) return;
+            if (npcManager == null) {
+                player.sendMessage(Component.text("NPC system is not initialized", NamedTextColor.RED));
+                return;
+            }
+            var npcs = npcManager.getAllNPCs();
+            if (npcs.isEmpty()) {
+                player.sendMessage(Component.text("No NPCs spawned", NamedTextColor.YELLOW));
+                return;
+            }
+
+            player.sendMessage(Component.text("", NamedTextColor.GOLD));
+            player.sendMessage(Component.text("╔════════════════════════════════════════╗", NamedTextColor.GOLD));
+            player.sendMessage(Component.text("║           NPC LIST (" + npcs.size() + ")              ║", NamedTextColor.GOLD));
+            player.sendMessage(Component.text("╠════════════════════════════════════════╣", NamedTextColor.GOLD));
+
+            for (NPCManager.NPC npc : npcs) {
+                Pos pos = npc.getPosition();
+                player.sendMessage(Component.text("║  ID: " + npc.id + " | Name: ", NamedTextColor.YELLOW)
+                        .append(Component.text(npc.name, NamedTextColor.WHITE))
+                        .append(Component.text(" | Pos: " + String.format("%.1f, %.1f, %.1f", pos.x(), pos.y(), pos.z()), NamedTextColor.GRAY)));
+            }
+
+            player.sendMessage(Component.text("╚════════════════════════════════════════╝", NamedTextColor.GOLD));
+            player.sendMessage(Component.text("", NamedTextColor.GOLD));
+        }, actionArg);
+
+        cmd.setDefaultExecutor((sender, context) -> {
+            sender.sendMessage(Component.text("=== NPC Commands ===", NamedTextColor.GOLD));
+            sender.sendMessage(Component.text("/npc spawn <name>", NamedTextColor.YELLOW)
+                    .append(Component.text(" - Spawn an NPC", NamedTextColor.WHITE)));
+            sender.sendMessage(Component.text("/npc remove <id>", NamedTextColor.YELLOW)
+                    .append(Component.text(" - Remove an NPC", NamedTextColor.WHITE)));
+            sender.sendMessage(Component.text("/npc list", NamedTextColor.YELLOW)
+                    .append(Component.text(" - List all NPCs", NamedTextColor.WHITE)));
+        });
+
+        MinecraftServer.getCommandManager().register(cmd);
     }
 }
