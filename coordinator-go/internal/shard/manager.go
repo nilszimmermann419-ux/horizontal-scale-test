@@ -16,13 +16,14 @@ type Shard struct {
 	Capacity int
 
 	// Atomic counters for thread-safe access
-	playerCount   int32
-	load          float64
-	lastHeartbeat time.Time
-	healthy       atomic.Bool
+	playerCount    int32
+	load           float64
+	lastHeartbeat  atomic.Int64 // Unix timestamp in nanoseconds
+	healthy        atomic.Bool
 
-	// Connection to shard - can be netpoll.Connection or custom connection
-	conn interface{}
+	// Connection to shard - protected by mutex
+	connMu sync.RWMutex
+	conn   interface{}
 }
 
 // Manager manages all registered shards
@@ -45,7 +46,7 @@ func (m *Manager) RegisterShard(id, address string, port, capacity int) (*Shard,
 		Capacity: capacity,
 	}
 	shard.healthy.Store(true)
-	shard.lastHeartbeat = time.Now()
+	shard.lastHeartbeat.Store(time.Now().UnixNano())
 
 	m.shards.Store(id, shard)
 	log.Printf("Registered shard %s at %s:%d (capacity: %d)", id, address, port, capacity)
@@ -144,8 +145,9 @@ func (m *Manager) checkHealth() {
 	m.shards.Range(func(key, value interface{}) bool {
 		shard := value.(*Shard)
 
-		// Check if heartbeat is recent (within 10 seconds)
-		if time.Since(shard.lastHeartbeat) > 10*time.Second {
+		// Check if heartbeat is recent (within 10 seconds) using atomic read
+		lastBeat := time.Unix(0, shard.lastHeartbeat.Load())
+		if time.Since(lastBeat) > 10*time.Second {
 			wasHealthy := shard.healthy.Load()
 			shard.healthy.Store(false)
 			if wasHealthy {
@@ -157,14 +159,31 @@ func (m *Manager) checkHealth() {
 	})
 }
 
-// AddPlayer increments the player count
+// AddPlayer increments the player count with bounds checking
 func (s *Shard) AddPlayer() {
-	atomic.AddInt32(&s.playerCount, 1)
+	for {
+		current := atomic.LoadInt32(&s.playerCount)
+		if current >= int32(s.Capacity) {
+			log.Printf("Shard %s at capacity (%d/%d)", s.ID, current, s.Capacity)
+			return
+		}
+		if atomic.CompareAndSwapInt32(&s.playerCount, current, current+1) {
+			return
+		}
+	}
 }
 
-// RemovePlayer decrements the player count
+// RemovePlayer decrements the player count with bounds checking
 func (s *Shard) RemovePlayer() {
-	atomic.AddInt32(&s.playerCount, -1)
+	for {
+		current := atomic.LoadInt32(&s.playerCount)
+		if current <= 0 {
+			return
+		}
+		if atomic.CompareAndSwapInt32(&s.playerCount, current, current-1) {
+			return
+		}
+	}
 }
 
 // PlayerCount returns the current player count
@@ -174,7 +193,7 @@ func (s *Shard) PlayerCount() int32 {
 
 // UpdateHeartbeat updates the last heartbeat time and marks shard as healthy
 func (s *Shard) UpdateHeartbeat() {
-	s.lastHeartbeat = time.Now()
+	s.lastHeartbeat.Store(time.Now().UnixNano())
 	s.healthy.Store(true)
 }
 
@@ -183,13 +202,17 @@ func (s *Shard) IsHealthy() bool {
 	return s.healthy.Load()
 }
 
-// SetConnection sets the shard's network connection
+// SetConnection sets the shard's network connection (thread-safe)
 func (s *Shard) SetConnection(conn interface{}) {
+	s.connMu.Lock()
+	defer s.connMu.Unlock()
 	s.conn = conn
 }
 
-// GetConnection returns the shard's network connection
+// GetConnection returns the shard's network connection (thread-safe)
 func (s *Shard) GetConnection() interface{} {
+	s.connMu.RLock()
+	defer s.connMu.RUnlock()
 	return s.conn
 }
 

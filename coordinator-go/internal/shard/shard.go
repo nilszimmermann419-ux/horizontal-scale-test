@@ -3,6 +3,7 @@ package shard
 import (
 	"fmt"
 	"sync/atomic"
+	"time"
 )
 
 // ShardStats contains statistics for a shard
@@ -27,7 +28,7 @@ func (s *Shard) Stats() ShardStats {
 		PlayerCount:   atomic.LoadInt32(&s.playerCount),
 		Load:          s.Load(),
 		Healthy:       s.healthy.Load(),
-		LastHeartbeat: s.lastHeartbeat.Unix(),
+		LastHeartbeat: time.Unix(0, s.lastHeartbeat.Load()).Unix(),
 	}
 }
 

@@ -55,7 +55,8 @@ func (hc *HealthChecker) checkAllShards() {
 
 func (hc *HealthChecker) checkShard(shard *Shard) {
 	// Check heartbeat timeout
-	if time.Since(shard.lastHeartbeat) > hc.timeout {
+	lastBeat := time.Unix(0, shard.lastHeartbeat.Load())
+	if time.Since(lastBeat) > hc.timeout {
 		if shard.healthy.Load() {
 			shard.healthy.Store(false)
 			log.Printf("Shard %s marked unhealthy (heartbeat timeout)", shard.ID)
