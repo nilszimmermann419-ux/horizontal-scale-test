@@ -38,6 +38,12 @@ public class ShardServer {
     private DimensionManager dimensionManager;
     private com.shardedmc.shard.vanilla.PortalHandler portalHandler;
     
+    // Entity management systems
+    private EntityLimiter entityLimiter;
+    private EntityActivationManager entityActivationManager;
+    private VillagerOptimizer villagerOptimizer;
+    private ItemDespawnManager itemDespawnManager;
+    
     // Chunks this shard owns - using Long keys to avoid ChunkPos allocation in hot paths
     private final Set<Long> ownedChunks = ConcurrentHashMap.newKeySet();
     
@@ -97,6 +103,19 @@ public class ShardServer {
         
         // Initialize comprehensive world sync
         worldSync = new WorldSyncManager(redisClient, shardId);
+        
+        // Initialize entity management systems
+        entityLimiter = new EntityLimiter();
+        entityActivationManager = new EntityActivationManager();
+        villagerOptimizer = new VillagerOptimizer();
+        itemDespawnManager = new ItemDespawnManager();
+        
+        // Register entity management event handlers
+        GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
+        entityLimiter.register(globalEventHandler);
+        entityActivationManager.register(globalEventHandler);
+        villagerOptimizer.register(globalEventHandler);
+        itemDespawnManager.register(globalEventHandler);
         
         // Set up event handlers
         setupEventHandlers();
