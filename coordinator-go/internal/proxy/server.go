@@ -1,42 +1,37 @@
 package proxy
 
 import (
-	"context"
-	"errors"
+	"fmt"
+	"io"
 	"log"
 	"net"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/cloudwego/netpoll"
 	"github.com/shardedmc/coordinator/internal/shard"
 )
 
 const (
 	MaxConcurrentConnections = 10000
-	ConnectionReadTimeout    = 30 * time.Second
-	ConnectionWriteTimeout   = 10 * time.Second
-	BufferPoolSize           = 65536
+	ConnectionTimeout        = 30 * time.Second
+	BufferSize               = 32768
 )
 
 // Proxy handles incoming player connections and routes them to shards
 type Proxy struct {
-	listener          netpoll.Listener
-	shards            *shard.Manager
-	conns             sync.Map // map[uint64]*PlayerConnection
-	nextID            uint64
-	mu                sync.RWMutex
-	closed            atomic.Bool
-	connSemaphore     chan struct{} // Limits concurrent connections
-	bufferPool        sync.Pool
-	connectionTimeout time.Duration
+	listener      net.Listener
+	shards        *shard.Manager
+	conns         sync.Map // map[uint64]*PlayerConnection
+	nextID        uint64
+	closed        atomic.Bool
+	connSemaphore chan struct{}
 }
 
 // PlayerConnection represents a connected Minecraft player
 type PlayerConnection struct {
 	id       uint64
-	conn     netpoll.Connection
+	conn     net.Conn
 	shard    *shard.Shard
 	username string
 	uuid     string
@@ -44,22 +39,15 @@ type PlayerConnection struct {
 
 // NewProxy creates a new proxy server
 func NewProxy(addr string, shards *shard.Manager) (*Proxy, error) {
-	listener, err := netpoll.CreateListener("tcp", addr)
+	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Proxy{
-		listener:          listener,
-		shards:            shards,
-		connSemaphore:     make(chan struct{}, MaxConcurrentConnections),
-		connectionTimeout: ConnectionReadTimeout,
-		bufferPool: sync.Pool{
-			New: func() interface{} {
-				b := make([]byte, BufferPoolSize)
-				return &b
-			},
-		},
+		listener:      listener,
+		shards:        shards,
+		connSemaphore: make(chan struct{}, MaxConcurrentConnections),
 	}, nil
 }
 
@@ -76,10 +64,9 @@ func (p *Proxy) Start() error {
 		// Acquire semaphore slot
 		select {
 		case p.connSemaphore <- struct{}{}:
-			// Got slot, continue
+			// Got slot
 		default:
-			// Too many connections, wait and retry
-			log.Printf("Connection limit reached (%d), waiting...", MaxConcurrentConnections)
+			log.Printf("Connection limit reached, waiting...")
 			select {
 			case p.connSemaphore <- struct{}{}:
 			case <-time.After(time.Second):
@@ -97,27 +84,11 @@ func (p *Proxy) Start() error {
 			continue
 		}
 
-		// Type assert to netpoll.Connection
-		npConn, ok := conn.(netpoll.Connection)
-		if !ok {
-			<-p.connSemaphore // Release slot
-			log.Printf("Failed to cast connection to netpoll.Connection, closing")
-			if conn != nil {
-				conn.Close()
-			}
-			continue
-		}
-
-		// Set read deadline to prevent hanging connections
-		if tcpConn, ok := npConn.(interface{ SetReadDeadline(t time.Time) error }); ok {
-			tcpConn.SetReadDeadline(time.Now().Add(ConnectionReadTimeout))
-		}
-
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			defer func() { <-p.connSemaphore }() // Release slot when done
-			p.handleConnection(npConn)
+			defer func() { <-p.connSemaphore }()
+			p.handleConnection(conn)
 		}()
 	}
 
@@ -131,16 +102,12 @@ func (p *Proxy) Stop() error {
 	return p.listener.Close()
 }
 
-func (p *Proxy) handleConnection(conn netpoll.Connection) {
+func (p *Proxy) handleConnection(conn net.Conn) {
 	id := atomic.AddUint64(&p.nextID, 1)
-	pc := &PlayerConnection{
-		id:   id,
-		conn: conn,
-	}
-
-	p.conns.Store(id, pc)
-	defer p.conns.Delete(id)
-
+	
+	// Set connection timeout
+	conn.SetDeadline(time.Now().Add(ConnectionTimeout))
+	
 	// Route to least-loaded shard
 	shard := p.shards.GetLeastLoadedShard()
 	if shard == nil {
@@ -149,45 +116,51 @@ func (p *Proxy) handleConnection(conn netpoll.Connection) {
 		return
 	}
 
-	pc.shard = shard
+	// Connect to the shard
+	shardAddr := fmt.Sprintf("%s:%d", shard.Address, shard.Port)
+	shardConn, err := net.DialTimeout("tcp", shardAddr, 5*time.Second)
+	if err != nil {
+		log.Printf("Failed to connect to shard %s for player %d: %v", shard.ID, id, err)
+		conn.Close()
+		return
+	}
+
+	pc := &PlayerConnection{
+		id:    id,
+		conn:  conn,
+		shard: shard,
+	}
+
+	p.conns.Store(id, pc)
+	defer p.conns.Delete(id)
+
 	shard.AddPlayer()
 	defer shard.RemovePlayer()
 
-	// Start packet forwarding with timeout context
-	ctx, cancel := context.WithTimeout(context.Background(), p.connectionTimeout)
-	defer cancel()
+	log.Printf("Player %d routed to shard %s (%s)", id, shard.ID, shardAddr)
 
-	p.forwardPackets(ctx, pc)
-}
+	// Start bidirectional forwarding
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-func (p *Proxy) forwardPackets(ctx context.Context, pc *PlayerConnection) {
-	bufPtr := p.bufferPool.Get().(*[]byte)
-	buf := *bufPtr
-	defer p.bufferPool.Put(bufPtr)
+	// Player -> Shard
+	go func() {
+		defer wg.Done()
+		defer shardConn.Close()
+		copied, _ := io.Copy(shardConn, conn)
+		log.Printf("Player %d -> Shard: %d bytes", id, copied)
+	}()
 
-	for {
-		// Check for context cancellation
-		select {
-		case <-ctx.Done():
-			log.Printf("Player %d connection timed out", pc.id)
-			return
-		default:
-		}
+	// Shard -> Player
+	go func() {
+		defer wg.Done()
+		defer conn.Close()
+		copied, _ := io.Copy(conn, shardConn)
+		log.Printf("Shard -> Player %d: %d bytes", id, copied)
+	}()
 
-		n, err := pc.conn.Read(buf)
-		if err != nil {
-			if errors.Is(err, net.ErrClosed) || errors.Is(err, context.DeadlineExceeded) {
-				log.Printf("Player %d disconnected", pc.id)
-			} else {
-				log.Printf("Player %d read error: %v", pc.id, err)
-			}
-			return
-		}
-
-		// Forward to shard - for now just log
-		// In production, this would route to the shard's connection
-		_ = buf[:n]
-	}
+	wg.Wait()
+	log.Printf("Player %d disconnected from shard %s", id, shard.ID)
 }
 
 // GetConnection returns a player connection by ID
