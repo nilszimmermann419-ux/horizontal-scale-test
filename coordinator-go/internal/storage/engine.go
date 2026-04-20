@@ -1,9 +1,18 @@
 package storage
 
 import (
+	"container/list"
 	"context"
 	"fmt"
 	"sync"
+	"time"
+)
+
+const (
+	MaxChunks   = 100000
+	MaxPlayers  = 10000
+	MaxEntities = 50000
+	MaxBlocks   = 1000000
 )
 
 // Engine is the interface for the custom storage backend
@@ -78,6 +87,13 @@ type Vec3D struct {
 	X, Y, Z float64
 }
 
+// lruEntry wraps a value with its access time for LRU eviction
+type lruEntry struct {
+	key       string
+	value     interface{}
+	accessed  time.Time
+}
+
 // NewEngine creates a new storage engine
 func NewEngine(path string) (Engine, error) {
 	return newMemoryEngine(), nil
@@ -89,14 +105,33 @@ type memoryEngine struct {
 	players  map[string]*PlayerData
 	entities map[string]*EntityData
 	blocks   map[string]uint16
+
+	// LRU tracking
+	chunkLRU   *list.List
+	playerLRU  *list.List
+	entityLRU  *list.List
+	blockLRU   *list.List
+
+	chunkMap   map[string]*list.Element
+	playerMap  map[string]*list.Element
+	entityMap  map[string]*list.Element
+	blockMap   map[string]*list.Element
 }
 
 func newMemoryEngine() *memoryEngine {
 	return &memoryEngine{
-		chunks:   make(map[string]*ChunkData),
-		players:  make(map[string]*PlayerData),
-		entities: make(map[string]*EntityData),
-		blocks:   make(map[string]uint16),
+		chunks:    make(map[string]*ChunkData),
+		players:   make(map[string]*PlayerData),
+		entities:  make(map[string]*EntityData),
+		blocks:    make(map[string]uint16),
+		chunkLRU:  list.New(),
+		playerLRU: list.New(),
+		entityLRU: list.New(),
+		blockLRU:  list.New(),
+		chunkMap:  make(map[string]*list.Element),
+		playerMap: make(map[string]*list.Element),
+		entityMap: make(map[string]*list.Element),
+		blockMap:  make(map[string]*list.Element),
 	}
 }
 
@@ -108,6 +143,31 @@ func blockKey(world, dimension string, x, y, z int32) string {
 	return fmt.Sprintf("%s:%s:%d:%d:%d", world, dimension, x, y, z)
 }
 
+// evictOldest removes the oldest entry from an LRU list when over capacity
+func (e *memoryEngine) evictOldest(lru *list.List, dataMap map[string]interface{}, maxSize int) {
+	if lru.Len() <= maxSize {
+		return
+	}
+	for lru.Len() > maxSize {
+		elem := lru.Back()
+		if elem == nil {
+			break
+		}
+		lru.Remove(elem)
+		entry := elem.Value.(*lruEntry)
+		delete(dataMap, entry.key)
+	}
+}
+
+// touch moves an entry to the front of the LRU list
+func (e *memoryEngine) touch(lru *list.List, elemMap map[string]*list.Element, key string, elem *list.Element) {
+	if elem != nil {
+		lru.MoveToFront(elem)
+		entry := elem.Value.(*lruEntry)
+		entry.accessed = time.Now()
+	}
+}
+
 func (e *memoryEngine) GetChunk(ctx context.Context, world, dimension string, x, z int32) (*ChunkData, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
@@ -117,6 +177,11 @@ func (e *memoryEngine) GetChunk(ctx context.Context, world, dimension string, x,
 	if !ok {
 		return nil, fmt.Errorf("chunk not found: %s", key)
 	}
+
+	if elem, ok := e.chunkMap[key]; ok {
+		e.touch(e.chunkLRU, e.chunkMap, key, elem)
+	}
+
 	return chunk, nil
 }
 
@@ -125,7 +190,30 @@ func (e *memoryEngine) PutChunk(ctx context.Context, world, dimension string, x,
 	defer e.mu.Unlock()
 
 	key := chunkKey(world, dimension, x, z)
+	
+	// Update access time
+	data.LastModified = time.Now().Unix()
+
+	// Remove old entry if exists
+	if elem, ok := e.chunkMap[key]; ok {
+		e.chunkLRU.Remove(elem)
+		delete(e.chunkMap, key)
+	}
+
+	// Add new entry
 	e.chunks[key] = data
+	entry := &lruEntry{key: key, value: data, accessed: time.Now()}
+	e.chunkMap[key] = e.chunkLRU.PushFront(entry)
+
+	// Evict if over capacity
+	e.evictOldest(e.chunkLRU, func() map[string]interface{} {
+		m := make(map[string]interface{})
+		for k, v := range e.chunks {
+			m[k] = v
+		}
+		return m
+	}(), MaxChunks)
+
 	return nil
 }
 
@@ -134,6 +222,10 @@ func (e *memoryEngine) DeleteChunk(ctx context.Context, world, dimension string,
 	defer e.mu.Unlock()
 
 	key := chunkKey(world, dimension, x, z)
+	if elem, ok := e.chunkMap[key]; ok {
+		e.chunkLRU.Remove(elem)
+		delete(e.chunkMap, key)
+	}
 	delete(e.chunks, key)
 	return nil
 }
@@ -146,6 +238,11 @@ func (e *memoryEngine) GetPlayerData(ctx context.Context, uuid string) (*PlayerD
 	if !ok {
 		return nil, fmt.Errorf("player not found: %s", uuid)
 	}
+
+	if elem, ok := e.playerMap[uuid]; ok {
+		e.touch(e.playerLRU, e.playerMap, uuid, elem)
+	}
+
 	return player, nil
 }
 
@@ -153,7 +250,27 @@ func (e *memoryEngine) PutPlayerData(ctx context.Context, uuid string, data *Pla
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
+	// Remove old entry if exists
+	if elem, ok := e.playerMap[uuid]; ok {
+		e.playerLRU.Remove(elem)
+		delete(e.playerMap, uuid)
+	}
+
 	e.players[uuid] = data
+	entry := &lruEntry{key: uuid, value: data, accessed: time.Now()}
+	e.playerMap[uuid] = e.playerLRU.PushFront(entry)
+
+	// Evict if over capacity
+	if e.playerLRU.Len() > MaxPlayers {
+		e.evictOldest(e.playerLRU, func() map[string]interface{} {
+			m := make(map[string]interface{})
+			for k, v := range e.players {
+				m[k] = v
+			}
+			return m
+		}(), MaxPlayers)
+	}
+
 	return nil
 }
 
@@ -175,7 +292,27 @@ func (e *memoryEngine) PutEntity(ctx context.Context, world, dimension string, d
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
+	// Remove old entry if exists
+	if elem, ok := e.entityMap[data.UUID]; ok {
+		e.entityLRU.Remove(elem)
+		delete(e.entityMap, data.UUID)
+	}
+
 	e.entities[data.UUID] = data
+	entry := &lruEntry{key: data.UUID, value: data, accessed: time.Now()}
+	e.entityMap[data.UUID] = e.entityLRU.PushFront(entry)
+
+	// Evict if over capacity
+	if e.entityLRU.Len() > MaxEntities {
+		e.evictOldest(e.entityLRU, func() map[string]interface{} {
+			m := make(map[string]interface{})
+			for k, v := range e.entities {
+				m[k] = v
+			}
+			return m
+		}(), MaxEntities)
+	}
+
 	return nil
 }
 
@@ -183,6 +320,10 @@ func (e *memoryEngine) DeleteEntity(ctx context.Context, world, dimension string
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
+	if elem, ok := e.entityMap[uuid]; ok {
+		e.entityLRU.Remove(elem)
+		delete(e.entityMap, uuid)
+	}
 	delete(e.entities, uuid)
 	return nil
 }
@@ -196,6 +337,11 @@ func (e *memoryEngine) GetBlock(ctx context.Context, world, dimension string, x,
 	if !ok {
 		return 0, nil // Air
 	}
+
+	if elem, ok := e.blockMap[key]; ok {
+		e.touch(e.blockLRU, e.blockMap, key, elem)
+	}
+
 	return block, nil
 }
 
@@ -204,7 +350,28 @@ func (e *memoryEngine) PutBlock(ctx context.Context, world, dimension string, x,
 	defer e.mu.Unlock()
 
 	key := blockKey(world, dimension, x, y, z)
+
+	// Remove old entry if exists
+	if elem, ok := e.blockMap[key]; ok {
+		e.blockLRU.Remove(elem)
+		delete(e.blockMap, key)
+	}
+
 	e.blocks[key] = blockID
+	entry := &lruEntry{key: key, value: blockID, accessed: time.Now()}
+	e.blockMap[key] = e.blockLRU.PushFront(entry)
+
+	// Evict if over capacity
+	if e.blockLRU.Len() > MaxBlocks {
+		e.evictOldest(e.blockLRU, func() map[string]interface{} {
+			m := make(map[string]interface{})
+			for k, v := range e.blocks {
+				m[k] = v
+			}
+			return m
+		}(), MaxBlocks)
+	}
+
 	return nil
 }
 
