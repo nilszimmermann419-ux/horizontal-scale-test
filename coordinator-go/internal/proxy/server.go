@@ -63,8 +63,10 @@ func (p *Proxy) Start() error {
 		// Type assert to netpoll.Connection
 		npConn, ok := conn.(netpoll.Connection)
 		if !ok {
-			log.Printf("Failed to cast connection to netpoll.Connection")
-			conn.Close()
+			log.Printf("Failed to cast connection to netpoll.Connection, closing")
+			if conn != nil {
+				conn.Close()
+			}
 			continue
 		}
 
