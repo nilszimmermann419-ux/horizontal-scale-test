@@ -63,6 +63,7 @@ func main() {
 
 	// Initialize chunk manager
 	chunkMgr := chunk.NewManager()
+	_ = chunkMgr
 
 	// Initialize proxy
 	proxyServer, err := proxy.NewProxy(cfg.ProxyAddr, shardMgr)

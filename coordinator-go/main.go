@@ -5,14 +5,38 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/shardedmc/coordinator/internal/proxy"
+	"github.com/shardedmc/coordinator/internal/shard"
+	"github.com/shardedmc/coordinator/internal/storage"
 )
 
 type Coordinator struct {
-	config   *Config
-	proxy    *Proxy
-	shardMgr *ShardManager
-	storage  *StorageEngine
-	redis    *RedisClient
+	config   Config
+	proxy    *proxy.Proxy
+	shardMgr *shard.Manager
+	storage  storage.Engine
+}
+
+type Config struct {
+	ProxyAddr     string
+	ShardCapacity int
+}
+
+func loadConfig() Config {
+	return Config{
+		ProxyAddr:     ":25565",
+		ShardCapacity: 2000,
+	}
+}
+
+func (c *Coordinator) Start() error {
+	log.Println("Coordinator starting...")
+	return nil
+}
+
+func (c *Coordinator) Stop() {
+	log.Println("Coordinator stopping...")
 }
 
 func main() {
