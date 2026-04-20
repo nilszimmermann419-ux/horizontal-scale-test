@@ -66,6 +66,11 @@ public class EntityAI {
     private final Map<UUID, SpawnedMob> spawnedMobs = new ConcurrentHashMap<>();
     private final AtomicInteger spawnCounter = new AtomicInteger(0);
     
+    // Cached per-chunk mob counts to avoid O(n²) iteration
+    private final Map<Long, MobCounts> chunkMobCounts = new ConcurrentHashMap<>();
+    // Cached global per-instance mob counts
+    private final Map<Instance, MobCounts> globalMobCounts = new ConcurrentHashMap<>();
+    
     // Mob spawn types mapping (simplified)
     private final Set<EntityType> hostileTypes = Set.of(
         EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER,
@@ -307,27 +312,16 @@ public class EntityAI {
     }
     
     private MobCounts countMobs(Instance instance) {
-        MobCounts counts = new MobCounts();
-        for (Entity entity : instance.getEntities()) {
-            if (entity instanceof Player) continue;
-            categorizeMob(entity.getEntityType(), counts);
-        }
-        return counts;
+        return globalMobCounts.getOrDefault(instance, new MobCounts());
     }
     
     private MobCounts countMobsInChunk(Instance instance, int chunkX, int chunkZ) {
-        MobCounts counts = new MobCounts();
-        Chunk chunk = instance.getChunk(chunkX, chunkZ);
-        if (chunk == null) return counts;
-        
-        for (Entity entity : instance.getEntities()) {
-            if (entity instanceof Player) continue;
-            Pos pos = entity.getPosition();
-            if (pos.chunkX() == chunkX && pos.chunkZ() == chunkZ) {
-                categorizeMob(entity.getEntityType(), counts);
-            }
-        }
-        return counts;
+        long chunkKey = getChunkKey(chunkX, chunkZ);
+        return chunkMobCounts.getOrDefault(chunkKey, new MobCounts());
+    }
+    
+    private long getChunkKey(int x, int z) {
+        return ((long) x << 32) | (z & 0xFFFFFFFFL);
     }
     
     private void categorizeMob(EntityType type, MobCounts counts) {
@@ -347,7 +341,8 @@ public class EntityAI {
     }
     
     /**
-     * Despawn mobs that are too far from any player
+     * Despawn mobs that are too far from any player.
+     * Optimized to avoid O(n²) entity×player nested loops by using chunk-based spatial checks.
      */
     private void performDespawnCheck() {
         for (Instance instance : MinecraftServer.getInstanceManager().getInstances()) {
@@ -356,42 +351,50 @@ public class EntityAI {
                 // No players - despawn all non-persistent mobs
                 for (Entity entity : new ArrayList<>(instance.getEntities())) {
                     if (entity instanceof Player) continue;
-                    if (behaviors.containsKey(entity.getUuid())) {
-                        EntityBehavior behavior = behaviors.get(entity.getUuid());
-                        if (!behavior.persistent) {
-                            entity.remove();
-                            behaviors.remove(entity.getUuid());
-                            spawnedMobs.remove(entity.getUuid());
-                        }
-                    }
+                    removeMobIfNotPersistent(entity.getUuid());
                 }
                 continue;
             }
             
-            // Check each mob
-            for (Entity entity : new ArrayList<>(instance.getEntities())) {
-                if (entity instanceof Player) continue;
+            // Build set of chunk keys within despawn radius of any player
+            // This avoids checking every entity against every player
+            Set<Long> safeChunks = new HashSet<>();
+            int chunkRadius = DESPAWN_RADIUS / 16 + 1;
+            
+            for (Player player : players) {
+                Pos playerPos = player.getPosition();
+                int playerChunkX = playerPos.chunkX();
+                int playerChunkZ = playerPos.chunkZ();
                 
-                boolean nearPlayer = false;
-                Pos entityPos = entity.getPosition();
-                
-                for (Player player : players) {
-                    double dist = entityPos.distance(player.getPosition());
-                    if (dist < DESPAWN_RADIUS) {
-                        nearPlayer = true;
-                        break;
-                    }
-                }
-                
-                if (!nearPlayer) {
-                    EntityBehavior behavior = behaviors.get(entity.getUuid());
-                    if (behavior != null && !behavior.persistent) {
-                        entity.remove();
-                        behaviors.remove(entity.getUuid());
-                        spawnedMobs.remove(entity.getUuid());
+                for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
+                    for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
+                        // Only include chunks within actual despawn radius
+                        double dist = Math.sqrt(dx * dx + dz * dz) * 16;
+                        if (dist < DESPAWN_RADIUS + 16) { // +16 for chunk boundary margin
+                            safeChunks.add(getChunkKey(playerChunkX + dx, playerChunkZ + dz));
+                        }
                     }
                 }
             }
+            
+            // Check each mob - only need to check chunk membership, not distance to each player
+            for (Entity entity : new ArrayList<>(instance.getEntities())) {
+                if (entity instanceof Player) continue;
+                
+                Pos entityPos = entity.getPosition();
+                long entityChunkKey = getChunkKey(entityPos.chunkX(), entityPos.chunkZ());
+                
+                if (!safeChunks.contains(entityChunkKey)) {
+                    removeMobIfNotPersistent(entity.getUuid());
+                }
+            }
+        }
+    }
+    
+    private void removeMobIfNotPersistent(UUID uuid) {
+        EntityBehavior behavior = behaviors.get(uuid);
+        if (behavior != null && !behavior.persistent) {
+            removeMob(uuid);
         }
     }
     
@@ -407,8 +410,39 @@ public class EntityAI {
         spawnedMobs.put(entity.getUuid(), spawnedMob);
         behaviors.put(entity.getUuid(), new EntityBehavior(entity, false));
         
+        // Update cached counts
+        updateMobCounts(instance, pos.chunkX(), pos.chunkZ(), type, 1);
+        
         logger.debug("Spawned {} at {} in {}", type.name(), pos, instance.getUniqueId());
         return entity;
+    }
+    
+    private void updateMobCounts(Instance instance, int chunkX, int chunkZ, EntityType type, int delta) {
+        long chunkKey = getChunkKey(chunkX, chunkZ);
+        
+        // Update per-chunk counts
+        chunkMobCounts.computeIfAbsent(chunkKey, k -> new MobCounts());
+        chunkMobCounts.compute(chunkKey, (k, counts) -> {
+            if (counts == null) counts = new MobCounts();
+            updateCountsByType(counts, type, delta);
+            return counts;
+        });
+        
+        // Update global counts
+        globalMobCounts.computeIfAbsent(instance, k -> new MobCounts());
+        globalMobCounts.compute(instance, (k, counts) -> {
+            if (counts == null) counts = new MobCounts();
+            updateCountsByType(counts, type, delta);
+            return counts;
+        });
+    }
+    
+    private void updateCountsByType(MobCounts counts, EntityType type, int delta) {
+        if (hostileTypes.contains(type)) counts.hostile += delta;
+        else if (passiveTypes.contains(type)) counts.passive += delta;
+        else if (villagerTypes.contains(type)) counts.villager += delta;
+        else if (waterTypes.contains(type)) counts.water += delta;
+        else if (ambientTypes.contains(type)) counts.ambient += delta;
     }
     
     public EntityCreature spawnPersistentMob(Instance instance, Pos pos, EntityType type) {
@@ -482,6 +516,8 @@ public class EntityAI {
     public void removeMob(UUID uuid) {
         SpawnedMob spawnedMob = spawnedMobs.remove(uuid);
         if (spawnedMob != null && spawnedMob.entity != null) {
+            Pos pos = spawnedMob.entity.getPosition();
+            updateMobCounts(spawnedMob.instance, pos.chunkX(), pos.chunkZ(), spawnedMob.type, -1);
             spawnedMob.entity.remove();
         }
         behaviors.remove(uuid);
