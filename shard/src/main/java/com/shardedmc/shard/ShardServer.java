@@ -49,6 +49,11 @@ public class ShardServer {
     private OptimizedRedstone optimizedRedstone;
     private HopperOptimizer hopperOptimizer;
     
+    // Security systems (Tasks 8-10)
+    private DupePrevention dupePrevention;
+    private CombatLogger combatLogger;
+    private GriefProtection griefProtection;
+    
     // Performance monitoring systems (Tasks 11-13)
     private ChunkPregenerator chunkPregenerator;
     private PerformanceMonitor performanceMonitor;
@@ -165,12 +170,24 @@ public class ShardServer {
         
         logger.info("Performance monitoring systems registered for shard {}", shardId);
         
-        // Register debug commands
-        DebugCommands.registerAll();
-        
-        // Initialize NPC manager and connect to debug commands
+        // Initialize NPC manager (needed by combat logger)
         com.shardedmc.shard.vanilla.NPCManager npcManager = new com.shardedmc.shard.vanilla.NPCManager();
         DebugCommands.setNPCManager(npcManager);
+        
+        // Register security systems (Tasks 8-10)
+        dupePrevention = new DupePrevention();
+        dupePrevention.register(MinecraftServer.getGlobalEventHandler());
+        
+        combatLogger = new CombatLogger(npcManager);
+        combatLogger.register(MinecraftServer.getGlobalEventHandler());
+        
+        griefProtection = new GriefProtection(redisClient);
+        griefProtection.register(MinecraftServer.getGlobalEventHandler());
+        
+        logger.info("Security systems registered for shard {}", shardId);
+        
+        // Register debug commands
+        DebugCommands.registerAll();
         
         // Start heartbeat
         startHeartbeat();
