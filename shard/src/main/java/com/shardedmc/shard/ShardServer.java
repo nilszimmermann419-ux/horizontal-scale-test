@@ -44,6 +44,16 @@ public class ShardServer {
     private VillagerOptimizer villagerOptimizer;
     private ItemDespawnManager itemDespawnManager;
     
+    // Redstone & hopper optimization
+    private RedstoneLagDetector redstoneLagDetector;
+    private OptimizedRedstone optimizedRedstone;
+    private HopperOptimizer hopperOptimizer;
+    
+    // Performance monitoring systems (Tasks 11-13)
+    private ChunkPregenerator chunkPregenerator;
+    private PerformanceMonitor performanceMonitor;
+    private AutoRestart autoRestart;
+    
     // Chunks this shard owns - using Long keys to avoid ChunkPos allocation in hot paths
     private final Set<Long> ownedChunks = ConcurrentHashMap.newKeySet();
     
@@ -127,6 +137,18 @@ public class ShardServer {
         // Set up portal handler for dimension transitions
         portalHandler = new com.shardedmc.shard.vanilla.PortalHandler(dimensionManager);
         portalHandler.register(MinecraftServer.getGlobalEventHandler());
+        
+        // Register performance monitoring systems (Tasks 11-13)
+        chunkPregenerator = new ChunkPregenerator(redisClient, shardId, instance);
+        chunkPregenerator.register();
+        
+        performanceMonitor = new PerformanceMonitor();
+        performanceMonitor.register(MinecraftServer.getGlobalEventHandler());
+        
+        autoRestart = new AutoRestart(performanceMonitor, 12 * 60); // 12 hours in minutes
+        autoRestart.register(MinecraftServer.getGlobalEventHandler());
+        
+        logger.info("Performance monitoring systems registered for shard {}", shardId);
         
         // Register debug commands
         DebugCommands.registerAll();
