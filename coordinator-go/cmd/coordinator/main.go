@@ -13,6 +13,7 @@ import (
 	"github.com/shardedmc/coordinator/internal/proxy"
 	"github.com/shardedmc/coordinator/internal/shard"
 	"github.com/shardedmc/coordinator/internal/storage"
+	grpcserver "github.com/shardedmc/coordinator/internal/grpcserver"
 )
 
 type Config struct {
@@ -65,6 +66,13 @@ func main() {
 	chunkMgr := chunk.NewManager()
 	_ = chunkMgr
 
+	// Start gRPC server for shard registration
+	grpcServer, err := grpcserver.StartGRPCServer(cfg.GRPCAddr, shardMgr)
+	if err != nil {
+		log.Fatal("Failed to start gRPC server:", err)
+	}
+	defer grpcServer.Stop()
+
 	// Initialize proxy
 	proxyServer, err := proxy.NewProxy(cfg.ProxyAddr, shardMgr)
 	if err != nil {
@@ -85,6 +93,7 @@ func main() {
 	}()
 
 	log.Printf("Coordinator ready! Accepting players on %s", cfg.ProxyAddr)
+	log.Printf("gRPC server listening on %s", cfg.GRPCAddr)
 
 	// Wait for shutdown
 	sigCh := make(chan os.Signal, 1)
@@ -94,4 +103,5 @@ func main() {
 	log.Println("Shutting down...")
 	cancel()
 	proxyServer.Stop()
+	grpcServer.Stop()
 }
