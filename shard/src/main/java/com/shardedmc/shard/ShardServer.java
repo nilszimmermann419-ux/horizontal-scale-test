@@ -138,6 +138,21 @@ public class ShardServer {
         portalHandler = new com.shardedmc.shard.vanilla.PortalHandler(dimensionManager);
         portalHandler.register(MinecraftServer.getGlobalEventHandler());
         
+        // Register redstone lag detector (Task 6)
+        redstoneLagDetector = new RedstoneLagDetector();
+        redstoneLagDetector.register(MinecraftServer.getGlobalEventHandler());
+        
+        // Register optimized redstone engine (Task 7)
+        optimizedRedstone = new OptimizedRedstone();
+        optimizedRedstone.setLagDetector(redstoneLagDetector);
+        optimizedRedstone.register(MinecraftServer.getGlobalEventHandler());
+        
+        // Register hopper optimizer (Task 5)
+        hopperOptimizer = new HopperOptimizer();
+        hopperOptimizer.register(MinecraftServer.getGlobalEventHandler());
+        
+        logger.info("Redstone and farm optimization systems registered for shard {}", shardId);
+        
         // Register performance monitoring systems (Tasks 11-13)
         chunkPregenerator = new ChunkPregenerator(redisClient, shardId, instance);
         chunkPregenerator.register();
