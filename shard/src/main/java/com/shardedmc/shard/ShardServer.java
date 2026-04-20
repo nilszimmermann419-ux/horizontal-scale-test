@@ -111,6 +111,10 @@ public class ShardServer {
         // Register debug commands
         DebugCommands.registerAll();
         
+        // Initialize NPC manager and connect to debug commands
+        com.shardedmc.shard.vanilla.NPCManager npcManager = new com.shardedmc.shard.vanilla.NPCManager();
+        DebugCommands.setNPCManager(npcManager);
+        
         // Start heartbeat
         startHeartbeat();
         
