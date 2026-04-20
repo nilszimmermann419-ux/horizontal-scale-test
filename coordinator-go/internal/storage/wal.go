@@ -3,6 +3,7 @@ package storage
 import (
 	"bufio"
 	"encoding/binary"
+	"fmt"
 	"hash/crc32"
 	"os"
 	"path/filepath"
@@ -10,12 +11,17 @@ import (
 	"time"
 )
 
+const (
+	MaxWALSize = 1 * 1024 * 1024 * 1024 // 1GB max WAL size before rotation
+)
+
 // WAL provides write-ahead logging for durability
 type WAL struct {
-	path   string
-	file   *os.File
-	writer *bufio.Writer
-	mu     sync.Mutex
+	path      string
+	file      *os.File
+	writer    *bufio.Writer
+	mu        sync.Mutex
+	bytesWritten int64
 
 	// Background flush
 	flushInterval time.Duration
@@ -48,12 +54,20 @@ func NewWAL(path string, flushInterval time.Duration) (*WAL, error) {
 		return nil, err
 	}
 
+	// Get current file size for tracking
+	info, err := file.Stat()
+	if err != nil {
+		file.Close()
+		return nil, err
+	}
+
 	wal := &WAL{
 		path:          path,
 		file:          file,
 		writer:        bufio.NewWriterSize(file, 64*1024), // 64KB buffer
 		flushInterval: flushInterval,
 		stopFlush:     make(chan struct{}),
+		bytesWritten:  info.Size(),
 	}
 
 	// Start background flush
@@ -66,6 +80,13 @@ func (w *WAL) Append(op WALOp, key string, value []byte) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
+	// Check if we need to rotate
+	if w.bytesWritten > MaxWALSize {
+		if err := w.rotate(); err != nil {
+			return fmt.Errorf("failed to rotate WAL: %w", err)
+		}
+	}
+
 	entry := WALEntry{
 		Timestamp: time.Now().UnixNano(),
 		Op:        op,
@@ -73,20 +94,22 @@ func (w *WAL) Append(op WALOp, key string, value []byte) error {
 		Value:     value,
 	}
 
-	// Calculate CRC
+	// Calculate CRC over ALL fields
 	entry.CRC = w.calculateCRC(entry)
 
 	// Write entry
-	if err := w.writeEntry(entry); err != nil {
+	n, err := w.writeEntry(entry)
+	if err != nil {
 		return err
 	}
+	w.bytesWritten += int64(n)
 
 	return nil
 }
 
-func (w *WAL) writeEntry(entry WALEntry) error {
+func (w *WAL) writeEntry(entry WALEntry) (int, error) {
 	// Write header
-	buf := make([]byte, 0, 64)
+	buf := make([]byte, 0, 64+len(entry.Key)+len(entry.Value))
 	buf = binary.LittleEndian.AppendUint64(buf, uint64(entry.Timestamp))
 	buf = append(buf, byte(entry.Op))
 	buf = binary.LittleEndian.AppendUint32(buf, uint32(len(entry.Key)))
@@ -95,12 +118,17 @@ func (w *WAL) writeEntry(entry WALEntry) error {
 	buf = append(buf, entry.Value...)
 	buf = binary.LittleEndian.AppendUint32(buf, entry.CRC)
 
-	_, err := w.writer.Write(buf)
-	return err
+	n, err := w.writer.Write(buf)
+	return n, err
 }
 
 func (w *WAL) calculateCRC(entry WALEntry) uint32 {
 	h := crc32.NewIEEE()
+	// Include ALL fields in CRC calculation
+	timestampBytes := make([]byte, 8)
+	binary.LittleEndian.PutUint64(timestampBytes, uint64(entry.Timestamp))
+	h.Write(timestampBytes)
+	h.Write([]byte{byte(entry.Op)})
 	h.Write([]byte(entry.Key))
 	h.Write(entry.Value)
 	return h.Sum32()
@@ -109,7 +137,18 @@ func (w *WAL) calculateCRC(entry WALEntry) uint32 {
 func (w *WAL) Flush() error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	return w.writer.Flush()
+	return w.flushLocked()
+}
+
+func (w *WAL) flushLocked() error {
+	if err := w.writer.Flush(); err != nil {
+		return err
+	}
+	// Sync to disk for durability
+	if err := w.file.Sync(); err != nil {
+		return fmt.Errorf("failed to sync WAL: %w", err)
+	}
+	return nil
 }
 
 func (w *WAL) backgroundFlush() {
@@ -119,20 +158,60 @@ func (w *WAL) backgroundFlush() {
 	for {
 		select {
 		case <-ticker.C:
-			w.Flush()
+			if err := w.Flush(); err != nil {
+				// Log error but don't crash - WAL should continue operating
+				// In production, this should be reported to a monitoring system
+				_ = err
+			}
 		case <-w.stopFlush:
-			w.Flush()
+			if err := w.Flush(); err != nil {
+				_ = err
+			}
 			return
 		}
 	}
+}
+
+func (w *WAL) rotate() error {
+	// Flush and close current file
+	if err := w.flushLocked(); err != nil {
+		return err
+	}
+
+	// Close current file
+	if err := w.file.Close(); err != nil {
+		return err
+	}
+
+	// Rename current WAL to .old
+	oldPath := w.path + ".old"
+	if err := os.Rename(w.path, oldPath); err != nil {
+		return err
+	}
+
+	// Create new WAL file
+	file, err := os.OpenFile(w.path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return err
+	}
+
+	w.file = file
+	w.writer = bufio.NewWriterSize(file, 64*1024)
+	w.bytesWritten = 0
+
+	return nil
 }
 
 func (w *WAL) Close() error {
 	var err error
 	w.closeOnce.Do(func() {
 		close(w.stopFlush)
-		w.Flush()
-		err = w.file.Close()
+		if flushErr := w.Flush(); flushErr != nil {
+			err = flushErr
+		}
+		if closeErr := w.file.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
 	})
 	return err
 }
