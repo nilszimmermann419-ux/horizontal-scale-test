@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Comprehensive world synchronization manager.
@@ -38,7 +39,8 @@ public class WorldSyncManager {
     private static final String WORLD_CHANNEL = "sync:world";
     
     // Track which players/entities are local vs remote to avoid echo
-    private final Map<UUID, Long> lastSyncTime = new ConcurrentHashMap<>();
+    // Using AtomicLong values for thread-safe compare-and-set operations
+    private final Map<UUID, AtomicLong> lastSyncTime = new ConcurrentHashMap<>();
     private static final long SYNC_INTERVAL_MS = 50; // Sync every 50ms (20 ticks per second)
     
     // Fully qualify to avoid ambiguity
@@ -91,15 +93,21 @@ public class WorldSyncManager {
     
     /**
      * Sync all local players to other shards.
+     * Thread-safe: uses atomic compare-and-set to prevent duplicate syncs.
      */
     private void syncAllPlayers() {
         for (Player player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
             long now = System.currentTimeMillis();
-            Long lastSync = lastSyncTime.get(player.getUuid());
+            AtomicLong syncTime = lastSyncTime.computeIfAbsent(
+                player.getUuid(), k -> new AtomicLong(0)
+            );
             
-            if (lastSync == null || now - lastSync >= SYNC_INTERVAL_MS) {
-                syncPlayer(player);
-                lastSyncTime.put(player.getUuid(), now);
+            long lastSync = syncTime.get();
+            if (now - lastSync >= SYNC_INTERVAL_MS) {
+                // Atomic compare-and-set to prevent race conditions
+                if (syncTime.compareAndSet(lastSync, now)) {
+                    syncPlayer(player);
+                }
             }
         }
     }
