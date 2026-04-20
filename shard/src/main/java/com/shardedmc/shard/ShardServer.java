@@ -87,6 +87,10 @@ public class ShardServer {
         SharedChunkLoader chunkLoader = new SharedChunkLoader(redisClient, "main", worldSeed);
         instance.setChunkLoader(chunkLoader);
         
+        // Initialize lighting engine
+        LightingEngine lightingEngine = new LightingEngine(instance);
+        chunkLoader.setLightingEngine(lightingEngine);
+        
         // Keep generator reference for spawn calculations
         worldGenerator = new AdvancedWorldGenerator(worldSeed);
         
@@ -95,6 +99,13 @@ public class ShardServer {
         
         // Set up event handlers
         setupEventHandlers();
+        
+        // Register vanilla mechanics (combat, blocks, crafting, etc.)
+        VanillaMechanics mechanics = new VanillaMechanics();
+        mechanics.register(MinecraftServer.getGlobalEventHandler());
+        
+        // Register debug commands
+        DebugCommands.registerAll();
         
         // Start heartbeat
         startHeartbeat();

@@ -117,7 +117,15 @@ public class LightingEngine {
             return;
         }
         
-        // Scan chunk for light sources first
+        // Pre-compute highest block for each column
+        int[][] highestBlocks = new int[CHUNK_SIZE][CHUNK_SIZE];
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                highestBlocks[x][z] = getHighestBlockY((chunkX << 4) + x, (chunkZ << 4) + z);
+            }
+        }
+        
+        // Scan chunk for light sources
         scanChunkForLightSources(chunk, chunkX, chunkZ);
         
         // Calculate and set light for each section
@@ -125,8 +133,8 @@ public class LightingEngine {
             Section section = chunk.getSection(sectionY);
             if (section == null) continue;
             
-            // Generate sky light (top-down)
-            byte[] skyLight = calculateSkyLightForSection(chunkX, chunkZ, sectionY);
+            // Generate sky light (top-down) using cached highest blocks
+            byte[] skyLight = calculateSkyLightForSection(chunkX, chunkZ, sectionY, highestBlocks);
             section.setSkyLight(skyLight);
             
             // Generate block light (from sources)
@@ -181,11 +189,19 @@ public class LightingEngine {
         Chunk chunk = instance.getChunk(chunkX, chunkZ);
         if (chunk == null) return;
         
+        // Pre-compute highest blocks
+        int[][] highestBlocks = new int[CHUNK_SIZE][CHUNK_SIZE];
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                highestBlocks[x][z] = getHighestBlockY((chunkX << 4) + x, (chunkZ << 4) + z);
+            }
+        }
+        
         for (int sectionY = chunk.getMinSection(); sectionY < chunk.getMaxSection(); sectionY++) {
             Section section = chunk.getSection(sectionY);
             if (section == null) continue;
             
-            byte[] skyLight = calculateSkyLightForSection(chunkX, chunkZ, sectionY);
+            byte[] skyLight = calculateSkyLightForSection(chunkX, chunkZ, sectionY, highestBlocks);
             section.setSkyLight(skyLight);
             
             byte[] blockLight = calculateBlockLightForSection(chunkX, chunkZ, sectionY);
@@ -223,27 +239,27 @@ public class LightingEngine {
     /**
      * Calculate sky light for a section (top-down)
      */
-    private byte[] calculateSkyLightForSection(int chunkX, int chunkZ, int sectionY) {
+    private byte[] calculateSkyLightForSection(int chunkX, int chunkZ, int sectionY, int[][] highestBlocks) {
         byte[] light = new byte[2048]; // 4096 blocks, 2 per byte (nibbles)
+        int sectionBaseY = sectionY << 4;
         
         for (int x = 0; x < CHUNK_SIZE; x++) {
             for (int z = 0; z < CHUNK_SIZE; z++) {
-                int worldX = (chunkX << 4) + x;
-                int worldZ = (chunkZ << 4) + z;
-                
-                // Find highest solid block in this column
-                int highestY = getHighestBlockY(worldX, worldZ);
+                int highestY = highestBlocks[x][z];
                 
                 for (int localY = 0; localY < SECTION_SIZE; localY++) {
-                    int y = (sectionY << 4) + localY;
+                    int y = sectionBaseY + localY;
                     int lightLevel;
                     
                     if (y > highestY) {
                         // Above ground - full sky light
                         lightLevel = MAX_LIGHT;
+                    } else if (y == highestY) {
+                        // At surface - full light
+                        lightLevel = MAX_LIGHT;
                     } else {
-                        // Below ground - check if light can reach
-                        lightLevel = calculateSkyLightAt(worldX, y, worldZ, highestY);
+                        // Below ground - simple occlusion
+                        lightLevel = 0;
                     }
                     
                     setNibble(light, x, localY, z, lightLevel);

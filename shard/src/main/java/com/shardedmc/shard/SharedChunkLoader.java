@@ -5,6 +5,7 @@ import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.DynamicChunk;
 import net.minestom.server.instance.IChunkLoader;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.Section;
 import net.minestom.server.instance.block.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +27,17 @@ public class SharedChunkLoader implements IChunkLoader {
     private final RedisClient redis;
     private final String worldKey;
     private final AdvancedWorldGenerator generator;
+    private LightingEngine lightingEngine;
     
     public SharedChunkLoader(RedisClient redis, String worldName, long seed) {
         this.redis = redis;
         this.worldKey = "world:" + worldName + ":chunk:";
         this.generator = new AdvancedWorldGenerator(seed);
+        this.lightingEngine = null;
+    }
+    
+    public void setLightingEngine(LightingEngine lightingEngine) {
+        this.lightingEngine = lightingEngine;
     }
     
     @Override
@@ -42,6 +49,10 @@ public class SharedChunkLoader implements IChunkLoader {
             String data = redis.get(key);
             if (data != null && !data.isEmpty()) {
                 Chunk chunk = deserializeChunk(instance, chunkX, chunkZ, data);
+                
+                // Initialize lighting for loaded chunk
+                initializeChunkLighting(instance, chunk);
+                
                 logger.debug("Loaded chunk {},{} from Redis", chunkX, chunkZ);
                 return chunk;
             }
@@ -53,10 +64,82 @@ public class SharedChunkLoader implements IChunkLoader {
         logger.debug("Generating chunk {},{} (not in Redis)", chunkX, chunkZ);
         Chunk chunk = generateChunk(instance, chunkX, chunkZ);
         
+        // Initialize lighting for generated chunk
+        initializeChunkLighting(instance, chunk);
+        
         // Save to Redis for other shards
         saveChunk(chunk);
         
         return chunk;
+    }
+    
+    private void initializeChunkLighting(Instance instance, Chunk chunk) {
+        try {
+            int chunkX = chunk.getChunkX();
+            int chunkZ = chunk.getChunkZ();
+            
+            if (lightingEngine != null) {
+                // Use the comprehensive lighting engine
+                lightingEngine.initializeChunk(chunkX, chunkZ);
+            } else {
+                // Fallback to simple lighting
+                initializeSimpleLighting(chunk);
+            }
+        } catch (Exception e) {
+            logger.error("Error initializing lighting for chunk: {}", e.getMessage());
+        }
+    }
+    
+    private void initializeSimpleLighting(Chunk chunk) {
+        int chunkX = chunk.getChunkX();
+        int chunkZ = chunk.getChunkZ();
+        
+        // Simple lighting: full sky light above ground, 0 below
+        for (int sectionY = chunk.getMinSection(); sectionY < chunk.getMaxSection(); sectionY++) {
+            Section section = chunk.getSection(sectionY);
+            if (section == null) continue;
+            
+            byte[] skyLight = new byte[2048];
+            byte[] blockLight = new byte[2048];
+            
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    // Find highest block
+                    int highestY = -64;
+                    for (int y = 319; y >= -64; y--) {
+                        Block block = chunk.getBlock(x, y, z);
+                        if (block != null && !block.isAir()) {
+                            highestY = y;
+                            break;
+                        }
+                    }
+                    
+                    // Set sky light
+                    for (int y = 0; y < 16; y++) {
+                        int worldY = (sectionY << 4) + y;
+                        int lightLevel = worldY > highestY ? 15 : 0;
+                        setLightNibble(skyLight, x, y, z, lightLevel);
+                    }
+                }
+            }
+            
+            section.setSkyLight(skyLight);
+            section.setBlockLight(blockLight);
+        }
+        
+        chunk.sendChunk();
+    }
+    
+    private void setLightNibble(byte[] array, int x, int y, int z, int value) {
+        int index = (y * 16 + z) * 16 + x;
+        int byteIndex = index >> 1;
+        boolean high = (index & 1) == 0;
+        
+        if (high) {
+            array[byteIndex] = (byte) ((array[byteIndex] & 0x0F) | ((value & 0x0F) << 4));
+        } else {
+            array[byteIndex] = (byte) ((array[byteIndex] & 0xF0) | (value & 0x0F));
+        }
     }
     
     @Override
