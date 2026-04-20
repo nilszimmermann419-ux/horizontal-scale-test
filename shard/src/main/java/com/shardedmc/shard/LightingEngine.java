@@ -10,10 +10,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Lightweight lighting engine that integrates with Minestom's chunk light system.
  * Sets sky light and block light data on chunk sections so the client renders lighting properly.
+ * 
+ * Performance optimizations:
+ * - Spatial indexing for light sources (chunk-based)
+ * - Cached highest block Y values per chunk
+ * - BFS light propagation queue instead of nested loops over all sources
+ * - Reusable light arrays to reduce allocations
  */
 public class LightingEngine {
     private static final Logger logger = LoggerFactory.getLogger(LightingEngine.class);
@@ -24,12 +31,49 @@ public class LightingEngine {
     private static final int CHUNK_SIZE = 16;
     private static final int SECTION_SIZE = 16;
     private static final int MAX_LIGHT = 15;
+    private static final int LIGHT_RADIUS = 15;
+    private static final int SECTION_BLOCKS = 16 * 16 * 16;
+    private static final int LIGHT_ARRAY_SIZE = SECTION_BLOCKS / 2; // 2048 bytes (2 blocks per byte)
     
     // Track which chunks have been lit
-    private final Set<Long> litChunks = new HashSet<>();
+    private final Set<Long> litChunks = ConcurrentHashMap.newKeySet();
     
-    // Light sources: "x,y,z" -> light level
-    private final Map<String, Integer> blockLightSources = new HashMap<>();
+    // Spatial index for light sources: chunkKey -> list of sources in that chunk
+    // This avoids iterating all sources for every block
+    private final Map<Long, List<LightSource>> lightSourceIndex = new ConcurrentHashMap<>();
+    
+    // Cache for highest solid block Y per column: chunkKey -> int[16*16]
+    private final Map<Long, int[]> highestBlockCache = new ConcurrentHashMap<>();
+    
+    // Reusable light arrays to avoid allocation per section
+    private final ThreadLocal<byte[]> reusableSkyLight = ThreadLocal.withInitial(() -> new byte[LIGHT_ARRAY_SIZE]);
+    private final ThreadLocal<byte[]> reusableBlockLight = ThreadLocal.withInitial(() -> new byte[LIGHT_ARRAY_SIZE]);
+    
+    // Light propagation queue for BFS
+    private static class LightNode {
+        final int x, y, z;
+        final int level;
+        
+        LightNode(int x, int y, int z, int level) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.level = level;
+        }
+    }
+    
+    // Light source representation
+    private static class LightSource {
+        final int x, y, z;
+        final int level;
+        
+        LightSource(int x, int y, int z, int level) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.level = level;
+        }
+    }
     
     // Blocks that emit light and their levels
     private static final Map<String, Integer> EMISSIVE_BLOCKS = new HashMap<>();
@@ -117,15 +161,11 @@ public class LightingEngine {
             return;
         }
         
-        // Pre-compute highest block for each column
-        int[][] highestBlocks = new int[CHUNK_SIZE][CHUNK_SIZE];
-        for (int x = 0; x < CHUNK_SIZE; x++) {
-            for (int z = 0; z < CHUNK_SIZE; z++) {
-                highestBlocks[x][z] = getHighestBlockY((chunkX << 4) + x, (chunkZ << 4) + z);
-            }
-        }
+        // Pre-compute and cache highest block for each column
+        int[] highestBlocks = computeHighestBlocks(chunkX, chunkZ);
+        highestBlockCache.put(chunkKey, highestBlocks);
         
-        // Scan chunk for light sources
+        // Scan chunk for light sources and add to spatial index
         scanChunkForLightSources(chunk, chunkX, chunkZ);
         
         // Calculate and set light for each section
@@ -137,7 +177,7 @@ public class LightingEngine {
             byte[] skyLight = calculateSkyLightForSection(chunkX, chunkZ, sectionY, highestBlocks);
             section.setSkyLight(skyLight);
             
-            // Generate block light (from sources)
+            // Generate block light using BFS propagation from nearby sources
             byte[] blockLight = calculateBlockLightForSection(chunkX, chunkZ, sectionY);
             section.setBlockLight(blockLight);
         }
@@ -160,20 +200,25 @@ public class LightingEngine {
         // Update light sources registry
         int newLight = EMISSIVE_BLOCKS.getOrDefault(newName, 0);
         int oldLight = EMISSIVE_BLOCKS.getOrDefault(oldName, 0);
-        String posKey = x + "," + y + "," + z;
+        
+        int chunkX = x >> 4;
+        int chunkZ = z >> 4;
+        long chunkKey = getChunkKey(chunkX, chunkZ);
         
         if (newLight > 0) {
-            blockLightSources.put(posKey, newLight);
-        } else {
-            blockLightSources.remove(posKey);
+            addLightSource(chunkKey, x, y, z, newLight);
+        } else if (oldLight > 0) {
+            removeLightSource(chunkKey, x, y, z);
+        }
+        
+        // Update highest block cache if needed
+        if (!isTransparent(newName) || !isTransparent(oldName)) {
+            highestBlockCache.remove(chunkKey);
         }
         
         // Only recalculate if light changed or transparency changed
         if (oldLight != newLight || isTransparent(oldName) != isTransparent(newName)) {
-            int chunkX = x >> 4;
-            int chunkZ = z >> 4;
-            
-            // Recalculate this chunk and neighbors
+            // Recalculate this chunk and neighbors (light can propagate across chunk boundaries)
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
                     recalculateChunk(chunkX + dx, chunkZ + dz);
@@ -189,13 +234,11 @@ public class LightingEngine {
         Chunk chunk = instance.getChunk(chunkX, chunkZ);
         if (chunk == null) return;
         
-        // Pre-compute highest blocks
-        int[][] highestBlocks = new int[CHUNK_SIZE][CHUNK_SIZE];
-        for (int x = 0; x < CHUNK_SIZE; x++) {
-            for (int z = 0; z < CHUNK_SIZE; z++) {
-                highestBlocks[x][z] = getHighestBlockY((chunkX << 4) + x, (chunkZ << 4) + z);
-            }
-        }
+        long chunkKey = getChunkKey(chunkX, chunkZ);
+        
+        // Recompute and cache highest blocks
+        int[] highestBlocks = computeHighestBlocks(chunkX, chunkZ);
+        highestBlockCache.put(chunkKey, highestBlocks);
         
         for (int sectionY = chunk.getMinSection(); sectionY < chunk.getMaxSection(); sectionY++) {
             Section section = chunk.getSection(sectionY);
@@ -213,11 +256,14 @@ public class LightingEngine {
     }
     
     /**
-     * Scan chunk for light sources and register them
+     * Scan chunk for light sources and register them in spatial index
      */
     private void scanChunkForLightSources(Chunk chunk, int chunkX, int chunkZ) {
+        long chunkKey = getChunkKey(chunkX, chunkZ);
+        
         for (int sectionY = chunk.getMinSection(); sectionY < chunk.getMaxSection(); sectionY++) {
-            for (int y = sectionY << 4; y < (sectionY + 1) << 4; y++) {
+            int sectionBaseY = sectionY << 4;
+            for (int y = sectionBaseY; y < sectionBaseY + SECTION_SIZE; y++) {
                 for (int x = 0; x < CHUNK_SIZE; x++) {
                     for (int z = 0; z < CHUNK_SIZE; z++) {
                         int worldX = (chunkX << 4) + x;
@@ -227,7 +273,7 @@ public class LightingEngine {
                         if (block != null) {
                             int light = EMISSIVE_BLOCKS.getOrDefault(block.name(), 0);
                             if (light > 0) {
-                                blockLightSources.put(worldX + "," + y + "," + worldZ, light);
+                                addLightSource(chunkKey, worldX, y, worldZ, light);
                             }
                         }
                     }
@@ -237,25 +283,60 @@ public class LightingEngine {
     }
     
     /**
+     * Add a light source to the spatial index
+     */
+    private void addLightSource(long chunkKey, int x, int y, int z, int level) {
+        lightSourceIndex.computeIfAbsent(chunkKey, k -> new ArrayList<>())
+            .add(new LightSource(x, y, z, level));
+    }
+    
+    /**
+     * Remove a light source from the spatial index
+     */
+    private void removeLightSource(long chunkKey, int x, int y, int z) {
+        List<LightSource> sources = lightSourceIndex.get(chunkKey);
+        if (sources != null) {
+            sources.removeIf(src -> src.x == x && src.y == y && src.z == z);
+            if (sources.isEmpty()) {
+                lightSourceIndex.remove(chunkKey);
+            }
+        }
+    }
+    
+    /**
+     * Compute highest solid block Y for each column in a chunk
+     */
+    private int[] computeHighestBlocks(int chunkX, int chunkZ) {
+        int[] highest = new int[CHUNK_SIZE * CHUNK_SIZE];
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                int worldX = (chunkX << 4) + x;
+                int worldZ = (chunkZ << 4) + z;
+                highest[x * CHUNK_SIZE + z] = getHighestBlockY(worldX, worldZ);
+            }
+        }
+        return highest;
+    }
+    
+    /**
      * Calculate sky light for a section (top-down)
      */
-    private byte[] calculateSkyLightForSection(int chunkX, int chunkZ, int sectionY, int[][] highestBlocks) {
-        byte[] light = new byte[2048]; // 4096 blocks, 2 per byte (nibbles)
+    private byte[] calculateSkyLightForSection(int chunkX, int chunkZ, int sectionY, int[] highestBlocks) {
+        byte[] light = reusableSkyLight.get();
+        Arrays.fill(light, (byte) 0); // Reset array
+        
         int sectionBaseY = sectionY << 4;
         
         for (int x = 0; x < CHUNK_SIZE; x++) {
             for (int z = 0; z < CHUNK_SIZE; z++) {
-                int highestY = highestBlocks[x][z];
+                int highestY = highestBlocks[x * CHUNK_SIZE + z];
                 
                 for (int localY = 0; localY < SECTION_SIZE; localY++) {
                     int y = sectionBaseY + localY;
                     int lightLevel;
                     
-                    if (y > highestY) {
-                        // Above ground - full sky light
-                        lightLevel = MAX_LIGHT;
-                    } else if (y == highestY) {
-                        // At surface - full light
+                    if (y >= highestY) {
+                        // Above or at surface - full sky light
                         lightLevel = MAX_LIGHT;
                     } else {
                         // Below ground - simple occlusion
@@ -267,92 +348,100 @@ public class LightingEngine {
             }
         }
         
-        return light;
+        // Return a copy since the reusable array will be modified
+        return Arrays.copyOf(light, light.length);
     }
     
     /**
-     * Calculate block light for a section (from light sources)
+     * Calculate block light for a section using BFS propagation from nearby sources
      */
     private byte[] calculateBlockLightForSection(int chunkX, int chunkZ, int sectionY) {
-        byte[] light = new byte[2048]; // All zeros initially
+        byte[] light = reusableBlockLight.get();
+        Arrays.fill(light, (byte) 0); // Reset array
         
-        // For each block in section, check if it's a light source or affected by one
-        for (int x = 0; x < CHUNK_SIZE; x++) {
-            for (int z = 0; z < CHUNK_SIZE; z++) {
-                for (int localY = 0; localY < SECTION_SIZE; localY++) {
-                    int worldX = (chunkX << 4) + x;
-                    int y = (sectionY << 4) + localY;
-                    int worldZ = (chunkZ << 4) + z;
-                    
-                    int lightLevel = getBlockLightAt(worldX, y, worldZ);
-                    setNibble(light, x, localY, z, lightLevel);
-                }
-            }
-        }
+        int sectionBaseY = sectionY << 4;
+        int sectionMaxY = sectionBaseY + SECTION_SIZE - 1;
         
-        return light;
-    }
-    
-    /**
-     * Calculate sky light at a position
-     */
-    private int calculateSkyLightAt(int x, int y, int z, int highestY) {
-        if (y > highestY) return MAX_LIGHT;
+        // Collect all light sources that could affect this section
+        // Sources within LIGHT_RADIUS blocks of the section boundaries
+        ArrayDeque<LightNode> queue = new ArrayDeque<>();
         
-        // Simple top-down: decrease by 1 for each solid block
-        int light = MAX_LIGHT;
-        for (int checkY = highestY; checkY >= y; checkY--) {
-            Block block = instance.getBlock(x, checkY, z);
-            if (block != null && !isTransparent(block.name())) {
-                light = 0;
-                break;
-            } else {
-                light = Math.max(0, light - 1);
-            }
-        }
-        
-        return light;
-    }
-    
-    /**
-     * Get block light level at position (from sources)
-     */
-    private int getBlockLightAt(int x, int y, int z) {
-        int maxLight = 0;
-        
-        // Check all light sources within 15 blocks
-        for (Map.Entry<String, Integer> entry : blockLightSources.entrySet()) {
-            String[] parts = entry.getKey().split(",");
-            int sx = Integer.parseInt(parts[0]);
-            int sy = Integer.parseInt(parts[1]);
-            int sz = Integer.parseInt(parts[2]);
-            
-            int dx = Math.abs(x - sx);
-            int dy = Math.abs(y - sy);
-            int dz = Math.abs(z - sz);
-            int dist = Math.max(dx, Math.max(dy, dz));
-            
-            if (dist <= MAX_LIGHT) {
-                int sourceLight = entry.getValue();
-                int propagated = Math.max(0, sourceLight - dist);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                long nearbyChunkKey = getChunkKey(chunkX + dx, chunkZ + dz);
+                List<LightSource> sources = lightSourceIndex.get(nearbyChunkKey);
+                if (sources == null) continue;
                 
-                // Check line of sight (simple)
-                if (hasLineOfSight(x, y, z, sx, sy, sz)) {
-                    maxLight = Math.max(maxLight, propagated);
+                for (LightSource src : sources) {
+                    // Check if source could affect this section
+                    if (src.y < sectionBaseY - LIGHT_RADIUS || src.y > sectionMaxY + LIGHT_RADIUS) {
+                        continue;
+                    }
+                    
+                    // Start BFS from this source
+                    queue.add(new LightNode(src.x, src.y, src.z, src.level));
                 }
             }
         }
         
-        return maxLight;
+        // BFS propagation
+        // Use a simple visited set with position keys to avoid cycles
+        // Since we process in decreasing light level order, we can just check if current is higher
+        Set<Long> visited = new HashSet<>();
+        
+        while (!queue.isEmpty()) {
+            LightNode node = queue.poll();
+            
+            // Check if this node is within the current section
+            int nodeChunkX = node.x >> 4;
+            int nodeChunkZ = node.z >> 4;
+            
+            if (nodeChunkX == chunkX && nodeChunkZ == chunkZ) {
+                int localY = node.y - sectionBaseY;
+                if (localY >= 0 && localY < SECTION_SIZE) {
+                    int localX = node.x & 0xF;
+                    int localZ = node.z & 0xF;
+                    int currentLight = getNibble(light, localX, localY, localZ);
+                    if (node.level > currentLight) {
+                        setNibble(light, localX, localY, localZ, node.level);
+                    }
+                }
+            }
+            
+            if (node.level <= 1) continue; // No more propagation
+            
+            // Propagate to neighbors
+            int nextLevel = node.level - 1;
+            
+            // Check 6 neighbors
+            tryPropagate(queue, visited, node.x + 1, node.y, node.z, nextLevel);
+            tryPropagate(queue, visited, node.x - 1, node.y, node.z, nextLevel);
+            tryPropagate(queue, visited, node.x, node.y + 1, node.z, nextLevel);
+            tryPropagate(queue, visited, node.x, node.y - 1, node.z, nextLevel);
+            tryPropagate(queue, visited, node.x, node.y, node.z + 1, nextLevel);
+            tryPropagate(queue, visited, node.x, node.y, node.z - 1, nextLevel);
+        }
+        
+        // Return a copy since the reusable array will be modified
+        return Arrays.copyOf(light, light.length);
     }
     
     /**
-     * Simple line of sight check
+     * Try to propagate light to a neighbor position
      */
-    private boolean hasLineOfSight(int x1, int y1, int z1, int x2, int y2, int z2) {
-        // Simple check - just verify no solid blocks very close
-        // For performance, we skip full raycasting
-        return true;
+    private void tryPropagate(ArrayDeque<LightNode> queue, Set<Long> visited, 
+                               int x, int y, int z, int level) {
+        if (y < -64 || y > 319) return; // Out of world bounds
+        
+        long posKey = ((long) x << 32) | ((long) y << 16) | (z & 0xFFFFL);
+        if (!visited.add(posKey)) return; // Already visited
+        
+        Block block = instance.getBlock(x, y, z);
+        if (block != null && !isTransparent(block.name())) {
+            return; // Solid block blocks light
+        }
+        
+        queue.add(new LightNode(x, y, z, level));
     }
     
     /**
