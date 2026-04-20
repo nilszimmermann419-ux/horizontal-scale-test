@@ -9,7 +9,7 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EquipmentSlot;
 import net.minestom.server.entity.ItemEntity;
 import net.minestom.server.entity.Player;
-import net.minestom.server.entity.damage.DamageType;
+import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityAttackEvent;
@@ -19,6 +19,8 @@ import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
+import net.minestom.server.registry.RegistryKey;
+import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.timer.TaskSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,9 @@ public class CombatLogger {
     // Players who died while offline (NPC died): UUID -> death data
     private final Map<UUID, CombatDeathData> pendingDeaths = new ConcurrentHashMap<>();
 
+    // Damage types that trigger combat
+    private final Set<RegistryKey<DamageType>> combatDamageTypes;
+
     private final NPCManager npcManager;
 
     public CombatLogger(NPCManager npcManager) {
@@ -61,6 +66,18 @@ public class CombatLogger {
         this.combatDurationMs = combatDurationMs;
         this.npcSurvivalTimeMs = npcSurvivalTimeMs;
         this.dropItemsOnDeath = dropItemsOnDeath;
+
+        // Initialize combat damage types
+        this.combatDamageTypes = new HashSet<>();
+        combatDamageTypes.add(RegistryKey.unsafeOf("minecraft:player_attack"));
+        combatDamageTypes.add(RegistryKey.unsafeOf("minecraft:arrow"));
+        combatDamageTypes.add(RegistryKey.unsafeOf("minecraft:trident"));
+        combatDamageTypes.add(RegistryKey.unsafeOf("minecraft:mob_attack"));
+        combatDamageTypes.add(RegistryKey.unsafeOf("minecraft:mob_attack_no_aggro"));
+        combatDamageTypes.add(RegistryKey.unsafeOf("minecraft:magic"));
+        combatDamageTypes.add(RegistryKey.unsafeOf("minecraft:indirect_magic"));
+        combatDamageTypes.add(RegistryKey.unsafeOf("minecraft:explosion"));
+        combatDamageTypes.add(RegistryKey.unsafeOf("minecraft:player_explosion"));
     }
 
     public void register(EventNode<Event> eventNode) {
@@ -104,8 +121,10 @@ public class CombatLogger {
         if (!(entity instanceof Player player)) return;
 
         // Only count PvP/PvE damage (not fall, fire, drowning, etc.)
-        // In Minestom, DamageTypes is not public, so we accept all damage events
-        enterCombat(player);
+        var damageType = event.getDamage().getType();
+        if (combatDamageTypes.contains(damageType)) {
+            enterCombat(player);
+        }
     }
 
     private void enterCombat(Player player) {
@@ -189,10 +208,21 @@ public class CombatLogger {
                 }
             }
 
+            // Get max health via attribute
+            double maxHealth = 20.0;
+            try {
+                Attribute maxHealthAttr = Attribute.fromKey("minecraft:generic.max_health");
+                if (maxHealthAttr != null) {
+                    maxHealth = player.getAttributeValue(maxHealthAttr);
+                }
+            } catch (Exception e) {
+                logger.debug("Could not get max health for {}", name);
+            }
+
             // Create combat NPC record
             CombatNPC combatNPC = new CombatNPC(
                     playerUuid, name, npc, inventory, armor,
-                    player.getHealth(), 20.0f,
+                    player.getHealth(), maxHealth,
                     System.currentTimeMillis() + npcSurvivalTimeMs
             );
             activeNPCs.put(playerUuid, combatNPC);
@@ -203,7 +233,7 @@ public class CombatLogger {
             // Schedule NPC removal after survival time
             MinecraftServer.getSchedulerManager().buildTask(() -> {
                 removeCombatNPC(playerUuid, false);
-            }).delay(TaskSchedule.duration(java.time.Duration.ofMillis(npcSurvivalTimeMs))).schedule();
+            }).delay(TaskSchedule.duration(Duration.ofMillis(npcSurvivalTimeMs))).schedule();
 
         } catch (Exception e) {
             logger.error("Failed to spawn combat NPC for {}", player.getUsername(), e);
