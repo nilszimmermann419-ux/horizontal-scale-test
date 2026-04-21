@@ -9,6 +9,18 @@ services:
       - "8222:8222"
     volumes:
       - nats-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
     image: redis:7-alpine
@@ -16,10 +28,22 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   minio:
-    image: minio/minio
+    image: minio/minio:latest
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -29,6 +53,18 @@ services:
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   coordinator:
     build:
@@ -38,11 +74,32 @@ services:
       - "50051:50051"
       - "8080:8080"
     environment:
-      - PORT=50051
+      - PORT=8080
       - HTTP_PORT=8080
-      - HEARTBEAT_TIMEOUT=30s
+      - GRPC_PORT=50051
+      - HEARTBEAT_TIMEOUT=30
+      - CHECK_INTERVAL=10
+      - MAX_SHARDS=100
+      - NATS_URL=nats://nats:4222
+      - ENABLE_TLS=false
+      - READ_TIMEOUT=15
+      - WRITE_TIMEOUT=15
+      - SHUTDOWN_TIMEOUT=30
     depends_on:
-      - nats
+      nats:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   proxy:
     build:
@@ -53,26 +110,79 @@ services:
     environment:
       - LISTEN_ADDR=:25565
       - COORDINATOR_ADDR=coordinator:50051
+      - READ_TIMEOUT=30
+      - WRITE_TIMEOUT=30
+      - MAX_CONNECTIONS=10000
+      - CONNECTION_RATE_LIMIT=100
+      - SHUTDOWN_TIMEOUT=30
+      - RECONNECT_INTERVAL=5
+      - RECONNECT_MAX_RETRIES=-1
     depends_on:
-      - coordinator
+      coordinator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   shard-1:
     build:
       context: .
       dockerfile: docker/Dockerfile.shard
+    ports:
+      - "25566:25566"
     environment:
       - SHARD_ID=shard-1
-      - PORT=25566
+      - SHARD_PORT=25566
       - COORDINATOR_HOST=coordinator
       - COORDINATOR_PORT=50051
       - NATS_HOST=nats
+      - NATS_PORT=4222
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
       - MINIO_HOST=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=shardedmc-world
+      - SHARD_REGION_SIZE=4
+      - SHARD_MAX_PLAYERS=2000
+      - WORLD_SEED=12345
+      - WORLD_NAME=world
+      - WORLD_DIFFICULTY=normal
+      - WORLD_GAMEMODE=survival
+      - CHUNK_LOAD_THREADS=4
+      - LIGHTING_THREADS=2
+      - EVENT_PUBLISH_THREADS=2
     depends_on:
-      - coordinator
-      - nats
-      - redis
-      - minio
+      coordinator:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   nats-data:

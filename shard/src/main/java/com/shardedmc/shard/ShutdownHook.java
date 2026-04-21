@@ -1,14 +1,16 @@
 package com.shardedmc.shard;
 
 import com.shardedmc.shard.coordinator.CoordinatorClient;
+import com.shardedmc.shard.entity.EntityManager;
 import com.shardedmc.shard.events.ShardEventBus;
+import com.shardedmc.shard.lighting.LightingEngine;
+import com.shardedmc.shard.player.PlayerStateManager;
 import com.shardedmc.shard.region.RegionManager;
+import com.shardedmc.shard.storage.ChunkStorage;
 import com.shardedmc.shard.world.WorldManager;
 import io.nats.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
 
 public class ShutdownHook implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShutdownHook.class);
@@ -20,11 +22,17 @@ public class ShutdownHook implements Runnable {
     private final RegionManager regionManager;
     private final WorldManager worldManager;
     private final ShardHeartbeatService heartbeatService;
+    private final EntityManager entityManager;
+    private final PlayerStateManager playerStateManager;
+    private final LightingEngine lightingEngine;
+    private final ChunkStorage chunkStorage;
     private volatile boolean shutdownComplete = false;
 
     public ShutdownHook(String shardId, CoordinatorClient coordinatorClient, Connection natsConnection,
                         ShardEventBus eventBus, RegionManager regionManager, WorldManager worldManager,
-                        ShardHeartbeatService heartbeatService) {
+                        ShardHeartbeatService heartbeatService, EntityManager entityManager,
+                        PlayerStateManager playerStateManager, LightingEngine lightingEngine,
+                        ChunkStorage chunkStorage) {
         this.shardId = shardId;
         this.coordinatorClient = coordinatorClient;
         this.natsConnection = natsConnection;
@@ -32,6 +40,10 @@ public class ShutdownHook implements Runnable {
         this.regionManager = regionManager;
         this.worldManager = worldManager;
         this.heartbeatService = heartbeatService;
+        this.entityManager = entityManager;
+        this.playerStateManager = playerStateManager;
+        this.lightingEngine = lightingEngine;
+        this.chunkStorage = chunkStorage;
     }
 
     @Override
@@ -66,21 +78,39 @@ public class ShutdownHook implements Runnable {
                 worldManager.stop();
             }
 
-            // 4. Stop event bus
-            LOGGER.info("Step 4: Stopping event bus");
+            // 4. Stop entity manager
+            LOGGER.info("Step 4: Stopping entity manager");
+            if (entityManager != null) {
+                entityManager.stop();
+            }
+
+            // 5. Stop event bus
+            LOGGER.info("Step 5: Stopping event bus");
             if (eventBus != null) {
                 eventBus.stop();
             }
 
-            // 5. Unregister from coordinator
-            LOGGER.info("Step 5: Unregistering from coordinator");
+            // 6. Shutdown player state manager
+            LOGGER.info("Step 6: Shutting down player state manager");
+            if (playerStateManager != null) {
+                playerStateManager.shutdown();
+            }
+
+            // 7. Shutdown lighting engine
+            LOGGER.info("Step 7: Shutting down lighting engine");
+            if (lightingEngine != null) {
+                lightingEngine.shutdown();
+            }
+
+            // 8. Unregister from coordinator
+            LOGGER.info("Step 8: Unregistering from coordinator");
             if (coordinatorClient != null) {
                 coordinatorClient.unregister();
                 coordinatorClient.close();
             }
 
-            // 6. Close NATS connection
-            LOGGER.info("Step 6: Closing NATS connection");
+            // 9. Close NATS connection
+            LOGGER.info("Step 9: Closing NATS connection");
             if (natsConnection != null) {
                 try {
                     natsConnection.close();
@@ -90,10 +120,11 @@ public class ShutdownHook implements Runnable {
                 }
             }
 
-            // 7. Close Redis connections (handled by ChunkStorage)
-            LOGGER.info("Step 7: Closing storage connections");
-            // Redis and MinIO connections are managed by ChunkStorage
-            // They should be closed when ChunkStorage is garbage collected or explicitly closed
+            // 10. Close storage connections
+            LOGGER.info("Step 10: Closing storage connections");
+            if (chunkStorage != null) {
+                chunkStorage.shutdown();
+            }
 
             LOGGER.info("=== Graceful shutdown complete for shard {} ===", shardId);
             shutdownComplete = true;
