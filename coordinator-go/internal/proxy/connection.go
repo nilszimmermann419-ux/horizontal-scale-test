@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"log"
 	"sync/atomic"
 
 	"github.com/cloudwego/netpoll"
@@ -42,11 +43,19 @@ func (cm *ConnectionManager) TotalConnections() uint64 {
 
 // RecordBytesReceived records received bytes
 func (cm *ConnectionManager) RecordBytesReceived(n int) {
+	// Bounds check: network read count should never be negative
+	if n < 0 {
+		return
+	}
 	cm.bytesReceived.Add(uint64(n))
 }
 
 // RecordBytesSent records sent bytes
 func (cm *ConnectionManager) RecordBytesSent(n int) {
+	// Bounds check: network write count should never be negative
+	if n < 0 {
+		return
+	}
 	cm.bytesSent.Add(uint64(n))
 }
 
@@ -78,7 +87,9 @@ func (cp *ConnectionPool) Put(conn netpoll.Connection) {
 	case cp.pool <- conn:
 	default:
 		// Pool is full, close the connection
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			log.Printf("Error closing connection: %v", err)
+		}
 	}
 }
 

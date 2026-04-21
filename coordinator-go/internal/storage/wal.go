@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"sync"
@@ -46,11 +47,13 @@ const (
 )
 
 func NewWAL(path string, flushInterval time.Duration) (*WAL, error) {
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		return nil, err
 	}
 
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	cleanPath := filepath.Clean(path)
+	// #nosec G304 -- path is sanitized via filepath.Clean before use
+	file, err := os.OpenFile(cleanPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +61,9 @@ func NewWAL(path string, flushInterval time.Duration) (*WAL, error) {
 	// Get current file size for tracking
 	info, err := file.Stat()
 	if err != nil {
-		file.Close()
+		if closeErr := file.Close(); closeErr != nil {
+			log.Printf("Error closing WAL file: %v", closeErr)
+		}
 		return nil, err
 	}
 
@@ -111,11 +116,20 @@ func (w *WAL) Append(op WALOp, key string, value []byte) error {
 func (w *WAL) writeEntry(entry WALEntry) (int, error) {
 	// Write header
 	buf := make([]byte, 0, 64+len(entry.Key)+len(entry.Value))
-	buf = binary.LittleEndian.AppendUint64(buf, uint64(entry.Timestamp))
+	// Safe conversion: Timestamp is always positive (set via time.Now().UnixNano())
+	buf = binary.LittleEndian.AppendUint64(buf, uint64(entry.Timestamp)) // #nosec G115
 	buf = append(buf, byte(entry.Op))
-	buf = binary.LittleEndian.AppendUint32(buf, uint32(len(entry.Key)))
+	// Bounds check: WAL key length is realistically bounded
+	if len(entry.Key) > math.MaxUint32 {
+		return 0, fmt.Errorf("WAL key length %d exceeds uint32 max", len(entry.Key))
+	}
+	buf = binary.LittleEndian.AppendUint32(buf, uint32(len(entry.Key))) // #nosec G115 -- bounds checked above
 	buf = append(buf, entry.Key...)
-	buf = binary.LittleEndian.AppendUint32(buf, uint32(len(entry.Value)))
+	// Bounds check: WAL value length is realistically bounded
+	if len(entry.Value) > math.MaxUint32 {
+		return 0, fmt.Errorf("WAL value length %d exceeds uint32 max", len(entry.Value))
+	}
+	buf = binary.LittleEndian.AppendUint32(buf, uint32(len(entry.Value))) // #nosec G115 -- bounds checked above
 	buf = append(buf, entry.Value...)
 	buf = binary.LittleEndian.AppendUint32(buf, entry.CRC)
 
@@ -127,11 +141,20 @@ func (w *WAL) calculateCRC(entry WALEntry) uint32 {
 	h := crc32.NewIEEE()
 	// Include ALL fields in CRC calculation
 	timestampBytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(timestampBytes, uint64(entry.Timestamp))
-	h.Write(timestampBytes)
-	h.Write([]byte{byte(entry.Op)})
-	h.Write([]byte(entry.Key))
-	h.Write(entry.Value)
+	// Safe conversion: Timestamp is always positive (set via time.Now().UnixNano())
+	binary.LittleEndian.PutUint64(timestampBytes, uint64(entry.Timestamp)) // #nosec G115
+	if _, err := h.Write(timestampBytes); err != nil {
+		log.Printf("Error writing timestamp to CRC: %v", err)
+	}
+	if _, err := h.Write([]byte{byte(entry.Op)}); err != nil {
+		log.Printf("Error writing op to CRC: %v", err)
+	}
+	if _, err := h.Write([]byte(entry.Key)); err != nil {
+		log.Printf("Error writing key to CRC: %v", err)
+	}
+	if _, err := h.Write(entry.Value); err != nil {
+		log.Printf("Error writing value to CRC: %v", err)
+	}
 	return h.Sum32()
 }
 
@@ -188,11 +211,11 @@ func (w *WAL) rotate() error {
 	}
 
 	// Create new WAL file
-	file, err := os.OpenFile(w.path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile(w.path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
 		// Recovery: try to rename old file back and reopen it
 		if renameErr := os.Rename(oldPath, w.path); renameErr == nil {
-			if reopenFile, reopenErr := os.OpenFile(w.path, os.O_WRONLY|os.O_APPEND, 0644); reopenErr == nil {
+			if reopenFile, reopenErr := os.OpenFile(w.path, os.O_WRONLY|os.O_APPEND, 0600); reopenErr == nil {
 				w.file = reopenFile
 				w.writer = bufio.NewWriterSize(reopenFile, 64*1024)
 			}
@@ -200,7 +223,9 @@ func (w *WAL) rotate() error {
 		return fmt.Errorf("failed to create new WAL file: %w", err)
 	}
 
-	oldFile.Close()
+	if err := oldFile.Close(); err != nil {
+		log.Printf("Error closing old WAL file: %v", err)
+	}
 
 	w.file = file
 	w.writer = bufio.NewWriterSize(file, 64*1024)

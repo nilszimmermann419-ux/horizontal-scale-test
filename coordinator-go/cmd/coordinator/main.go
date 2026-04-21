@@ -109,6 +109,8 @@ func main() {
 
 	log.Println("Shutting down...")
 	cancel()
-	proxyServer.Stop()
+	if err := proxyServer.Stop(); err != nil {
+		log.Printf("Error stopping proxy: %v", err)
+	}
 	grpcServer.Stop()
 }

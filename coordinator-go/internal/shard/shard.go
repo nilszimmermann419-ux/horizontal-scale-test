@@ -3,7 +3,6 @@ package shard
 import (
 	"fmt"
 	"sort"
-	"sync/atomic"
 	"time"
 )
 
@@ -19,14 +18,14 @@ type ShardStats struct {
 	LastHeartbeat int64
 }
 
-// Stats returns the current statistics for this shard
+	// Stats returns the current statistics for this shard
 func (s *Shard) Stats() ShardStats {
 	return ShardStats{
 		ID:            s.ID,
 		Address:       s.Address,
 		Port:          s.Port,
 		Capacity:      s.Capacity,
-		PlayerCount:   int32(atomic.LoadInt64(&s.playerCount)),
+		PlayerCount:   s.PlayerCount(),
 		Load:          s.Load(),
 		Healthy:       s.healthy.Load(),
 		LastHeartbeat: time.Unix(0, s.lastHeartbeat.Load()).Unix(),
@@ -36,7 +35,7 @@ func (s *Shard) Stats() ShardStats {
 // String returns a string representation of the shard
 func (s *Shard) String() string {
 	return fmt.Sprintf("Shard{id=%s, addr=%s:%d, players=%d/%d, load=%.2f, healthy=%v}",
-		s.ID, s.Address, s.Port, 		int32(atomic.LoadInt64(&s.playerCount)), s.Capacity, s.Load(), s.healthy.Load())
+		s.ID, s.Address, s.Port, s.PlayerCount(), s.Capacity, s.Load(), s.healthy.Load())
 }
 
 // ShardMetrics contains aggregated metrics across all shards
@@ -57,7 +56,7 @@ func (m *Manager) GetMetrics() ShardMetrics {
 		shard := value.(*Shard)
 		metrics.TotalShards++
 		metrics.TotalCapacity += shard.Capacity
-		metrics.TotalPlayers += int32(atomic.LoadInt64(&shard.playerCount))
+		metrics.TotalPlayers += shard.PlayerCount()
 		totalLoad += shard.Load()
 
 		if shard.healthy.Load() {

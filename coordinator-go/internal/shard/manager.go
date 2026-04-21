@@ -188,7 +188,16 @@ func (s *Shard) RemovePlayer() {
 
 // PlayerCount returns the current player count
 func (s *Shard) PlayerCount() int32 {
-	return int32(atomic.LoadInt64(&s.playerCount))
+	count := atomic.LoadInt64(&s.playerCount)
+	// Safe conversion: player count is bounded by shard capacity
+	// (typically < 100k), well below math.MaxInt32
+	if count < 0 {
+		return 0
+	}
+	if count > 2147483647 { // math.MaxInt32
+		return 2147483647
+	}
+	return int32(count)
 }
 
 // UpdateHeartbeat updates the last heartbeat time and marks shard as healthy

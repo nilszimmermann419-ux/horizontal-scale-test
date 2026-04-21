@@ -109,7 +109,9 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 	// Set connection timeout
 	if err := conn.SetDeadline(time.Now().Add(ConnectionTimeout)); err != nil {
 		log.Printf("Failed to set deadline for player %d: %v", id, err)
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			log.Printf("Failed to close connection for player %d: %v", id, closeErr)
+		}
 		return
 	}
 	
@@ -117,7 +119,9 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 	shard := p.shards.GetLeastLoadedShard()
 	if shard == nil {
 		log.Printf("No available shards for player %d", id)
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			log.Printf("Failed to close connection for player %d: %v", id, closeErr)
+		}
 		return
 	}
 
@@ -126,7 +130,9 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 	shardConn, err := net.DialTimeout("tcp", shardAddr, 5*time.Second)
 	if err != nil {
 		log.Printf("Failed to connect to shard %s for player %d: %v", shard.ID, id, err)
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			log.Printf("Failed to close connection for player %d: %v", id, closeErr)
+		}
 		return
 	}
 
@@ -160,7 +166,9 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 			log.Printf("Player %d -> Shard copy error: %v", id, err)
 		}
 		log.Printf("Player %d -> Shard: %d bytes", id, copied)
-		shardConn.Close()
+		if closeErr := shardConn.Close(); closeErr != nil {
+			log.Printf("Error closing shard connection for player %d: %v", id, closeErr)
+		}
 	}()
 
 	// Shard -> Player
@@ -171,7 +179,9 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 			log.Printf("Shard -> Player %d copy error: %v", id, err)
 		}
 		log.Printf("Shard -> Player %d: %d bytes", id, copied)
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			log.Printf("Error closing player connection for player %d: %v", id, closeErr)
+		}
 	}()
 
 	wg.Wait()

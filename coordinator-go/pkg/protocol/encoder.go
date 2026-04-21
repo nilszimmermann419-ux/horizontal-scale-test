@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math"
 )
 
@@ -51,14 +52,24 @@ func (e *PacketEncoder) WriteFloat64(v float64) {
 
 // WriteString appends a length-prefixed UTF-8 string
 func (e *PacketEncoder) WriteString(v string) {
+	if len(v) > math.MaxUint16 {
+		panic(fmt.Sprintf("string length %d exceeds uint16 max", len(v)))
+	}
+	// #nosec G115 -- bounds checked above
 	e.WriteUint16(uint16(len(v)))
 	e.buf = append(e.buf, v...)
 }
 
 // WriteBytes appends a length-prefixed byte slice
-func (e *PacketEncoder) WriteBytes(v []byte) {
+func (e *PacketEncoder) WriteBytes(v []byte) error {
+	// Bounds check: Minecraft protocol packets are realistically < 4GB
+	if len(v) > math.MaxUint32 {
+		return fmt.Errorf("byte slice length %d exceeds uint32 max", len(v))
+	}
+	// #nosec G115 -- bounds checked above
 	e.WriteUint32(uint32(len(v)))
 	e.buf = append(e.buf, v...)
+	return nil
 }
 
 // Bytes returns the encoded byte slice

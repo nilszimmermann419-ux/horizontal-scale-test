@@ -15,11 +15,11 @@ dependencies {
     implementation("io.grpc:grpc-stub:${property("grpcVersion")}")
     implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
     implementation("net.kyori:adventure-api:4.15.0")
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.13.0")
     
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-    testImplementation("org.testcontainers:testcontainers:1.19.3")
-    testImplementation("org.testcontainers:junit-jupiter:1.19.3")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testImplementation("org.testcontainers:testcontainers:1.21.0")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

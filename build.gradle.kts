@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.22" apply false
+    kotlin("jvm") version "2.1.20" apply false
     id("com.google.protobuf") version "0.9.4" apply false
 }
 

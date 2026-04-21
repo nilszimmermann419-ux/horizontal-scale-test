@@ -7,7 +7,7 @@ dependencies {
     implementation(project(":shared"))
     implementation("org.slf4j:slf4j-api:2.0.9")
     
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

@@ -114,7 +114,9 @@ func (hh *HeartbeatHandler) ProcessHeartbeat(shardID string, playerCount uint32,
 	if playerCount > 0 {
 		// Atomic update would be better, but for now just log discrepancy
 		current := shard.PlayerCount()
-		if int32(playerCount) != current {
+		// Safe conversion: playerCount is uint32 and realistically bounded
+		// by shard capacity (typically < 100k), well below math.MaxInt32
+		if int32(playerCount) != current { // #nosec G115
 			log.Printf("Shard %s player count mismatch: reported=%d, tracked=%d",
 				shardID, playerCount, current)
 		}

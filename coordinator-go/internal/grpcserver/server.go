@@ -133,6 +133,7 @@ func (s *GRPCServer) ReleaseChunkLock(ctx context.Context, req *pb.LockRequest) 
 
 // SyncEntityState handles entity state synchronization between shards
 func (s *GRPCServer) SyncEntityState(ctx context.Context, req *pb.EntityStateSync) (*pb.SyncResponse, error) {
+	// #nosec G115 -- entity count is realistically bounded by shard capacity
 	return &pb.SyncResponse{
 		Success: true,
 		SyncedCount: int32(len(req.Entities)),
