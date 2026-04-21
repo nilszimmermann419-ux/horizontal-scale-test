@@ -1,56 +1,95 @@
-# Minestom Horizontal Scaling Server
+# ShardedMC v2.0
+## Seamless Vanilla Experience on Horizontally Scaled Minecraft Servers
 
-A production-grade horizontally-scalable Minecraft server built on Minestom.
+**Status:** Architecture Complete - Awaiting Implementation
 
-## Features
+---
 
-- **Shard-Based Distribution:** Distribute chunks across multiple Minestom instances
-- **Seamless Player Transitions:** <100ms handoff between shards
-- **Central Coordinator:** Manages chunk allocation and player routing
-- **Redis State Store:** Shared state and pub/sub messaging
-- **Plugin API:** Abstracted API hiding shard complexity from developers
-- **Production Ready:** Health monitoring, dynamic rebalancing, graceful degradation
+## Overview
 
-## Quick Start
+ShardedMC is a ground-up redesign of horizontally-scalable Minecraft server architecture. Unlike v1.0 which attempted to retrofit sharding onto a single-server model, v2.0 embraces a true distributed systems approach with event-sourced state synchronization, deterministic chunk allocation, and optimistic block breaking.
 
-### Prerequisites
+**Target:** 100% vanilla parity with 100,000+ concurrent players
 
-- Java 21+
-- Docker and Docker Compose
-- Gradle
+## Why v2.0?
 
-### Running with Docker Compose
+The v1.0 codebase had fundamental design flaws:
 
-```bash
-# Copy example environment file
-cp .env.example .env
+1. **Chunk ownership was too rigid** - denied actions on any uncertainty, making the game unplayable
+2. **Lighting was computed synchronously** - 98,304 block lookups per chunk, causing dark worlds and timeouts
+3. **State sync was best-effort** - no guarantees, no conflict resolution
+4. **Data storage used wrong tools** - Redis for chunk data, strings for serialization
+5. **Error handling was primitive** - silent failures, no graceful degradation
 
-# Start infrastructure (Redis) and coordinator
-docker-compose up -d
-
-# Start shards
-./gradlew :shard:run
-```
-
-### Configuration
-
-See `.env.example` for available configuration options.
+See [docs/ROOT_CAUSE_ANALYSIS.md](docs/ROOT_CAUSE_ANALYSIS.md) for the full analysis.
 
 ## Architecture
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture documentation.
+See [docs/ARCHITECTURE_v2.md](docs/ARCHITECTURE_v2.md) for the comprehensive v2.0 architecture document.
 
-## Plugin Development
+### Key Innovations
 
-See [docs/API.md](docs/API.md) for plugin API documentation.
+- **Event-Sourced Synchronization**: All state changes are events, not polling
+- **Deterministic Chunk Allocation**: Consistent hashing instead of central coordinator
+- **Optimistic Block Breaking**: Break first, validate asynchronously, rollback if needed
+- **Three-Tier Async Lighting**: Client prediction + quick pass + deep validation
+- **Seamless Sub-50ms Handoffs**: Predictive pre-loading with double-buffered state
+- **Proper Storage Hierarchy**: MinIO for chunks, Redis for cache, NATS for events
 
-## Contributing
+## Technology Stack
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `./gradlew test`
-5. Submit a pull request
+| Component | Technology |
+|---|---|
+| Proxy | Go (custom Minecraft-aware TCP proxy) |
+| Coordinator | Go + Raft consensus |
+| Shard | Minestom (modified) |
+| Message Bus | NATS JetStream |
+| Cache | Redis Cluster |
+| Chunk Storage | MinIO (S3-compatible) |
+
+## Implementation Roadmap
+
+### Phase 1: Foundation (Week 1-2)
+- Coordinator service with Raft consensus
+- Deterministic chunk allocation
+- Basic proxy with Mojang auth
+- NATS JetStream setup
+
+### Phase 2: Core Shard (Week 3-4)
+- Minestom integration with region manager
+- Async chunk loading from MinIO
+- Event bus integration
+- Basic player movement
+
+### Phase 3: State Sync (Week 5-6)
+- Player state storage (Redis + MinIO)
+- Entity system with ownership
+- Block change event sourcing
+- Cross-region event propagation
+
+### Phase 4: Lighting & Visuals (Week 7-8)
+- Three-tier lighting engine
+- Async lighting calculation
+- Light update packets
+- Chunk border seamlessness
+
+### Phase 5: Gameplay (Week 9-10)
+- Block breaking/placing (optimistic)
+- Inventory management
+- Crafting system
+- Redstone (cross-region)
+
+### Phase 6: Polish (Week 11-12)
+- Entity AI with cross-region pathfinding
+- Grief protection (event log rollback)
+- Performance optimization
+- Monitoring and metrics
+
+### Phase 7: Production (Week 13+)
+- Kubernetes deployment
+- Load testing (10k, 50k, 100k players)
+- Chaos engineering
+- Documentation
 
 ## License
 
