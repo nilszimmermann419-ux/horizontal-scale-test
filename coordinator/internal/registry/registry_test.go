@@ -101,9 +101,9 @@ func TestGetHealthyShards(t *testing.T) {
 
 	// Register multiple shards
 	shards := []*ShardInfo{
-		{ID: "shard-1", Address: "127.0.0.1", Port: 25566, Healthy: true},
-		{ID: "shard-2", Address: "127.0.0.1", Port: 25567, Healthy: true},
-		{ID: "shard-3", Address: "127.0.0.1", Port: 25568, Healthy: true},
+		{ID: "shard-1", Address: "127.0.0.1", Port: 25566, Healthy: true, Capacity: 100},
+		{ID: "shard-2", Address: "127.0.0.1", Port: 25567, Healthy: true, Capacity: 100},
+		{ID: "shard-3", Address: "127.0.0.1", Port: 25568, Healthy: true, Capacity: 100},
 	}
 
 	for _, shard := range shards {

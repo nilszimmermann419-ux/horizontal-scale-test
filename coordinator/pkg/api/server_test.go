@@ -141,11 +141,19 @@ func TestRegionAllocation(t *testing.T) {
 	}
 
 	for _, region := range testRegions {
-		owner1 := allocator.GetRegionOwner(region, allShards)
-		owner2 := allocator.GetRegionOwner(region, allShards)
+		owner1, err1 := allocator.GetRegionOwner(region, allShards)
+		owner2, err2 := allocator.GetRegionOwner(region, allShards)
+
+		if err1 != nil {
+			t.Errorf("Unexpected error: %v", err1)
+		}
 
 		if owner1 == "" {
 			t.Error("Expected region to have an owner")
+		}
+
+		if err2 != nil {
+			t.Errorf("Unexpected error: %v", err2)
 		}
 
 		if owner1 != owner2 {
