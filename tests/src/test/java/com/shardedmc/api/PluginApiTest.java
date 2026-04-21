@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PluginApiTest {
     
     @Test
-    void testEventCreation() {
+    void eventCreation() {
         UUID playerId = UUID.randomUUID();
         PlayerJoinEvent event = new PlayerJoinEvent(playerId, "TestPlayer", new Vec3d(0, 64, 0));
         
@@ -24,7 +24,7 @@ public class PluginApiTest {
     }
     
     @Test
-    void testBlockBreakEventCancellation() {
+    void blockBreakEventCancellation() {
         UUID playerId = UUID.randomUUID();
         BlockBreakEvent event = new BlockBreakEvent(playerId, new Vec3d(10, 64, 10), Block.STONE);
         
@@ -35,7 +35,7 @@ public class PluginApiTest {
     }
     
     @Test
-    void testPluginInfo() {
+    void pluginInfo() {
         PluginInfo info = new PluginInfo("TestPlugin", "1.0.0", "TestAuthor");
         
         assertEquals("TestPlugin", info.name());
@@ -45,7 +45,7 @@ public class PluginApiTest {
     }
     
     @Test
-    void testVec3dOperations() {
+    void vec3dOperations() {
         Vec3d a = new Vec3d(1, 2, 3);
         Vec3d b = new Vec3d(4, 5, 6);
         

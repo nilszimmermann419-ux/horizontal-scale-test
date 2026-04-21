@@ -38,7 +38,7 @@ function createBot(name, server = SHARD_ALPHA) {
         port: parseInt(port),
         username: name,
         auth: 'offline',
-        checkTimeoutInterval: 60000
+        checkTimeoutInterval: 10000
     });
 }
 

@@ -82,6 +82,12 @@ public class ShardConfig {
     @JsonProperty("world_directory")
     private String worldDirectory = "world";
     
+    @JsonProperty("online_mode")
+    private boolean onlineMode = false;
+    
+    @JsonProperty("world_border_radius")
+    private int worldBorderRadius = 0;
+    
     @JsonProperty("enable_auto_save")
     private boolean enableAutoSave = true;
     
@@ -198,9 +204,11 @@ public class ShardConfig {
     
     public String getWorldPath() { return worldDirectory; }
     
-    public boolean isOnlineMode() { return false; }
+    public boolean isOnlineMode() { return onlineMode; }
+    public void setOnlineMode(boolean onlineMode) { this.onlineMode = onlineMode; }
     
-    public int getWorldBorderRadius() { return 0; }
+    public int getWorldBorderRadius() { return worldBorderRadius; }
+    public void setWorldBorderRadius(int worldBorderRadius) { this.worldBorderRadius = worldBorderRadius; }
 
     public void validate() {
         if (shardId == null || shardId.isEmpty()) {

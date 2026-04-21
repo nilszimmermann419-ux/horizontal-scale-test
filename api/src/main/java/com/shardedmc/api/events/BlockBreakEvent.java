@@ -11,7 +11,7 @@ public class BlockBreakEvent extends ShardedEvent {
     private final UUID playerId;
     private final Vec3d position;
     private final Block block;
-    private boolean cancelled;
+    private volatile boolean cancelled;
     
     public BlockBreakEvent(UUID playerId, Vec3d position, Block block) {
         super(false); // Local event

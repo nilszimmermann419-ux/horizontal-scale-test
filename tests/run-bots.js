@@ -162,7 +162,7 @@ setTimeout(() => {
     
     console.log('\nStopping all bots...');
     bots.forEach(bot => {
-        try { bot.end(); } catch(e) {}
+        try { bot.end(); } catch(e) { console.error('Error stopping bot:', e.message); }
     });
     process.exit(0);
 }, 300000);
@@ -171,7 +171,7 @@ setTimeout(() => {
 process.on('SIGINT', () => {
     console.log('\nStopping all bots...');
     bots.forEach(bot => {
-        try { bot.end(); } catch(e) {}
+        try { bot.end(); } catch(e) { console.error('Error stopping bot:', e.message); }
     });
     process.exit(0);
 });

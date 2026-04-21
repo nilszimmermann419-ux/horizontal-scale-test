@@ -87,7 +87,7 @@ public class HealthCheck {
     }
     
     public Map<String, HealthIndicator> getIndicators() {
-        return new ConcurrentHashMap<>(indicators);
+        return Map.copyOf(indicators);
     }
     
     public Instant getLastCheckTime() {
@@ -159,12 +159,12 @@ public class HealthCheck {
                            Map<String, HealthIndicator> indicators) {
             this.overallStatus = overallStatus;
             this.checkTime = checkTime;
-            this.indicators = new ConcurrentHashMap<>(indicators);
+            this.indicators = Map.copyOf(indicators);
         }
         
         public HealthStatus getOverallStatus() { return overallStatus; }
         public Instant getCheckTime() { return checkTime; }
-        public Map<String, HealthIndicator> getIndicators() { return indicators; }
+        public Map<String, HealthIndicator> getIndicators() { return Map.copyOf(indicators); }
         
         public boolean isHealthy() {
             return overallStatus == HealthStatus.HEALTHY;

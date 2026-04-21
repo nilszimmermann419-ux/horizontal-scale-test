@@ -17,10 +17,12 @@ type GRPCServer struct {
 	shardMgr *shard.Manager
 }
 
+// NewGRPCServer creates a new gRPC server instance
 func NewGRPCServer(shardMgr *shard.Manager) *GRPCServer {
 	return &GRPCServer{shardMgr: shardMgr}
 }
 
+// RegisterShard handles shard registration requests
 func (s *GRPCServer) RegisterShard(ctx context.Context, req *pb.ShardInfo) (*pb.RegistrationResponse, error) {
 	// Input validation
 	if req.ShardId == "" {
@@ -66,6 +68,7 @@ func (s *GRPCServer) RegisterShard(ctx context.Context, req *pb.ShardInfo) (*pb.
 	}, nil
 }
 
+// SendHeartbeat processes heartbeat updates from shards
 func (s *GRPCServer) SendHeartbeat(ctx context.Context, req *pb.HeartbeatRequest) (*pb.HeartbeatResponse, error) {
 	sh, ok := s.shardMgr.GetShard(req.ShardId)
 	if !ok {
@@ -82,6 +85,7 @@ func (s *GRPCServer) SendHeartbeat(ctx context.Context, req *pb.HeartbeatRequest
 	}, nil
 }
 
+// RequestPlayerTransfer handles player transfer requests between shards
 func (s *GRPCServer) RequestPlayerTransfer(ctx context.Context, req *pb.TransferRequest) (*pb.TransferResponse, error) {
 	// TODO: Implement proper player transfer logic with shard coordination
 	return &pb.TransferResponse{
@@ -90,6 +94,7 @@ func (s *GRPCServer) RequestPlayerTransfer(ctx context.Context, req *pb.Transfer
 	}, nil
 }
 
+// ConfirmPlayerTransfer confirms completion of a player transfer
 func (s *GRPCServer) ConfirmPlayerTransfer(ctx context.Context, req *pb.TransferConfirmation) (*pb.ConfirmationResponse, error) {
 	// TODO: Implement proper transfer confirmation with state cleanup
 	return &pb.ConfirmationResponse{
@@ -97,6 +102,7 @@ func (s *GRPCServer) ConfirmPlayerTransfer(ctx context.Context, req *pb.Transfer
 	}, nil
 }
 
+// RequestChunkLoad handles chunk load requests from shards
 func (s *GRPCServer) RequestChunkLoad(ctx context.Context, req *pb.ChunkLoadRequest) (*pb.ChunkLoadResponse, error) {
 	// TODO: Implement chunk loading with storage backend integration
 	return &pb.ChunkLoadResponse{
@@ -104,6 +110,7 @@ func (s *GRPCServer) RequestChunkLoad(ctx context.Context, req *pb.ChunkLoadRequ
 	}, nil
 }
 
+// RequestChunkUnload handles chunk unload requests from shards
 func (s *GRPCServer) RequestChunkUnload(ctx context.Context, req *pb.ChunkUnloadRequest) (*pb.ChunkUnloadResponse, error) {
 	// TODO: Implement chunk unloading with persistence and cleanup
 	return &pb.ChunkUnloadResponse{
@@ -111,6 +118,7 @@ func (s *GRPCServer) RequestChunkUnload(ctx context.Context, req *pb.ChunkUnload
 	}, nil
 }
 
+// RequestChunkLock handles chunk lock requests
 func (s *GRPCServer) RequestChunkLock(ctx context.Context, req *pb.LockRequest) (*pb.LockResponse, error) {
 	// TODO: Implement distributed chunk locking with deadlock prevention
 	return &pb.LockResponse{
@@ -118,10 +126,12 @@ func (s *GRPCServer) RequestChunkLock(ctx context.Context, req *pb.LockRequest) 
 	}, nil
 }
 
+// ReleaseChunkLock handles chunk unlock requests
 func (s *GRPCServer) ReleaseChunkLock(ctx context.Context, req *pb.LockRequest) (*pb.Empty, error) {
 	return &pb.Empty{}, nil
 }
 
+// SyncEntityState handles entity state synchronization between shards
 func (s *GRPCServer) SyncEntityState(ctx context.Context, req *pb.EntityStateSync) (*pb.SyncResponse, error) {
 	return &pb.SyncResponse{
 		Success: true,
@@ -129,6 +139,7 @@ func (s *GRPCServer) SyncEntityState(ctx context.Context, req *pb.EntityStateSyn
 	}, nil
 }
 
+// StartGRPCServer starts the gRPC server on the specified address
 func StartGRPCServer(addr string, shardMgr *shard.Manager) (*grpc.Server, chan error, error) {
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {

@@ -17,7 +17,14 @@ public interface ShardedPlayer {
     // Position
     CompletableFuture<Vec3d> getPosition();
     CompletableFuture<Void> teleport(Vec3d position);
-    CompletableFuture<Void> teleportAsync(Vec3d position);
+
+    /**
+     * @deprecated Use {@link #teleport(Vec3d)} instead
+     */
+    @Deprecated
+    default CompletableFuture<Void> teleportAsync(Vec3d position) {
+        return teleport(position);
+    }
     
     // Player state
     CompletableFuture<Double> getHealth();

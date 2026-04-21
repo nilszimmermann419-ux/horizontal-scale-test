@@ -126,9 +126,9 @@ public class MetricsCollector {
         long usedMemory = runtime.totalMemory() - runtime.freeMemory();
         long maxMemory = runtime.maxMemory();
         
-        gauge("jvm.memory.used.bytes", () -> usedMemory);
-        gauge("jvm.memory.max.bytes", () -> maxMemory);
-        gauge("jvm.memory.usage.percent", () -> (usedMemory * 100.0) / maxMemory);
+        gauge("jvm.memory.used.bytes", () -> usedMemory, "service", serviceName);
+        gauge("jvm.memory.max.bytes", () -> maxMemory, "service", serviceName);
+        gauge("jvm.memory.usage.percent", () -> (usedMemory * 100.0) / maxMemory, "service", serviceName);
     }
     
     public void recordPlayerHandoff(String sourceShard, String targetShard, long durationMs, boolean success) {
@@ -140,7 +140,7 @@ public class MetricsCollector {
     
     public void recordEntitySync(long durationMs, int entityCount) {
         timer("entity.sync.duration").record(durationMs, TimeUnit.MILLISECONDS);
-        gauge("entity.sync.count", () -> entityCount);
+        gauge("entity.sync.count", () -> entityCount, "service", serviceName);
     }
     
     public void recordRedisOperation(String operation, long durationMs, boolean success) {
@@ -151,8 +151,8 @@ public class MetricsCollector {
     }
     
     public void recordShardHealth(String shardId, boolean healthy, double load) {
-        gauge("shard.health", () -> healthy ? 1 : 0, "shard_id", shardId);
-        gauge("shard.load", () -> load, "shard_id", shardId);
+        gauge("shard.health", () -> healthy ? 1 : 0, "shard_id", shardId, "service", serviceName);
+        gauge("shard.load", () -> load, "shard_id", shardId, "service", serviceName);
     }
     
     public void shutdown() {

@@ -167,6 +167,13 @@ public class SecurityManager {
         }
     }
     
+    public String hashWithRandomSalt(String input) {
+        byte[] salt = new byte[16];
+        secureRandom.nextBytes(salt);
+        String saltString = Base64.getEncoder().encodeToString(salt);
+        return hashWithSalt(input, saltString) + ":" + saltString;
+    }
+    
     // Secure token generation
     private String generateSecureToken() {
         byte[] tokenBytes = new byte[32];

@@ -47,12 +47,12 @@ public class FullSystemTest {
     }
     
     @Test
-    void testCoordinatorStarts() {
+    void coordinatorStarts() {
         assertNotNull(coordinator);
     }
     
     @Test
-    void testRedisConnection() {
+    void redisConnection() {
         redisClient.setAsync("test:key", "test:value").join();
         String value = redisClient.getAsync("test:key").join();
         

@@ -42,7 +42,7 @@ public class ChunkAllocationTest {
     }
     
     @Test
-    void testAllocateRegionsForShard() {
+    void allocateRegionsForShard() {
         // Register a shard
         shardRegistry.registerShard("shard-1", "localhost", 25565, 100).join();
         
@@ -60,7 +60,7 @@ public class ChunkAllocationTest {
     }
     
     @Test
-    void testGetShardForChunk() {
+    void getShardForChunk() {
         shardRegistry.registerShard("shard-1", "localhost", 25565, 100).join();
         chunkAllocation.allocateRegionsForShard("shard-1", 1);
         
@@ -70,7 +70,7 @@ public class ChunkAllocationTest {
     }
     
     @Test
-    void testMultipleShards() {
+    void multipleShards() {
         shardRegistry.registerShard("shard-1", "localhost", 25565, 100).join();
         shardRegistry.registerShard("shard-2", "localhost", 25566, 100).join();
         

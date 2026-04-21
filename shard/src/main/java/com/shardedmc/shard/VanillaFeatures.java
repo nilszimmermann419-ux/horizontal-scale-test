@@ -35,12 +35,12 @@ public class VanillaFeatures {
     
     private final Instance instance;
     private LightingEngine lightingEngine;
-    private RedisClient redisClient;
+    private final RedisClient redisClient;
     private final Random random = new Random();
     private static final String BLOCK_UPDATES_CHANNEL = "world:block_updates";
     
     public VanillaFeatures(Instance instance) {
-        this.instance = instance;
+        this(instance, null);
     }
     
     public VanillaFeatures(Instance instance, RedisClient redisClient) {
