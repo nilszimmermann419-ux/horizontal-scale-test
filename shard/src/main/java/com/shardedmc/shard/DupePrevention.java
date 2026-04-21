@@ -26,7 +26,6 @@ import net.minestom.server.component.DataComponents;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.registry.RegistryKey;
 import net.minestom.server.item.enchant.Enchantment;
-import net.minestom.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

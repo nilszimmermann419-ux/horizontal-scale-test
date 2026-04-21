@@ -82,16 +82,19 @@ public class ChunkManager {
                 shardOwnedChunks.computeIfAbsent(shardId, k -> ConcurrentHashMap.newKeySet()).add(chunk);
                 shardChunkLoad.merge(shardId, 1, Integer::sum);
                 
-                // Persist to Redis
-                redis.hsetAsync("chunk:" + chunk.x() + ":" + chunk.z(), 
-                        Map.of("owner", shardId, "timestamp", String.valueOf(System.currentTimeMillis())));
-                
                 logger.info("Granted ownership of chunk {} to shard {}", chunk, shardId);
                 return true;
                 
             } finally {
                 lock.writeLock().unlock();
             }
+        }).thenApply(success -> {
+            if (success) {
+                // Persist to Redis outside lock
+                redis.hsetAsync("chunk:" + chunk.x() + ":" + chunk.z(),
+                        Map.of("owner", shardId, "timestamp", String.valueOf(System.currentTimeMillis())));
+            }
+            return success;
         });
     }
     
@@ -105,16 +108,19 @@ public class ChunkManager {
                 String owner = chunkOwners.get(chunk);
                 if (shardId.equals(owner)) {
                     chunkOwners.remove(chunk);
-                    shardOwnedChunks.getOrDefault(shardId, Set.of()).remove(chunk);
+                    Set<ChunkPos> owned = shardOwnedChunks.get(shardId);
+                    if (owned != null) {
+                        owned.remove(chunk);
+                    }
                     shardChunkLoad.merge(shardId, -1, Integer::sum);
-                    
-                    redis.delAsync("chunk:" + chunk.x() + ":" + chunk.z());
                     
                     logger.info("Released ownership of chunk {} from shard {}", chunk, shardId);
                 }
             } finally {
                 lock.writeLock().unlock();
             }
+        }).thenRun(() -> {
+            redis.delAsync("chunk:" + chunk.x() + ":" + chunk.z());
         });
     }
     
@@ -334,7 +340,10 @@ public class ChunkManager {
     
     private void transferOwnership(ChunkPos chunk, String oldOwner, String newOwner) {
         chunkOwners.put(chunk, newOwner);
-        shardOwnedChunks.getOrDefault(oldOwner, Set.of()).remove(chunk);
+        Set<ChunkPos> oldOwned = shardOwnedChunks.get(oldOwner);
+        if (oldOwned != null) {
+            oldOwned.remove(chunk);
+        }
         shardOwnedChunks.computeIfAbsent(newOwner, k -> ConcurrentHashMap.newKeySet()).add(chunk);
         shardChunkLoad.merge(oldOwner, -1, Integer::sum);
         shardChunkLoad.merge(newOwner, 1, Integer::sum);
@@ -384,8 +393,9 @@ public class ChunkManager {
      */
     public List<ChunkPos> allocateRegionsForShard(String shardId, int regionCount) {
         lock.writeLock().lock();
+        List<ChunkPos> assigned;
         try {
-            List<ChunkPos> assigned = new ArrayList<>();
+            assigned = new ArrayList<>();
             
             // Find available chunks using a spiral pattern from origin
             int x = 0, z = 0;
@@ -400,10 +410,6 @@ public class ChunkManager {
                     shardChunkLoad.merge(shardId, 1, Integer::sum);
                     assigned.add(chunk);
                     found++;
-                    
-                    // Persist to Redis
-                    redis.hsetAsync("chunk:" + x + ":" + z, 
-                            Map.of("owner", shardId, "timestamp", String.valueOf(System.currentTimeMillis())));
                 }
                 
                 // Spiral pattern
@@ -417,11 +423,17 @@ public class ChunkManager {
             }
             
             logger.info("Allocated {} chunks to shard {}", assigned.size(), shardId);
-            return assigned;
-            
         } finally {
             lock.writeLock().unlock();
         }
+        
+        // Persist to Redis outside lock
+        for (ChunkPos chunk : assigned) {
+            redis.hsetAsync("chunk:" + chunk.x() + ":" + chunk.z(),
+                    Map.of("owner", shardId, "timestamp", String.valueOf(System.currentTimeMillis())));
+        }
+        
+        return assigned;
     }
     
     /**
@@ -443,7 +455,10 @@ public class ChunkManager {
                         // Owner is dead, remove it
                         logger.warn("Chunk {} owner {} is unhealthy, clearing ownership", chunk, owner);
                         chunkOwners.remove(chunk);
-                        shardOwnedChunks.getOrDefault(owner, Set.of()).remove(chunk);
+                        Set<ChunkPos> owned = shardOwnedChunks.get(owner);
+                        if (owned != null) {
+                            owned.remove(chunk);
+                        }
                         return Optional.empty();
                     }
                 }

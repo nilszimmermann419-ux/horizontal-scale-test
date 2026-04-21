@@ -224,6 +224,8 @@ async function testMultiShard() {
         const cleanup = () => {
             if (!resolved) {
                 resolved = true;
+                try { botAlpha.end(); } catch(e) {}
+                try { botBeta.end(); } catch(e) {}
                 resolve();
             }
         };

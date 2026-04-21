@@ -59,9 +59,4 @@ public class FullSystemTest {
         assertEquals("test:value", value);
     }
     
-    @Test
-    void testShardRegistration() {
-        // This would require a running shard - simplified test
-        assertTrue(true);
-    }
 }

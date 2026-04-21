@@ -27,7 +27,8 @@ public class AnvilFormatStorage {
     private final Path worldPath;
     private final Path regionPath;
     
-    // Region file cache
+    // Region file cache with size limit
+    private static final int MAX_CACHED_REGIONS = 256;
     private final Map<String, RegionFile> regionCache = new ConcurrentHashMap<>();
     
     public AnvilFormatStorage(String worldName) {
@@ -108,6 +109,19 @@ public class AnvilFormatStorage {
     
     private RegionFile getRegionFile(int regionX, int regionZ) throws IOException {
         String key = regionX + "." + regionZ;
+        // Evict oldest entries if cache is full
+        if (regionCache.size() >= MAX_CACHED_REGIONS && !regionCache.containsKey(key)) {
+            Iterator<Map.Entry<String, RegionFile>> it = regionCache.entrySet().iterator();
+            if (it.hasNext()) {
+                Map.Entry<String, RegionFile> oldest = it.next();
+                try {
+                    oldest.getValue().close();
+                } catch (IOException e) {
+                    logger.warn("Failed to close region file", e);
+                }
+                it.remove();
+            }
+        }
         return regionCache.computeIfAbsent(key, k -> {
             try {
                 Path file = regionPath.resolve(String.format("r.%d.%d.mca", regionX, regionZ));
@@ -140,6 +154,10 @@ public class AnvilFormatStorage {
                 this.raf = new RandomAccessFile(file.toFile(), "rw");
                 initializeFile();
             }
+        }
+        
+        void close() throws IOException {
+            raf.close();
         }
         
         private void readHeaders() throws IOException {
@@ -228,8 +246,9 @@ public class AnvilFormatStorage {
             
             // Decompress
             ByteArrayInputStream bais = new ByteArrayInputStream(compressedData);
-            InflaterInputStream iis = new InflaterInputStream(bais);
-            return iis.readAllBytes();
+            try (InflaterInputStream iis = new InflaterInputStream(bais)) {
+                return iis.readAllBytes();
+            }
         }
         
         private int findFreeSpace(int sectorsNeeded) {

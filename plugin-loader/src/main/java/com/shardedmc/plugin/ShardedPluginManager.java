@@ -63,8 +63,7 @@ public class ShardedPluginManager {
     }
     
     private String findMainClass(PluginClassLoader classLoader) {
-        try {
-            JarFile jarFile = classLoader.getJarFile();
+        try (JarFile jarFile = classLoader.getJarFile()) {
             JarEntry entry = jarFile.getJarEntry("plugin.yml");
             if (entry != null) {
                 var properties = new Properties();

@@ -99,9 +99,8 @@ public class ChunkOwnershipEnforcer {
             return owned;
         } catch (Exception e) {
             logger.error("Error checking chunk ownership for {}", chunk, e);
-            // Default to allowing the action if we can't verify ownership
-            // In production, you might want to default to false (deny)
-            return true;
+            // Default to denying the action if we can't verify ownership
+            return false;
         }
     }
     

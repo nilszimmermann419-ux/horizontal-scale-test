@@ -130,13 +130,15 @@ public class RedisClient implements AutoCloseable {
     
     // Pipelining for batch operations
     public void pipeline(Consumer<RedisAsyncCommands<String, String>> operations) {
-        var commands = connection.async();
-        commands.setAutoFlushCommands(false);
-        try {
-            operations.accept(commands);
-            commands.flushCommands();
-        } finally {
-            commands.setAutoFlushCommands(true);
+        synchronized (connection) {
+            var commands = connection.async();
+            commands.setAutoFlushCommands(false);
+            try {
+                operations.accept(commands);
+                commands.flushCommands();
+            } finally {
+                commands.setAutoFlushCommands(true);
+            }
         }
     }
     

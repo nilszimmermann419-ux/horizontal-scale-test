@@ -8,7 +8,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledFuture;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Manages chunk locks to prevent concurrent modifications.
@@ -21,11 +26,19 @@ public class ChunkLockManager {
     // Maps chunk position to current lock holder (shard ID)
     private final Map<ChunkPos, String> chunkLocks = new ConcurrentHashMap<>();
     
-    // Maps chunk position to queue of waiting shard IDs
-    private final Map<ChunkPos, java.util.Queue<String>> lockQueues = new ConcurrentHashMap<>();
+    // Maps chunk position to queue of waiting shard IDs with their futures
+    private final Map<ChunkPos, java.util.Queue<LockRequest>> lockQueues = new ConcurrentHashMap<>();
+    
+    private record LockRequest(String shardId, CompletableFuture<Boolean> future, ScheduledFuture<?> timeoutTask) {}
     
     // Lock timeout in milliseconds
     private static final long LOCK_TIMEOUT_MS = 5000;
+    
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, r -> {
+        Thread t = new Thread(r, "chunk-lock-timeout");
+        t.setDaemon(true);
+        return t;
+    });
     
     /**
      * Attempt to acquire a lock on a chunk.
@@ -45,33 +58,23 @@ public class ChunkLockManager {
             return CompletableFuture.completedFuture(true);
         } else {
             // Lock is held by another shard, add to queue
-            lockQueues.computeIfAbsent(pos, k -> new java.util.LinkedList<>()).add(shardId);
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            ScheduledFuture<?> timeoutTask = scheduler.schedule(() -> {
+                if (future.complete(false)) {
+                    java.util.Queue<LockRequest> queue = lockQueues.get(pos);
+                    if (queue != null) {
+                        queue.removeIf(req -> req.shardId().equals(shardId));
+                    }
+                    logger.warn("Lock timeout for shard {} on chunk {}, {}", shardId, chunkX, chunkZ);
+                }
+            }, LOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            
+            LockRequest request = new LockRequest(shardId, future, timeoutTask);
+            lockQueues.computeIfAbsent(pos, k -> new java.util.LinkedList<>()).add(request);
             logger.debug("Shard {} queued for lock on chunk {},{} (held by {})", 
                     shardId, chunkX, chunkZ, currentHolder);
             
-            // Return future that will be completed when lock is available
-            return CompletableFuture.supplyAsync(() -> {
-                long startTime = System.currentTimeMillis();
-                while (System.currentTimeMillis() - startTime < LOCK_TIMEOUT_MS) {
-                    String holder = chunkLocks.get(pos);
-                    if (holder != null && holder.equals(shardId)) {
-                        return true;
-                    }
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return false;
-                    }
-                }
-                // Timeout - remove from queue
-                java.util.Queue<String> queue = lockQueues.get(pos);
-                if (queue != null) {
-                    queue.remove(shardId);
-                }
-                logger.warn("Lock timeout for shard {} on chunk {}, {}", shardId, chunkX, chunkZ);
-                return false;
-            });
+            return future;
         }
     }
     
@@ -84,12 +87,16 @@ public class ChunkLockManager {
         
         String currentHolder = chunkLocks.get(pos);
         if (currentHolder != null && currentHolder.equals(shardId)) {
-            java.util.Queue<String> queue = lockQueues.get(pos);
+            java.util.Queue<LockRequest> queue = lockQueues.get(pos);
             if (queue != null && !queue.isEmpty()) {
                 // Grant to next in queue
-                String nextShard = queue.poll();
-                chunkLocks.put(pos, nextShard);
-                logger.debug("Lock transferred for chunk {},{} to shard {}", chunkX, chunkZ, nextShard);
+                LockRequest nextRequest = queue.poll();
+                if (nextRequest != null) {
+                    nextRequest.timeoutTask().cancel(false);
+                    chunkLocks.put(pos, nextRequest.shardId());
+                    nextRequest.future().complete(true);
+                    logger.debug("Lock transferred for chunk {},{} to shard {}", chunkX, chunkZ, nextRequest.shardId());
+                }
             } else {
                 // No one waiting, remove lock
                 chunkLocks.remove(pos);

@@ -309,6 +309,10 @@ function createBot(index) {
       setTimeout(() => {
         if (Date.now() - stats.startTime < config.duration) {
           log(`🔄 Reconnecting ${name}...`);
+          const botIndex = bots.indexOf(bot);
+          if (botIndex !== -1) {
+            bots.splice(botIndex, 1);
+          }
           createBot(index);
         }
       }, 5000);
@@ -567,6 +571,7 @@ process.on('SIGINT', () => {
 // Handle uncaught errors
 process.on('uncaughtException', (err) => {
   log(`⚠️ Uncaught exception: ${err.message}`);
+  process.exit(1);
 });
 
 process.on('unhandledRejection', (reason) => {

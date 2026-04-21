@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"hash/crc32"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -161,11 +162,11 @@ func (w *WAL) backgroundFlush() {
 			if err := w.Flush(); err != nil {
 				// Log error but don't crash - WAL should continue operating
 				// In production, this should be reported to a monitoring system
-				_ = err
+				log.Printf("WAL background flush error: %v", err)
 			}
 		case <-w.stopFlush:
 			if err := w.Flush(); err != nil {
-				_ = err
+				log.Printf("WAL final flush error: %v", err)
 			}
 			return
 		}

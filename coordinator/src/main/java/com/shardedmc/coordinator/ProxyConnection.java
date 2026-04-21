@@ -21,7 +21,13 @@ public class ProxyConnection {
     private final Socket shardSocket;
     private final LoadBalancer loadBalancer;
     
-    private final ExecutorService executor;
+    private static final ExecutorService SHARED_EXECUTOR = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors() * 4, r -> {
+        Thread t = new Thread(r, "proxy-worker");
+        t.setDaemon(true);
+        return t;
+    });
+    
     private volatile boolean running = false;
     
     public ProxyConnection(String playerName, Socket clientSocket, Socket shardSocket, LoadBalancer loadBalancer) {
@@ -29,21 +35,16 @@ public class ProxyConnection {
         this.clientSocket = clientSocket;
         this.shardSocket = shardSocket;
         this.loadBalancer = loadBalancer;
-        this.executor = Executors.newFixedThreadPool(2, r -> {
-            Thread t = new Thread(r, "proxy-" + playerName);
-            t.setDaemon(true);
-            return t;
-        });
     }
     
     public void start() {
         running = true;
         
         // Client -> Shard
-        executor.submit(() -> pipeData(clientSocket, shardSocket, "client-to-shard"));
+        SHARED_EXECUTOR.submit(() -> pipeData(clientSocket, shardSocket, "client-to-shard"));
         
         // Shard -> Client
-        executor.submit(() -> pipeData(shardSocket, clientSocket, "shard-to-client"));
+        SHARED_EXECUTOR.submit(() -> pipeData(shardSocket, clientSocket, "shard-to-client"));
     }
     
     private void pipeData(Socket from, Socket to, String direction) {
@@ -79,7 +80,6 @@ public class ProxyConnection {
             shardSocket.close();
         } catch (IOException ignored) {}
         
-        executor.shutdown();
         loadBalancer.removeConnection(playerName);
         
         logger.debug("Proxy connection closed for player {}", playerName);

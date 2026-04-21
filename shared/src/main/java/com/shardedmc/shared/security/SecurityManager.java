@@ -15,6 +15,8 @@ import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class SecurityManager {
@@ -28,15 +30,28 @@ public class SecurityManager {
     private final ConcurrentHashMap<String, TokenInfo> activeTokens = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
     private final byte[] encryptionKey;
+    private final ScheduledExecutorService cleanupScheduler;
     
     public SecurityManager(String base64Key) {
         this.encryptionKey = Base64.getDecoder().decode(base64Key);
+        this.cleanupScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "security-token-cleanup");
+            t.setDaemon(true);
+            return t;
+        });
+        this.cleanupScheduler.scheduleAtFixedRate(this::cleanupExpiredTokens, 1, 1, TimeUnit.MINUTES);
     }
     
     public SecurityManager() {
         byte[] key = new byte[32];
         secureRandom.nextBytes(key);
         this.encryptionKey = key;
+        this.cleanupScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "security-token-cleanup");
+            t.setDaemon(true);
+            return t;
+        });
+        this.cleanupScheduler.scheduleAtFixedRate(this::cleanupExpiredTokens, 1, 1, TimeUnit.MINUTES);
     }
     
     // Token management for inter-service authentication

@@ -112,7 +112,7 @@ public class RedstoneEngine {
     private void onBlockBreak(PlayerBlockBreakEvent event) {
         Point pos = event.getBlockPosition();
         Instance instance = event.getInstance();
-        String key = getKey(pos);
+        String key = getKey(pos, instance);
         
         // Remove power from broken block
         Integer oldPower = powerLevels.remove(key);
@@ -141,7 +141,7 @@ public class RedstoneEngine {
     }
     
     private void updatePower(Point pos, Instance instance) {
-        String key = getKey(pos);
+        String key = getKey(pos, instance);
         Block block = instance.getBlock(pos);
         
         if (block == null || block == Block.AIR) {
@@ -193,7 +193,7 @@ public class RedstoneEngine {
         
         // Check all neighbors
         for (Point neighbor : getNeighbors(pos)) {
-            String nKey = getKey(neighbor);
+            String nKey = getKey(neighbor, instance);
             Integer power = powerLevels.get(nKey);
             if (power != null && power > maxPower) {
                 maxPower = power;
@@ -205,7 +205,7 @@ public class RedstoneEngine {
                 // Check if this opaque block is being powered
                 for (Point adj : getNeighbors(neighbor)) {
                     if (adj.equals(pos)) continue; // Don't check back at self
-                    String adjKey = getKey(adj);
+                    String adjKey = getKey(adj, instance);
                     Integer adjPower = powerLevels.get(adjKey);
                     if (adjPower != null && adjPower >= MAX_POWER) {
                         maxPower = Math.max(maxPower, MAX_POWER);
@@ -283,8 +283,8 @@ public class RedstoneEngine {
         );
     }
     
-    private String getKey(Point pos) {
-        return pos.blockX() + "," + pos.blockY() + "," + pos.blockZ();
+    private String getKey(Point pos, Instance instance) {
+        return instance.getUniqueId() + ":" + pos.blockX() + "," + pos.blockY() + "," + pos.blockZ();
     }
     
     private boolean isRedstoneComponent(Block block) {
@@ -315,8 +315,8 @@ public class RedstoneEngine {
     /**
      * Get current power level at a position (0-15)
      */
-    public int getPowerAt(Point pos) {
-        return powerLevels.getOrDefault(getKey(pos), 0);
+    public int getPowerAt(Point pos, Instance instance) {
+        return powerLevels.getOrDefault(getKey(pos, instance), 0);
     }
     
     /**

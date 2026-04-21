@@ -106,7 +106,11 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 	id := atomic.AddUint64(&p.nextID, 1)
 	
 	// Set connection timeout
-	conn.SetDeadline(time.Now().Add(ConnectionTimeout))
+	if err := conn.SetDeadline(time.Now().Add(ConnectionTimeout)); err != nil {
+		log.Printf("Failed to set deadline for player %d: %v", id, err)
+		conn.Close()
+		return
+	}
 	
 	// Route to least-loaded shard
 	shard := p.shards.GetLeastLoadedShard()

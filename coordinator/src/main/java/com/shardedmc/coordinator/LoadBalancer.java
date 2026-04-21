@@ -48,7 +48,7 @@ public class LoadBalancer {
     
     public void start() {
         running = true;
-        executorService = Executors.newCachedThreadPool(r -> {
+        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2, r -> {
             Thread t = new Thread(r, "load-balancer");
             t.setDaemon(true);
             return t;

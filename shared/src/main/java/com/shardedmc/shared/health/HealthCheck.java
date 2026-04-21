@@ -18,7 +18,11 @@ public class HealthCheck {
     
     private final Map<String, HealthIndicator> indicators = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(
-            r -> new Thread(r, "health-check-scheduler")
+            r -> {
+                Thread t = new Thread(r, "health-check-scheduler");
+                t.setDaemon(true);
+                return t;
+            }
     );
     
     private volatile HealthStatus overallStatus = HealthStatus.HEALTHY;

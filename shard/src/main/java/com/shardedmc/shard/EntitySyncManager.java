@@ -162,7 +162,7 @@ public class EntitySyncManager {
                         parts[0], parts[1],
                         Double.parseDouble(parts[2]), Double.parseDouble(parts[3]), Double.parseDouble(parts[4]),
                         Double.parseDouble(parts[5]), Double.parseDouble(parts[6]), Double.parseDouble(parts[7]),
-                        Double.parseDouble(parts[8]), parts[8]
+                        Double.parseDouble(parts[8]), parts[9]
                 );
             } catch (NumberFormatException e) {
                 return null;

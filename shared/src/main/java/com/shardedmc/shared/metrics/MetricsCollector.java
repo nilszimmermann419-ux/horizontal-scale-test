@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -20,6 +21,9 @@ public class MetricsCollector {
     private final PrometheusMeterRegistry registry;
     private final String serviceName;
     private final String serviceId;
+    private final ConcurrentHashMap<String, Meter> meterCache = new ConcurrentHashMap<>();
+    private final JvmGcMetrics jvmGcMetrics;
+    private final JvmHeapPressureMetrics jvmHeapPressureMetrics;
     
     public MetricsCollector(String serviceName, String serviceId) {
         this.serviceName = serviceName;
@@ -32,10 +36,12 @@ public class MetricsCollector {
         // Bind JVM metrics
         new ClassLoaderMetrics().bindTo(registry);
         new JvmMemoryMetrics().bindTo(registry);
-        new JvmGcMetrics().bindTo(registry);
+        this.jvmGcMetrics = new JvmGcMetrics();
+        this.jvmGcMetrics.bindTo(registry);
         new JvmThreadMetrics().bindTo(registry);
         new JvmCompilationMetrics().bindTo(registry);
-        new JvmHeapPressureMetrics().bindTo(registry);
+        this.jvmHeapPressureMetrics = new JvmHeapPressureMetrics();
+        this.jvmHeapPressureMetrics.bindTo(registry);
         new ProcessorMetrics().bindTo(registry);
         new UptimeMetrics().bindTo(registry);
         
@@ -52,9 +58,10 @@ public class MetricsCollector {
     
     // Counter
     public Counter counter(String name, String... tags) {
-        return Counter.builder(name)
-                .tags(tags)
-                .register(registry);
+        return (Counter) meterCache.computeIfAbsent(meterKey(name, tags), k ->
+                Counter.builder(name)
+                        .tags(tags)
+                        .register(registry));
     }
     
     public void incrementCounter(String name, String... tags) {
@@ -63,10 +70,11 @@ public class MetricsCollector {
     
     // Timer
     public Timer timer(String name, String... tags) {
-        return Timer.builder(name)
-                .tags(tags)
-                .publishPercentiles(0.5, 0.95, 0.99)
-                .register(registry);
+        return (Timer) meterCache.computeIfAbsent(meterKey(name, tags), k ->
+                Timer.builder(name)
+                        .tags(tags)
+                        .publishPercentiles(0.5, 0.95, 0.99)
+                        .register(registry));
     }
     
     public void recordTime(String name, long time, TimeUnit unit, String... tags) {
@@ -79,19 +87,25 @@ public class MetricsCollector {
     
     // Gauge
     public void gauge(String name, Supplier<Number> supplier, String... tags) {
-        Gauge.builder(name, supplier)
-                .tags(tags)
-                .register(registry);
+        meterCache.computeIfAbsent(meterKey(name, tags), k ->
+                Gauge.builder(name, supplier)
+                        .tags(tags)
+                        .register(registry));
     }
     
     // Distribution Summary
     public DistributionSummary summary(String name, String... tags) {
-        return DistributionSummary.builder(name)
-                .tags(tags)
-                .publishPercentiles(0.5, 0.95, 0.99)
-                .register(registry);
+        return (DistributionSummary) meterCache.computeIfAbsent(meterKey(name, tags), k ->
+                DistributionSummary.builder(name)
+                        .tags(tags)
+                        .publishPercentiles(0.5, 0.95, 0.99)
+                        .register(registry));
     }
     
+    private String meterKey(String name, String... tags) {
+        return name + "|" + String.join("|", tags);
+    }
+
     // Custom metrics helpers
     public void recordGrpcCall(String method, String status, long durationMs) {
         timer("grpc.call.duration", "method", method, "status", status)
@@ -142,6 +156,8 @@ public class MetricsCollector {
     }
     
     public void shutdown() {
+        jvmGcMetrics.close();
+        jvmHeapPressureMetrics.close();
         registry.close();
         LOGGER.info("Metrics collector shut down for {}:{}", serviceName, serviceId);
     }

@@ -167,7 +167,7 @@ public class OptimizedRedstone {
     private void processUpdate(UpdateNode node) {
         Point pos = node.position;
         Instance instance = node.instance;
-        String key = getKey(pos);
+        String key = getKey(pos, instance);
 
         Block block = instance.getBlock(pos);
         if (block == null || block == Block.AIR) {
@@ -203,7 +203,7 @@ public class OptimizedRedstone {
      */
     private void propagateToNeighbors(Point pos, Instance instance, int distance) {
         for (Point neighbor : getNeighbors(pos)) {
-            String nKey = getKey(neighbor);
+            String nKey = getKey(neighbor, instance);
 
             // Deduplication: skip if already scheduled this tick
             if (!pendingUpdates.add(nKey)) {
@@ -221,7 +221,7 @@ public class OptimizedRedstone {
         Block block = instance.getBlock(pos);
         if (isRedstoneWire(block)) {
             for (Point diagonal : getDiagonals(pos)) {
-                String dKey = getKey(diagonal);
+                String dKey = getKey(diagonal, instance);
 
                 if (!pendingUpdates.add(dKey)) {
                     redundantUpdatesPrevented.incrementAndGet();
@@ -240,7 +240,7 @@ public class OptimizedRedstone {
      * Schedule an immediate update.
      */
     private void scheduleUpdate(Point pos, Instance instance, int distance) {
-        String key = getKey(pos);
+        String key = getKey(pos, instance);
         if (pendingUpdates.add(key)) {
             bfsQueue.offer(new UpdateNode(pos, instance, distance));
         } else {
@@ -271,7 +271,7 @@ public class OptimizedRedstone {
     private void onBlockBreak(PlayerBlockBreakEvent event) {
         Point pos = event.getBlockPosition();
         Instance instance = event.getInstance();
-        String key = getKey(pos);
+        String key = getKey(pos, instance);
 
         powerLevels.remove(key);
 
@@ -289,7 +289,7 @@ public class OptimizedRedstone {
         int maxPower = 0;
 
         for (Point neighbor : getNeighbors(pos)) {
-            String nKey = getKey(neighbor);
+            String nKey = getKey(neighbor, instance);
             Integer power = powerLevels.get(nKey);
             if (power != null && power > maxPower) {
                 maxPower = power;
@@ -300,7 +300,7 @@ public class OptimizedRedstone {
             if (neighborBlock != null && isOpaque(neighborBlock)) {
                 for (Point adj : getNeighbors(neighbor)) {
                     if (adj.equals(pos)) continue;
-                    String adjKey = getKey(adj);
+                    String adjKey = getKey(adj, instance);
                     Integer adjPower = powerLevels.get(adjKey);
                     if (adjPower != null && adjPower >= 15) {
                         maxPower = Math.max(maxPower, 15);
@@ -372,8 +372,8 @@ public class OptimizedRedstone {
         );
     }
 
-    private String getKey(Point pos) {
-        return pos.blockX() + "," + pos.blockY() + "," + pos.blockZ();
+    private String getKey(Point pos, Instance instance) {
+        return instance.getUniqueId() + ":" + pos.blockX() + "," + pos.blockY() + "," + pos.blockZ();
     }
 
     private boolean isRedstoneComponent(Block block) {
@@ -406,8 +406,8 @@ public class OptimizedRedstone {
         return block.name().equals("minecraft:repeater");
     }
 
-    public int getPowerAt(Point pos) {
-        return powerLevels.getOrDefault(getKey(pos), 0);
+    public int getPowerAt(Point pos, Instance instance) {
+        return powerLevels.getOrDefault(getKey(pos, instance), 0);
     }
 
     public Map<String, Integer> getStatistics() {

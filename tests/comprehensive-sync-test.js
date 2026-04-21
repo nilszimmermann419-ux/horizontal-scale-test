@@ -31,8 +31,11 @@ async function testChunkConsistency() {
         let spawned1 = false;
         let spawned2 = false;
         
+        let timeoutId;
+        
         const check = async () => {
             if (spawned1 && spawned2) {
+                clearTimeout(timeoutId);
                 console.log('Both bots spawned, waiting for chunks to load...');
                 await new Promise(r => setTimeout(r, 5000));
                 
@@ -61,7 +64,7 @@ async function testChunkConsistency() {
         bot1.on('spawn', () => { spawned1 = true; check(); });
         bot2.on('spawn', () => { spawned2 = true; check(); });
         
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
             if (!spawned1 || !spawned2) {
                 error('Timeout waiting for bots');
             }
