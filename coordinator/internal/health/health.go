@@ -74,7 +74,10 @@ func (h *Handler) handleRegions(w http.ResponseWriter, r *http.Request) {
 		// Generate a sample region map for all registered shards
 		// In production, this would come from persistent storage
 		for _, shard := range shards {
-			regionMap[shard.ID] = allocator.GetRegionOwner([2]int{0, 0}, shards)
+			owner, err := allocator.GetRegionOwner([2]int{0, 0}, shards)
+			if err == nil {
+				regionMap[shard.ID] = owner
+			}
 		}
 	}
 

@@ -5,8 +5,17 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/shardedmc/v2/proxy/pkg/protocol"
+)
+
+const (
+	MaxPacketSize    = 2 * 1024 * 1024 // 2MB max packet size to prevent OOM
+	ReadTimeout      = 30 * time.Second
+	ConnectionLimit  = 100 // Max connections per second per IP
 )
 
 type State int
@@ -24,6 +33,36 @@ type ClientConn struct {
 	Username string
 	reader   io.Reader
 	writer   io.Writer
+	closed   atomic.Bool
+}
+
+// Connection rate limiter
+var (
+	connectionCounts = make(map[string]int)
+	connectionMu     sync.Mutex
+	lastReset        = time.Now()
+)
+
+func checkRateLimit(remoteAddr string) bool {
+	connectionMu.Lock()
+	defer connectionMu.Unlock()
+
+	// Reset counters every second
+	if time.Since(lastReset) > time.Second {
+		connectionCounts = make(map[string]int)
+		lastReset = time.Now()
+	}
+
+	ip, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		ip = remoteAddr
+	}
+
+	if connectionCounts[ip] >= ConnectionLimit {
+		return false
+	}
+	connectionCounts[ip]++
+	return true
 }
 
 func NewClientConn(conn net.Conn) *ClientConn {
@@ -36,7 +75,27 @@ func NewClientConn(conn net.Conn) *ClientConn {
 }
 
 func (c *ClientConn) ReadPacket() (*protocol.Packet, error) {
-	return protocol.ReadPacket(c.reader)
+	if c.closed.Load() {
+		return nil, fmt.Errorf("connection is closed")
+	}
+
+	// Set read timeout
+	if tcpConn, ok := c.Conn.(*net.TCPConn); ok {
+		tcpConn.SetReadDeadline(time.Now().Add(ReadTimeout))
+	}
+
+	packet, err := protocol.ReadPacket(c.reader)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate packet size to prevent OOM
+	if packet.Length > MaxPacketSize {
+		c.Close()
+		return nil, fmt.Errorf("packet too large: %d bytes (max %d)", packet.Length, MaxPacketSize)
+	}
+
+	return packet, nil
 }
 
 func (c *ClientConn) WritePacket(packet *protocol.Packet) error {
@@ -44,7 +103,14 @@ func (c *ClientConn) WritePacket(packet *protocol.Packet) error {
 }
 
 func (c *ClientConn) Close() error {
-	return c.Conn.Close()
+	if c.closed.CompareAndSwap(false, true) {
+		return c.Conn.Close()
+	}
+	return nil
+}
+
+func (c *ClientConn) IsClosed() bool {
+	return c.closed.Load()
 }
 
 func (c *ClientConn) HandleHandshake(packet *protocol.Packet) error {

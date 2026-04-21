@@ -2,6 +2,7 @@ package registry
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -40,12 +41,39 @@ func NewShardRegistry(heartbeatTimeout, checkInterval time.Duration) *ShardRegis
 }
 
 // RegisterShard adds or updates a shard in the registry
-func (r *ShardRegistry) RegisterShard(shard *ShardInfo) {
+func (r *ShardRegistry) RegisterShard(shard *ShardInfo) error {
+	if err := validateShardInfo(shard); err != nil {
+		return err
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	// Check for duplicate shard registration
+	if existing, ok := r.shards[shard.ID]; ok {
+		// Allow re-registration only if address/port matches (same instance restarting)
+		if existing.Address != shard.Address || existing.Port != shard.Port {
+			return fmt.Errorf("shard ID collision: %s already registered with different address/port", shard.ID)
+		}
+	}
+
 	shard.LastHeartbeat = time.Now()
 	shard.Healthy = true
 	r.shards[shard.ID] = shard
+	return nil
+}
+
+func validateShardInfo(shard *ShardInfo) error {
+	if shard.ID == "" {
+		return errors.New("shard ID cannot be empty")
+	}
+	if shard.Port < 1 || shard.Port > 65535 {
+		return fmt.Errorf("shard port must be between 1 and 65535, got %d", shard.Port)
+	}
+	if shard.Capacity <= 0 {
+		return fmt.Errorf("shard capacity must be greater than 0, got %d", shard.Capacity)
+	}
+	return nil
 }
 
 // UnregisterShard removes a shard from the registry
@@ -76,13 +104,13 @@ func (r *ShardRegistry) GetShard(shardID string) (*ShardInfo, bool) {
 	return shard, ok
 }
 
-// GetHealthyShards returns all shards marked as healthy
+// GetHealthyShards returns all shards marked as healthy and not overloaded
 func (r *ShardRegistry) GetHealthyShards() []*ShardInfo {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var healthy []*ShardInfo
 	for _, shard := range r.shards {
-		if shard.Healthy {
+		if shard.Healthy && shard.Load < 1.0 && shard.PlayerCount < shard.Capacity {
 			healthy = append(healthy, shard)
 		}
 	}

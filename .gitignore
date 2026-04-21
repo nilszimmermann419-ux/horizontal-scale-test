@@ -98,3 +98,34 @@ docs/javadoc/
 *.hprof
 hs_err_pid*
 replay_pid*
+
+# Build outputs
+bin/
+*.jar
+*.class
+build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Runtime
+*.pid
+*.hprof
+
+# Dependencies
+node_modules/
+vendor/
+
+# Config
+.env
+!/.env.example
+
+# OS
+.DS_Store
+Thumbs.db

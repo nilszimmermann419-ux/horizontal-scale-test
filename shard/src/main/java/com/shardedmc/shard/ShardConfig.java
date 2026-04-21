@@ -16,6 +16,57 @@ public class ShardConfig {
     public ShardConfig() {
         this.properties = new Properties();
         loadConfig();
+        validateConfig();
+    }
+
+    private void validateConfig() {
+        // Validate port ranges (1-65535)
+        int shardPort = getShardPort();
+        if (shardPort < 1 || shardPort > 65535) {
+            throw new IllegalArgumentException("shard.port must be between 1 and 65535, got: " + shardPort);
+        }
+
+        int coordinatorPort = getCoordinatorPort();
+        if (coordinatorPort < 1 || coordinatorPort > 65535) {
+            throw new IllegalArgumentException("coordinator.port must be between 1 and 65535, got: " + coordinatorPort);
+        }
+
+        int natsPort = getNatsPort();
+        if (natsPort < 1 || natsPort > 65535) {
+            throw new IllegalArgumentException("nats.port must be between 1 and 65535, got: " + natsPort);
+        }
+
+        int redisPort = getRedisPort();
+        if (redisPort < 1 || redisPort > 65535) {
+            throw new IllegalArgumentException("redis.port must be between 1 and 65535, got: " + redisPort);
+        }
+
+        int minioPort = getMinioPort();
+        if (minioPort < 1 || minioPort > 65535) {
+            throw new IllegalArgumentException("minio.port must be between 1 and 65535, got: " + minioPort);
+        }
+
+        // Validate region size (power of 2, <= 16)
+        int regionSize = getRegionSize();
+        if (regionSize < 1 || regionSize > 16 || !isPowerOfTwo(regionSize)) {
+            throw new IllegalArgumentException("shard.region_size must be a power of 2 and <= 16, got: " + regionSize);
+        }
+
+        // Validate max players (> 0)
+        int maxPlayers = getMaxPlayers();
+        if (maxPlayers <= 0) {
+            throw new IllegalArgumentException("shard.max_players must be greater than 0, got: " + maxPlayers);
+        }
+
+        // Validate coordinator host (not empty)
+        String coordinatorHost = getCoordinatorHost();
+        if (coordinatorHost == null || coordinatorHost.trim().isEmpty()) {
+            throw new IllegalArgumentException("coordinator.host cannot be empty");
+        }
+    }
+
+    private boolean isPowerOfTwo(int n) {
+        return n > 0 && (n & (n - 1)) == 0;
     }
 
     private void loadConfig() {

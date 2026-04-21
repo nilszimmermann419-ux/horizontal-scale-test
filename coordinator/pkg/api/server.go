@@ -54,7 +54,10 @@ func (s *CoordinatorServer) RegisterShard(ctx context.Context, req *RegisterShar
 
 	for _, region := range req.Regions {
 		coord := parseRegion(region)
-		owner := allocator.GetRegionOwner(coord, allShards)
+		owner, err := allocator.GetRegionOwner(coord, allShards)
+		if err != nil {
+			return nil, err
+		}
 		allocation[region] = owner
 	}
 
@@ -92,7 +95,10 @@ func (s *CoordinatorServer) GetChunkOwner(ctx context.Context, req *GetChunkOwne
 	}
 
 	coord := [2]int{int(req.ChunkX), int(req.ChunkZ)}
-	owner := allocator.GetChunkOwner(coord, shards)
+	owner, err := allocator.GetChunkOwner(coord, shards)
+	if err != nil {
+		return nil, err
+	}
 
 	return &GetChunkOwnerResponse{ShardId: owner}, nil
 }
@@ -137,7 +143,10 @@ func (s *CoordinatorServer) RecordPlayerPosition(ctx context.Context, req *Recor
 	}
 
 	coord := [2]int{int(req.ChunkX), int(req.ChunkZ)}
-	shardID := allocator.GetChunkOwner(coord, shards)
+	shardID, err := allocator.GetChunkOwner(coord, shards)
+	if err != nil {
+		return &RecordPlayerPositionResponse{Success: false}, err
+	}
 
 	s.mu.Lock()
 	s.players[req.PlayerId] = shardID
