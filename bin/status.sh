@@ -1,0 +1,12 @@
+#!/bin/bash
+echo "=== ShardedMC v2.0 Status ==="
+echo ""
+echo "Coordinator: $(pgrep -c coordinator 2>/dev/null || echo 0) instances"
+echo "Proxy: $(pgrep -c proxy 2>/dev/null || echo 0) instances"
+echo "Shards: $(pgrep -c 'java.*shard' 2>/dev/null || echo 0) instances"
+echo ""
+echo "Ports:"
+netstat -tlnp 2>/dev/null | grep -E "(25565|25566|50051|8080)" || echo "No services listening"
+echo ""
+echo "Docker:"
+docker-compose ps 2>/dev/null || echo "Docker not running"

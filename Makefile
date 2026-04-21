@@ -56,3 +56,10 @@ docker-up:
 
 docker-down:
 	docker-compose down
+
+validate:
+	@echo "Validating ShardedMC v2.0..."
+	@bin/validate.sh
+
+dev: build
+	@bin/start-dev.sh

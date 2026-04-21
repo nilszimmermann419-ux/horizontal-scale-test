@@ -121,7 +121,7 @@ services:
       coordinator:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      test: ["CMD-SHELL", "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/25565' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -172,7 +172,7 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      test: ["CMD-SHELL", "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/25566' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

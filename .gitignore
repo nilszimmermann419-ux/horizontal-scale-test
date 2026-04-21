@@ -30,7 +30,6 @@ out/
 .classpath
 .project
 .settings/
-bin/
 
 # IDE - VS Code
 .vscode/
@@ -100,7 +99,9 @@ hs_err_pid*
 replay_pid*
 
 # Build outputs
-bin/
+bin/*
+!bin/*.sh
+!bin/*.md
 *.jar
 *.class
 build/
