@@ -27,7 +27,7 @@ public class CircuitBreaker {
     private final AtomicReference<State> state = new AtomicReference<>(State.CLOSED);
     private final AtomicInteger failureCount = new AtomicInteger(0);
     private final AtomicInteger successCount = new AtomicInteger(0);
-    private volatile Instant lastFailureTime;
+    private final AtomicReference<Instant> lastFailureTime = new AtomicReference<>();
     
     public CircuitBreaker(String name, int failureThreshold, Duration openDuration, int successThreshold) {
         this.name = name;
@@ -41,8 +41,9 @@ public class CircuitBreaker {
     }
     
     public State getState() {
-        if (state.get() == State.OPEN && lastFailureTime != null) {
-            if (Duration.between(lastFailureTime, Instant.now()).compareTo(openDuration) >= 0) {
+        Instant failureTime = lastFailureTime.get();
+        if (state.get() == State.OPEN && failureTime != null) {
+            if (Duration.between(failureTime, Instant.now()).compareTo(openDuration) >= 0) {
                 if (state.compareAndSet(State.OPEN, State.HALF_OPEN)) {
                     LOGGER.info("Circuit breaker '{}' moved to HALF_OPEN state", name);
                     successCount.set(0);
@@ -74,7 +75,7 @@ public class CircuitBreaker {
     }
     
     public void recordFailure() {
-        lastFailureTime = Instant.now();
+        lastFailureTime.set(Instant.now());
         
         if (state.get() == State.HALF_OPEN) {
             if (state.compareAndSet(State.HALF_OPEN, State.OPEN)) {

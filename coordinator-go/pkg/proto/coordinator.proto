@@ -52,6 +52,7 @@ message ShardInfo {
     int32 port = 3;
     int32 capacity = 4;
     repeated ChunkPos regions = 5;
+    string token = 6;
 }
 
 message RegistrationResponse {

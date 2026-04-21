@@ -114,6 +114,11 @@ public class CoordinatorServiceImpl extends CoordinatorServiceGrpc.CoordinatorSe
                                 .build();
                         responseObserver.onNext(response);
                         responseObserver.onCompleted();
+                    })
+                    .exceptionally(ex -> {
+                        logger.error("Failed to confirm player transfer", ex);
+                        responseObserver.onError(ex);
+                        return null;
                     });
         } else {
             ConfirmationResponse response = ConfirmationResponse.newBuilder()
@@ -135,6 +140,11 @@ public class CoordinatorServiceImpl extends CoordinatorServiceGrpc.CoordinatorSe
                     
                     responseObserver.onNext(response);
                     responseObserver.onCompleted();
+                })
+                .exceptionally(ex -> {
+                    logger.error("Failed to get chunk owner", ex);
+                    responseObserver.onError(ex);
+                    return null;
                 });
     }
     

@@ -93,8 +93,15 @@ public class CoordinatorController {
     }
     
     private void getChunkOwner(Context ctx) {
-        int x = Integer.parseInt(ctx.pathParam("x"));
-        int z = Integer.parseInt(ctx.pathParam("z"));
+        int x;
+        int z;
+        try {
+            x = Integer.parseInt(ctx.pathParam("x"));
+            z = Integer.parseInt(ctx.pathParam("z"));
+        } catch (NumberFormatException e) {
+            ctx.status(400).json(Map.of("error", "Invalid chunk coordinates"));
+            return;
+        }
         
         chunkManager.getShardForChunk(x, z)
                 .thenAccept(ownerOpt -> {

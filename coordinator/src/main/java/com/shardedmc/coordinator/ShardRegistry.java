@@ -68,11 +68,13 @@ public class ShardRegistry {
     }
     
     public void markShardUnhealthy(String shardId) {
-        ShardInfo info = shards.get(shardId);
-        if (info != null) {
-            shards.put(shardId, new ShardInfo(shardId, info.address(), info.port(), info.capacity(),
-                    info.playerCount(), info.load(), "unhealthy"));
-        }
+        shards.compute(shardId, (id, info) -> {
+            if (info != null) {
+                return new ShardInfo(id, info.address(), info.port(), info.capacity(),
+                        info.playerCount(), info.load(), "unhealthy");
+            }
+            return null;
+        });
         
         if (redis != null) {
             redis.hsetAsync(RedisSchema.shardKey(shardId), "status", "unhealthy");

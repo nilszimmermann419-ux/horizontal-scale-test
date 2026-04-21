@@ -147,7 +147,17 @@ public class SecurityManager {
     }
     
     public String hashWithSalt(String input, String salt) {
-        return hash(input + salt);
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
+            byte[] saltBytes = salt.getBytes(StandardCharsets.UTF_8);
+            digest.update(inputBytes);
+            byte[] hash = digest.digest(saltBytes);
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            LOGGER.error("Hashing with salt failed", e);
+            throw new SecurityException("Hashing with salt failed", e);
+        }
     }
     
     // Secure token generation
@@ -169,6 +179,10 @@ public class SecurityManager {
         synchronized (info) {
             // Remove old entries
             info.requests.removeIf(time -> time.isBefore(windowStart));
+            
+            if (info.requests.isEmpty()) {
+                rateLimits.remove(key, info);
+            }
             
             if (info.requests.size() >= maxRequests) {
                 return false;

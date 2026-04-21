@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Combat logging prevention system.
@@ -302,7 +303,7 @@ public class CombatLogger {
         for (ItemStack item : combatNPC.inventory) {
             ItemEntity itemEntity = new ItemEntity(item);
             itemEntity.setInstance(instance, pos.add(
-                    Math.random() * 2 - 1, 0.5, Math.random() * 2 - 1));
+                    ThreadLocalRandom.current().nextDouble() * 2 - 1, 0.5, ThreadLocalRandom.current().nextDouble() * 2 - 1));
             itemEntity.setPickupDelay(1000, ChronoUnit.MILLIS);
         }
 
@@ -310,7 +311,7 @@ public class CombatLogger {
         for (ItemStack item : combatNPC.armor) {
             ItemEntity itemEntity = new ItemEntity(item);
             itemEntity.setInstance(instance, pos.add(
-                    Math.random() * 2 - 1, 0.5, Math.random() * 2 - 1));
+                    ThreadLocalRandom.current().nextDouble() * 2 - 1, 0.5, ThreadLocalRandom.current().nextDouble() * 2 - 1));
             itemEntity.setPickupDelay(1000, ChronoUnit.MILLIS);
         }
 

@@ -3,6 +3,8 @@ package com.shardedmc.shard;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.event.player.PlayerBlockBreakEvent;
+import net.minestom.server.event.player.PlayerBlockPlaceEvent;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,6 +46,9 @@ public class HopperOptimizer {
     // Track hopper tick counters per position for staggered updates
     // Key format: "instanceId:x,y,z"
     private final Map<String, Integer> hopperTickCounters = new ConcurrentHashMap<>();
+
+    // Track known hopper positions for O(1) lookup instead of scanning all blocks
+    private final Set<String> hopperPositions = ConcurrentHashMap.newKeySet();
 
     // Statistics
     private final AtomicInteger totalTransfers = new AtomicInteger(0);
@@ -74,8 +80,29 @@ public class HopperOptimizer {
                 .repeat(TICK_INTERVAL)
                 .schedule();
 
+        // Track hopper placements and removals to avoid O(n³) chunk scanning
+        eventHandler.addListener(PlayerBlockPlaceEvent.class, this::onBlockPlace);
+        eventHandler.addListener(PlayerBlockBreakEvent.class, this::onBlockBreak);
+
         logger.info("HopperOptimizer registered (transfer every {} ticks, {} items per transfer)",
                 transferTicks, itemsPerTransfer);
+    }
+
+    private void onBlockPlace(PlayerBlockPlaceEvent event) {
+        Block block = event.getBlock();
+        if (isHopper(block)) {
+            String key = getHopperKey(event.getInstance(), event.getBlockPosition());
+            hopperPositions.add(key);
+        }
+    }
+
+    private void onBlockBreak(PlayerBlockBreakEvent event) {
+        Block block = event.getBlock();
+        if (isHopper(block)) {
+            String key = getHopperKey(event.getInstance(), event.getBlockPosition());
+            hopperPositions.remove(key);
+            hopperTickCounters.remove(key);
+        }
     }
 
     /**
@@ -103,31 +130,43 @@ public class HopperOptimizer {
     /**
      * Process hoppers within a single chunk.
      * Only check every checkTicks to reduce CPU usage.
+     * Uses cached hopper positions instead of O(n³) block scanning.
      */
     private void processChunkHoppers(Instance instance, Chunk chunk) {
         int chunkX = chunk.getChunkX();
         int chunkZ = chunk.getChunkZ();
+        String instancePrefix = System.identityHashCode(instance) + ":";
 
-        // Iterate through chunk sections
-        for (int sectionY = chunk.getMinSection(); sectionY < chunk.getMaxSection(); sectionY++) {
-            // Get all blocks in this section
-            // Note: Minestom doesn't expose a direct "get all blocks of type" API,
-            // so we iterate the section
-            for (int x = 0; x < 16; x++) {
-                for (int z = 0; z < 16; z++) {
-                    for (int y = 0; y < 16; y++) {
-                        int blockX = (chunkX << 4) + x;
-                        int blockY = (sectionY * 16) + y;
-                        int blockZ = (chunkZ << 4) + z;
+        // Iterate only known hopper positions in this chunk instead of all blocks
+        for (String hopperKey : hopperPositions) {
+            if (!hopperKey.startsWith(instancePrefix)) continue;
 
-                        Point pos = new net.minestom.server.coordinate.Vec(blockX, blockY, blockZ);
-                        Block block = chunk.getBlock(x, blockY, z);
+            // Parse position from key: "instanceId:x,y,z"
+            String posPart = hopperKey.substring(instancePrefix.length());
+            String[] coords = posPart.split(",");
+            if (coords.length != 3) continue;
 
-                        if (block != null && isHopper(block)) {
-                            processHopper(instance, pos, block);
-                        }
-                    }
+            try {
+                int blockX = Integer.parseInt(coords[0]);
+                int blockZ = Integer.parseInt(coords[2]);
+
+                // Only process hoppers in this chunk
+                if ((blockX >> 4) != chunkX || (blockZ >> 4) != chunkZ) continue;
+
+                int blockY = Integer.parseInt(coords[1]);
+                Point pos = new net.minestom.server.coordinate.Vec(blockX, blockY, blockZ);
+                Block block = instance.getBlock(pos);
+
+                if (block != null && isHopper(block)) {
+                    processHopper(instance, pos, block);
+                } else {
+                    // Stale entry, remove it
+                    hopperPositions.remove(hopperKey);
+                    hopperTickCounters.remove(hopperKey);
                 }
+            } catch (NumberFormatException e) {
+                // Invalid key format, clean it up
+                hopperPositions.remove(hopperKey);
             }
         }
     }

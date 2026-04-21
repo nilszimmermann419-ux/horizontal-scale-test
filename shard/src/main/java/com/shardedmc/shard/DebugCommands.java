@@ -446,6 +446,7 @@ public class DebugCommands {
                 return;
             }
 
+            // TODO: Cache chunk-entity mappings to avoid iterating all entities
             int entityCount = 0;
             int chunkX = chunk.getChunkX();
             int chunkZ = chunk.getChunkZ();
@@ -547,6 +548,7 @@ public class DebugCommands {
                     player.sendMessage(Component.text("║  ... and " + (chunks.size() - 20) + " more chunks", NamedTextColor.GRAY));
                     break;
                 }
+                // TODO: Cache chunk-entity mappings to avoid O(chunks × entities) iteration
                 int chunkEntityCount = 0;
                 int cx = chunk.getChunkX();
                 int cz = chunk.getChunkZ();

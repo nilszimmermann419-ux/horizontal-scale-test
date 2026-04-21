@@ -292,9 +292,10 @@ public class RedstoneLagDetector {
     private boolean isTrackedComponent(Block block) {
         String name = block.name();
         return name.equals("minecraft:observer") ||
-                name.contains("piston") ||
-                name.contains("dispenser") ||
-                name.contains("dropper");
+                name.equals("minecraft:piston") ||
+                name.equals("minecraft:sticky_piston") ||
+                name.equals("minecraft:dispenser") ||
+                name.equals("minecraft:dropper");
     }
 
     /**

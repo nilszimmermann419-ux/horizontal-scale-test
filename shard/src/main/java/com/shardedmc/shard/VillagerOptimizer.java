@@ -54,6 +54,9 @@ public class VillagerOptimizer {
     // Track all villagers
     private final Set<UUID> trackedVillagers = ConcurrentHashMap.newKeySet();
 
+    // Fast O(1) entity lookup instead of O(n×m) iteration
+    private final Map<UUID, Entity> entityCache = new ConcurrentHashMap<>();
+
     // Statistics
     private long skippedTicks = 0;
     private long totalTicks = 0;
@@ -109,6 +112,7 @@ public class VillagerOptimizer {
         }
 
         trackedVillagers.add(entity.getUuid());
+        entityCache.put(entity.getUuid(), entity);
         villagersPerChunk.merge(chunkKey, 1, Integer::sum);
         villagerTickCounters.put(entity.getUuid(), 0);
 
@@ -124,6 +128,7 @@ public class VillagerOptimizer {
 
         UUID uuid = entity.getUuid();
         trackedVillagers.remove(uuid);
+        entityCache.remove(uuid);
         tradingVillagers.remove(uuid);
         villagerTickCounters.remove(uuid);
         tradeCache.remove(uuid);
@@ -249,9 +254,16 @@ public class VillagerOptimizer {
     }
 
     private Entity findEntityByUuid(UUID uuid) {
+        Entity cached = entityCache.get(uuid);
+        if (cached != null && cached.isActive()) {
+            return cached;
+        }
+        // Fallback: search across all instances
+        entityCache.remove(uuid);
         for (var instance : MinecraftServer.getInstanceManager().getInstances()) {
             for (Entity entity : instance.getEntities()) {
                 if (entity.getUuid().equals(uuid)) {
+                    entityCache.put(uuid, entity);
                     return entity;
                 }
             }

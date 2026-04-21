@@ -217,21 +217,34 @@ public class EntityLimiter {
             });
         }
 
+        private static final Set<EntityType> MONSTER_TYPES = Set.of(
+            EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER,
+            EntityType.CREEPER, EntityType.ENDERMAN, EntityType.WITCH
+        );
+        private static final Set<EntityType> ANIMAL_TYPES = Set.of(
+            EntityType.COW, EntityType.PIG, EntityType.SHEEP, EntityType.CHICKEN
+        );
+        private static final Set<EntityType> WATER_TYPES_SET = Set.of(
+            EntityType.SQUID, EntityType.COD, EntityType.SALMON
+        );
+        private static final Set<EntityType> AMBIENT_TYPES = Set.of(
+            EntityType.BAT
+        );
+
         private static boolean isMonster(EntityType type) {
-            return Set.of(EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER,
-                EntityType.CREEPER, EntityType.ENDERMAN, EntityType.WITCH).contains(type);
+            return MONSTER_TYPES.contains(type);
         }
 
         private static boolean isAnimal(EntityType type) {
-            return Set.of(EntityType.COW, EntityType.PIG, EntityType.SHEEP, EntityType.CHICKEN).contains(type);
+            return ANIMAL_TYPES.contains(type);
         }
 
         private static boolean isWater(EntityType type) {
-            return Set.of(EntityType.SQUID, EntityType.COD, EntityType.SALMON).contains(type);
+            return WATER_TYPES_SET.contains(type);
         }
 
         private static boolean isAmbient(EntityType type) {
-            return Set.of(EntityType.BAT).contains(type);
+            return AMBIENT_TYPES.contains(type);
         }
     }
 }

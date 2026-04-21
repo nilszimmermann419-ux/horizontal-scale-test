@@ -2,6 +2,7 @@ package com.shardedmc.coordinator;
 
 import com.shardedmc.shared.ChunkPos;
 import com.shardedmc.shared.RedisClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
@@ -31,6 +32,13 @@ public class ChunkAllocationTest {
         redisClient = new RedisClient(redisHost, redisPort);
         shardRegistry = new ShardRegistry(redisClient);
         chunkAllocation = new ChunkAllocationManager(redisClient, shardRegistry);
+    }
+    
+    @AfterEach
+    void tearDown() {
+        if (redisClient != null) {
+            redisClient.close();
+        }
     }
     
     @Test

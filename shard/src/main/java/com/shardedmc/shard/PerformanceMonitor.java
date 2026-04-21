@@ -9,6 +9,8 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.event.entity.EntitySpawnEvent;
+import net.minestom.server.event.entity.EntityDespawnEvent;
 import net.minestom.server.event.server.ServerTickMonitorEvent;
 import net.minestom.server.timer.TaskSchedule;
 import org.slf4j.Logger;
@@ -59,6 +61,10 @@ public class PerformanceMonitor {
         // Listen for tick events
         eventHandler.addListener(ServerTickMonitorEvent.class, this::onServerTick);
 
+        // Incremental entity counting instead of full scans every tick
+        eventHandler.addListener(EntitySpawnEvent.class, this::onEntitySpawn);
+        eventHandler.addListener(EntityDespawnEvent.class, this::onEntityDespawn);
+
         // Start background monitoring tasks
         startEntityMonitor();
         startChunkMonitor();
@@ -69,6 +75,19 @@ public class PerformanceMonitor {
         registerPerfCommand();
 
         logger.info("PerformanceMonitor registered");
+    }
+
+    private void onEntitySpawn(EntitySpawnEvent event) {
+        String typeName = event.getEntity().getEntityType().name();
+        entityCounts.computeIfAbsent(typeName, k -> new AtomicLong(0)).incrementAndGet();
+    }
+
+    private void onEntityDespawn(EntityDespawnEvent event) {
+        String typeName = event.getEntity().getEntityType().name();
+        AtomicLong count = entityCounts.get(typeName);
+        if (count != null) {
+            count.decrementAndGet();
+        }
     }
 
     private void onServerTick(ServerTickMonitorEvent event) {
@@ -116,21 +135,20 @@ public class PerformanceMonitor {
     }
 
     private void startEntityMonitor() {
+        // Full recount every 60 seconds to correct drift; incremental updates handle the rest
         MinecraftServer.getSchedulerManager().buildTask(() -> {
             Map<String, AtomicLong> counts = new HashMap<>();
-            long totalEntities = 0;
 
             for (var instance : MinecraftServer.getInstanceManager().getInstances()) {
                 for (Entity entity : instance.getEntities()) {
                     String typeName = entity.getEntityType().name();
                     counts.computeIfAbsent(typeName, k -> new AtomicLong(0)).incrementAndGet();
-                    totalEntities++;
                 }
             }
 
             entityCounts.clear();
             entityCounts.putAll(counts);
-        }).repeat(TaskSchedule.tick(20)).schedule(); // Update every second
+        }).repeat(TaskSchedule.tick(1200)).schedule(); // Update every 60 seconds
     }
 
     private void startChunkMonitor() {

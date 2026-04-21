@@ -22,6 +22,33 @@ func NewGRPCServer(shardMgr *shard.Manager) *GRPCServer {
 }
 
 func (s *GRPCServer) RegisterShard(ctx context.Context, req *pb.ShardInfo) (*pb.RegistrationResponse, error) {
+	// Input validation
+	if req.ShardId == "" {
+		return &pb.RegistrationResponse{
+			Success: false,
+			Message: "shard ID is required",
+		}, nil
+	}
+	if req.Address == "" {
+		return &pb.RegistrationResponse{
+			Success: false,
+			Message: "address is required",
+		}, nil
+	}
+	if req.Port <= 0 || req.Port > 65535 {
+		return &pb.RegistrationResponse{
+			Success: false,
+			Message: "invalid port number",
+		}, nil
+	}
+	// Basic authentication check
+	if req.Token == "" {
+		return &pb.RegistrationResponse{
+			Success: false,
+			Message: "authentication token is required",
+		}, nil
+	}
+
 	log.Printf("Shard registration request: %s at %s:%d (capacity: %d)", 
 		req.ShardId, req.Address, req.Port, req.Capacity)
 	

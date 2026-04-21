@@ -41,9 +41,17 @@ function testConnection(name, port) {
 }
 
 async function run() {
-    await testConnection('Direct', 25565);
+    const directResult = await testConnection('Direct', 25565);
     await new Promise(r => setTimeout(r, 1000));
-    await testConnection('Proxy', 25577);
+    const proxyResult = await testConnection('Proxy', 25577);
+    
+    if (directResult && proxyResult) {
+        console.log('\n✅ PASS: Both connections succeeded');
+        process.exit(0);
+    } else {
+        console.log('\n❌ FAIL: One or more connections failed');
+        process.exit(1);
+    }
 }
 
 run();

@@ -28,15 +28,23 @@ public class StructuredLogger {
         defaultContext.remove(key);
     }
     
-    private void setupMDC(Map<String, String> additionalContext) {
-        defaultContext.forEach(MDC::put);
+    private java.util.Set<String> setupMDC(Map<String, String> additionalContext) {
+        java.util.Set<String> keysAdded = new java.util.HashSet<>();
+        defaultContext.forEach((key, value) -> {
+            MDC.put(key, value);
+            keysAdded.add(key);
+        });
         if (additionalContext != null) {
-            additionalContext.forEach(MDC::put);
+            additionalContext.forEach((key, value) -> {
+                MDC.put(key, value);
+                keysAdded.add(key);
+            });
         }
+        return keysAdded;
     }
     
-    private void clearMDC() {
-        MDC.clear();
+    private void clearMDC(java.util.Set<String> keysAdded) {
+        keysAdded.forEach(MDC::remove);
     }
     
     public void info(String message) {
@@ -44,11 +52,11 @@ public class StructuredLogger {
     }
     
     public void info(String message, Map<String, String> context) {
-        setupMDC(context);
+        java.util.Set<String> keysAdded = setupMDC(context);
         try {
             logger.info(message);
         } finally {
-            clearMDC();
+            clearMDC(keysAdded);
         }
     }
     
@@ -61,11 +69,11 @@ public class StructuredLogger {
     }
     
     public void debug(String message, Map<String, String> context) {
-        setupMDC(context);
+        java.util.Set<String> keysAdded = setupMDC(context);
         try {
             logger.debug(message);
         } finally {
-            clearMDC();
+            clearMDC(keysAdded);
         }
     }
     
@@ -78,11 +86,11 @@ public class StructuredLogger {
     }
     
     public void warn(String message, Map<String, String> context) {
-        setupMDC(context);
+        java.util.Set<String> keysAdded = setupMDC(context);
         try {
             logger.warn(message);
         } finally {
-            clearMDC();
+            clearMDC(keysAdded);
         }
     }
     
@@ -91,11 +99,11 @@ public class StructuredLogger {
     }
     
     public void warn(String message, Throwable throwable, Map<String, String> context) {
-        setupMDC(context);
+        java.util.Set<String> keysAdded = setupMDC(context);
         try {
             logger.warn(message, throwable);
         } finally {
-            clearMDC();
+            clearMDC(keysAdded);
         }
     }
     
@@ -104,11 +112,11 @@ public class StructuredLogger {
     }
     
     public void error(String message, Map<String, String> context) {
-        setupMDC(context);
+        java.util.Set<String> keysAdded = setupMDC(context);
         try {
             logger.error(message);
         } finally {
-            clearMDC();
+            clearMDC(keysAdded);
         }
     }
     
@@ -117,11 +125,11 @@ public class StructuredLogger {
     }
     
     public void error(String message, Throwable throwable, Map<String, String> context) {
-        setupMDC(context);
+        java.util.Set<String> keysAdded = setupMDC(context);
         try {
             logger.error(message, throwable);
         } finally {
-            clearMDC();
+            clearMDC(keysAdded);
         }
     }
     

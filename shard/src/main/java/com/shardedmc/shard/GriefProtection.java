@@ -290,48 +290,65 @@ public class GriefProtection {
 
         player.sendMessage(Component.text("Starting rollback...", NamedTextColor.YELLOW));
 
-        CompletableFuture.runAsync(() -> {
+        // Collect all block keys first to batch Redis lookups
+        List<String> blockKeys = new ArrayList<>();
+        List<int[]> blockCoords = new ArrayList<>();
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = -radius; dy <= radius; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    int x = center.blockX() + dx;
+                    int y = center.blockY() + dy;
+                    int z = center.blockZ() + dz;
+                    blockKeys.add(getBlockKey(x, y, z));
+                    blockCoords.add(new int[]{x, y, z});
+                }
+            }
+        }
+
+        // Batch fetch all block history asynchronously
+        List<CompletableFuture<String>> futures = new ArrayList<>();
+        for (String key : blockKeys) {
+            futures.add(redis.getAsync(key));
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenRunAsync(() -> {
             int rolledBack = 0;
             int failed = 0;
 
-            // Iterate through all blocks in radius
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dy = -radius; dy <= radius; dy++) {
-                    for (int dz = -radius; dz <= radius; dz++) {
-                        int x = center.blockX() + dx;
-                        int y = center.blockY() + dy;
-                        int z = center.blockZ() + dz;
+            for (int i = 0; i < futures.size(); i++) {
+                String serialized;
+                try {
+                    serialized = futures.get(i).get();
+                } catch (Exception e) {
+                    failed++;
+                    continue;
+                }
 
-                        String blockKey = getBlockKey(x, y, z);
-                        String serialized = redis.get(blockKey);
+                if (serialized == null || serialized.isEmpty()) continue;
 
-                        if (serialized == null || serialized.isEmpty()) continue;
+                BlockChangeRecord record = BlockChangeRecord.deserialize(serialized);
+                if (record == null) continue;
 
-                        BlockChangeRecord record = BlockChangeRecord.deserialize(serialized);
-                        if (record == null) continue;
+                // Check if within time window
+                if (record.time < cutoffTime) continue;
 
-                        // Check if within time window
-                        if (record.time < cutoffTime) continue;
-
-                        // Perform rollback
-                        try {
-                            Block rollbackBlock = Block.fromKey(record.fromBlock);
-                            if (rollbackBlock != null) {
-                                // Schedule on main thread since block changes must be thread-safe
-                                final int fx = x, fy = y, fz = z;
-                                final Block fBlock = rollbackBlock;
-                                MinecraftServer.getSchedulerManager().buildTask(() -> {
-                                    instance.setBlock(fx, fy, fz, fBlock);
-                                }).schedule();
-                                rolledBack++;
-                            } else {
-                                failed++;
-                            }
-                        } catch (Exception e) {
-                            failed++;
-                            logger.error("Error rolling back block at {},{},{}", x, y, z, e);
-                        }
+                // Perform rollback
+                try {
+                    Block rollbackBlock = Block.fromKey(record.fromBlock);
+                    if (rollbackBlock != null) {
+                        int[] coords = blockCoords.get(i);
+                        final int fx = coords[0], fy = coords[1], fz = coords[2];
+                        final Block fBlock = rollbackBlock;
+                        MinecraftServer.getSchedulerManager().buildTask(() -> {
+                            instance.setBlock(fx, fy, fz, fBlock);
+                        }).schedule();
+                        rolledBack++;
+                    } else {
+                        failed++;
                     }
+                } catch (Exception e) {
+                    failed++;
+                    logger.error("Error rolling back block", e);
                 }
             }
 

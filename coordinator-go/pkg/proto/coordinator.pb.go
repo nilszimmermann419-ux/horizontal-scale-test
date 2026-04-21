@@ -386,6 +386,7 @@ type ShardInfo struct {
 	Port          int32                  `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
 	Capacity      int32                  `protobuf:"varint,4,opt,name=capacity,proto3" json:"capacity,omitempty"`
 	Regions       []*ChunkPos            `protobuf:"bytes,5,rep,name=regions,proto3" json:"regions,omitempty"`
+	Token         string                 `protobuf:"bytes,6,opt,name=token,proto3" json:"token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -453,6 +454,13 @@ func (x *ShardInfo) GetRegions() []*ChunkPos {
 		return x.Regions
 	}
 	return nil
+}
+
+func (x *ShardInfo) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
 }
 
 type RegistrationResponse struct {
@@ -1388,13 +1396,14 @@ const file_pkg_proto_coordinator_proto_rawDesc = "" +
 	"\bposition\x18\x03 \x01(\v2\x10.shardedmc.Vec3dR\bposition\x12,\n" +
 	"\bvelocity\x18\x04 \x01(\v2\x10.shardedmc.Vec3dR\bvelocity\x12\x16\n" +
 	"\x06health\x18\x05 \x01(\x01R\x06health\x12\x1a\n" +
-	"\bmetadata\x18\x06 \x01(\fR\bmetadata\"\x9f\x01\n" +
+	"\bmetadata\x18\x06 \x01(\fR\bmetadata\"\xb5\x01\n" +
 	"\tShardInfo\x12\x19\n" +
 	"\bshard_id\x18\x01 \x01(\tR\ashardId\x12\x18\n" +
 	"\aaddress\x18\x02 \x01(\tR\aaddress\x12\x12\n" +
 	"\x04port\x18\x03 \x01(\x05R\x04port\x12\x1a\n" +
 	"\bcapacity\x18\x04 \x01(\x05R\bcapacity\x12-\n" +
-	"\aregions\x18\x05 \x03(\v2\x13.shardedmc.ChunkPosR\aregions\"\x8a\x01\n" +
+	"\aregions\x18\x05 \x03(\v2\x13.shardedmc.ChunkPosR\aregions\x12\x14\n" +
+	"\x05token\x18\x06 \x01(\tR\x05token\"\x8a\x01\n" +
 	"\x14RegistrationResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12>\n" +

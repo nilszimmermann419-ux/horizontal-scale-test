@@ -118,11 +118,14 @@ public class ChunkLockManager {
      * Force release all locks held by a shard (called on disconnect).
      */
     public void releaseAllLocks(String shardId) {
+        List<ChunkPos> toRelease = new ArrayList<>();
         for (Map.Entry<ChunkPos, String> entry : chunkLocks.entrySet()) {
             if (entry.getValue().equals(shardId)) {
-                ChunkPos pos = entry.getKey();
-                releaseLock(shardId, pos.x(), pos.z());
+                toRelease.add(entry.getKey());
             }
+        }
+        for (ChunkPos pos : toRelease) {
+            releaseLock(shardId, pos.x(), pos.z());
         }
     }
     

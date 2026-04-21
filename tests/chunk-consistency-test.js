@@ -55,7 +55,14 @@ async function testChunkConsistency() {
                 checkPos(bot1, 'Shard Alpha');
                 checkPos(bot2, 'Shard Beta');
                 
-                console.log('\n✅ Test complete - if terrain looks similar, world is shared!\n');
+                const hasGround1 = ground1 != null;
+                const hasGround2 = ground2 != null;
+                if (hasGround1 && hasGround2) {
+                    console.log('\n✅ PASS: Both shards have terrain data');
+                } else {
+                    console.log('\n❌ FAIL: Missing terrain data');
+                    process.exitCode = 1;
+                }
                 
                 bot1.end();
                 bot2.end();
@@ -77,7 +84,8 @@ async function testChunkConsistency() {
         
         setTimeout(() => {
             if (!spawned1 || !spawned2) {
-                console.log('Timeout waiting for bots');
+                console.log('❌ FAIL: Timeout waiting for bots');
+                process.exitCode = 1;
             }
             try { bot1.end(); } catch(e) {}
             try { bot2.end(); } catch(e) {}
@@ -88,5 +96,5 @@ async function testChunkConsistency() {
 
 testChunkConsistency().then(() => {
     console.log('Done');
-    process.exit(0);
+    process.exit(process.exitCode || 0);
 });

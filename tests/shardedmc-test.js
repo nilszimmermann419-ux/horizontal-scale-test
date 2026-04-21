@@ -117,6 +117,10 @@ async function testBlockInteraction() {
                 log(`Target block: ${targetBlock ? targetBlock.name : 'null'}`);
                 
                 if (targetBlock) {
+                    // Check inventory before breaking
+                    const itemsBefore = bot.inventory.items();
+                    log(`Inventory before break: ${itemsBefore.length} items`);
+                    
                     // Break it
                     await bot.dig(targetBlock);
                     
@@ -125,18 +129,16 @@ async function testBlockInteraction() {
                     const afterBreak = bot.blockAt(targetPos);
                     log(`After break: ${afterBreak ? afterBreak.name : 'null'}`);
                     
+                    // Check inventory after breaking
+                    const itemsAfter = bot.inventory.items();
+                    log(`Inventory after break: ${itemsAfter.length} items`);
+                    
                     if (!afterBreak || afterBreak.name === 'air') {
                         success('Block broke successfully');
+                    } else if (itemsAfter.length > itemsBefore.length) {
+                        success('Block break worked (got drops in inventory)');
                     } else {
-                        // Maybe it dropped as an item but block is still there?
-                        const items = bot.inventory.items();
-                        log(`Inventory after break: ${items.length} items`);
-                        
-                        if (items.length > 0) {
-                            success('Block break worked (got drops)');
-                        } else {
-                            error(`Block still exists: ${afterBreak ? afterBreak.name : 'null'}`);
-                        }
+                        error(`Block still exists and no drops collected: ${afterBreak.name}`);
                     }
                 } else {
                     error('No target block to break');

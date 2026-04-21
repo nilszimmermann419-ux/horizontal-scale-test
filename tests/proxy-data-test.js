@@ -23,19 +23,25 @@ socket.on('data', (data) => {
 
 socket.on('error', (err) => {
     console.error('Error:', err.message);
+    process.exit(1);
 });
 
 socket.on('close', () => {
     console.log('Connection closed');
-    if (!receivedData) {
-        console.log('⚠️  No data received from server');
+    if (receivedData) {
+        console.log('✅ PASS: Received data from server');
+        process.exit(0);
+    } else {
+        console.log('❌ FAIL: No data received from server');
+        process.exit(1);
     }
 });
 
 // Wait up to 10 seconds for data
 setTimeout(() => {
     if (!receivedData) {
-        console.log('❌ No data received after 10 seconds');
+        console.log('❌ FAIL: No data received after 10 seconds');
         socket.destroy();
+        process.exit(1);
     }
 }, 10000);

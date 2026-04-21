@@ -116,7 +116,7 @@ public class HealthCheck {
     }
     
     private HealthStatus checkThreads() {
-        int threadCount = Thread.activeCount();
+        int threadCount = java.lang.management.ManagementFactory.getThreadMXBean().getThreadCount();
         if (threadCount > 500) {
             LOGGER.warn("Thread count is high: {}", threadCount);
             return HealthStatus.DEGRADED;

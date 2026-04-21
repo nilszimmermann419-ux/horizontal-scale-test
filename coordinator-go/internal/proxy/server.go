@@ -26,6 +26,7 @@ type Proxy struct {
 	nextID        uint64
 	closed        atomic.Bool
 	connSemaphore chan struct{}
+	connCount     int64 // atomic counter for active connections
 }
 
 // PlayerConnection represents a connected Minecraft player
@@ -136,7 +137,11 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 	}
 
 	p.conns.Store(id, pc)
-	defer p.conns.Delete(id)
+	atomic.AddInt64(&p.connCount, 1)
+	defer func() {
+		p.conns.Delete(id)
+		atomic.AddInt64(&p.connCount, -1)
+	}()
 
 	shard.AddPlayer()
 	defer shard.RemovePlayer()
@@ -151,7 +156,10 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 	go func() {
 		defer wg.Done()
 		defer shardConn.Close()
-		copied, _ := io.Copy(shardConn, conn)
+		copied, err := io.Copy(shardConn, conn)
+		if err != nil && err != io.EOF {
+			log.Printf("Player %d -> Shard copy error: %v", id, err)
+		}
 		log.Printf("Player %d -> Shard: %d bytes", id, copied)
 	}()
 
@@ -159,7 +167,10 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 	go func() {
 		defer wg.Done()
 		defer conn.Close()
-		copied, _ := io.Copy(conn, shardConn)
+		copied, err := io.Copy(conn, shardConn)
+		if err != nil && err != io.EOF {
+			log.Printf("Shard -> Player %d copy error: %v", id, err)
+		}
 		log.Printf("Shard -> Player %d: %d bytes", id, copied)
 	}()
 
@@ -178,10 +189,5 @@ func (p *Proxy) GetConnection(id uint64) (*PlayerConnection, bool) {
 
 // ConnectionCount returns the number of active connections
 func (p *Proxy) ConnectionCount() int {
-	count := 0
-	p.conns.Range(func(_, _ interface{}) bool {
-		count++
-		return true
-	})
-	return count
+	return int(atomic.LoadInt64(&p.connCount))
 }

@@ -12,6 +12,7 @@ public record EntityState(
 ) {
     
     public ChunkPos getChunkPos() {
+        if (position == null) return null;
         return ChunkPos.fromBlockPos(position.toBlockPos());
     }
     

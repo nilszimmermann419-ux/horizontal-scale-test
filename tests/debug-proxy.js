@@ -2,6 +2,8 @@ const net = require('net');
 
 console.log('Testing proxy with delays...');
 
+let receivedData = false;
+
 // Wait 5 seconds for shards to register
 setTimeout(() => {
     console.log('Connecting to proxy...');
@@ -13,16 +15,25 @@ setTimeout(() => {
     });
     
     socket.on('data', (data) => {
+        receivedData = true;
         console.log('Received', data.length, 'bytes');
         console.log('First bytes:', data.slice(0, 20));
     });
     
     socket.on('error', (err) => {
         console.error('Error:', err.message);
+        process.exit(1);
     });
     
     socket.on('close', () => {
         console.log('Connection closed');
+        if (receivedData) {
+            console.log('✅ PASS: Proxy responded with data');
+            process.exit(0);
+        } else {
+            console.log('❌ FAIL: No data received from proxy');
+            process.exit(1);
+        }
     });
     
     // Send Minecraft handshake packet
@@ -62,3 +73,11 @@ setTimeout(() => {
     }, 1000);
     
 }, 5000);
+
+// Overall timeout
+setTimeout(() => {
+    if (!receivedData) {
+        console.log('❌ FAIL: Timeout waiting for proxy response');
+        process.exit(1);
+    }
+}, 15000);

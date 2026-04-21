@@ -93,10 +93,14 @@ public class LoadBalancer {
             
             // Read packet data
             byte[] packetData = new byte[packetLength];
-            int read = clientIn.read(packetData);
-            if (read != packetLength) {
-                clientSocket.close();
-                return;
+            int totalRead = 0;
+            while (totalRead < packetLength) {
+                int read = clientIn.read(packetData, totalRead, packetLength - totalRead);
+                if (read == -1) {
+                    clientSocket.close();
+                    return;
+                }
+                totalRead += read;
             }
             
             // Parse handshake
@@ -204,10 +208,14 @@ public class LoadBalancer {
         }
         
         byte[] packetData = new byte[packetLength];
-        int read = clientIn.read(packetData);
-        if (read != packetLength) {
-            clientSocket.close();
-            return;
+        int totalRead = 0;
+        while (totalRead < packetLength) {
+            int read = clientIn.read(packetData, totalRead, packetLength - totalRead);
+            if (read == -1) {
+                clientSocket.close();
+                return;
+            }
+            totalRead += read;
         }
         
         ByteBuffer buffer = ByteBuffer.wrap(packetData);
@@ -222,6 +230,14 @@ public class LoadBalancer {
             ShardRoute route = routeToLeastLoadedShard(username);
             if (route == null) {
                 logger.error("No available shards for player {}", username);
+                clientSocket.close();
+                return;
+            }
+            
+            // Validate target shard still exists
+            var shardOpt = shardRegistry.getShard(route.shardId());
+            if (shardOpt.isEmpty()) {
+                logger.error("Target shard {} no longer exists for player {}", route.shardId(), username);
                 clientSocket.close();
                 return;
             }

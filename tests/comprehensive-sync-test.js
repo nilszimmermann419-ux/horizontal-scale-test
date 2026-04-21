@@ -136,8 +136,6 @@ async function runAllTests() {
         console.log('\n🎉 All sync features working!');
         console.log('✅ Chunk synchronization');
         console.log('✅ Block synchronization');
-        console.log('✅ Entity synchronization');
-        console.log('✅ Player synchronization');
     }
     
     process.exit(failed > 0 ? 1 : 0);

@@ -174,15 +174,12 @@ func (w *WAL) backgroundFlush() {
 }
 
 func (w *WAL) rotate() error {
-	// Flush and close current file
+	// Flush current file
 	if err := w.flushLocked(); err != nil {
 		return err
 	}
 
-	// Close current file
-	if err := w.file.Close(); err != nil {
-		return err
-	}
+	oldFile := w.file
 
 	// Rename current WAL to .old
 	oldPath := w.path + ".old"
@@ -193,8 +190,17 @@ func (w *WAL) rotate() error {
 	// Create new WAL file
 	file, err := os.OpenFile(w.path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		return err
+		// Recovery: try to rename old file back and reopen it
+		if renameErr := os.Rename(oldPath, w.path); renameErr == nil {
+			if reopenFile, reopenErr := os.OpenFile(w.path, os.O_WRONLY|os.O_APPEND, 0644); reopenErr == nil {
+				w.file = reopenFile
+				w.writer = bufio.NewWriterSize(reopenFile, 64*1024)
+			}
+		}
+		return fmt.Errorf("failed to create new WAL file: %w", err)
 	}
+
+	oldFile.Close()
 
 	w.file = file
 	w.writer = bufio.NewWriterSize(file, 64*1024)

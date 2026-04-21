@@ -317,7 +317,9 @@ public class VanillaSurvival {
      * Main survival tick - runs every server tick (50ms)
      */
     private void survivalTick() {
-        for (Player player : instance.getPlayers()) {
+        var players = instance.getPlayers();
+        if (players.isEmpty()) return;
+        for (Player player : players) {
             UUID uuid = player.getUuid();
             PlayerSurvivalData data = survivalData.get(uuid);
             if (data == null) continue;

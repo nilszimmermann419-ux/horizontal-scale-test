@@ -2,6 +2,7 @@ package shard
 
 import (
 	"fmt"
+	"sort"
 	"sync/atomic"
 	"time"
 )
@@ -99,13 +100,8 @@ func (m *Manager) GetHealthyShards() []*Shard {
 // GetShardsByLoad returns shards sorted by load (ascending)
 func (m *Manager) GetShardsByLoad() []*Shard {
 	shards := m.GetAllShards()
-	// Simple bubble sort for small N
-	for i := 0; i < len(shards); i++ {
-		for j := i + 1; j < len(shards); j++ {
-			if shards[i].Load() > shards[j].Load() {
-				shards[i], shards[j] = shards[j], shards[i]
-			}
-		}
-	}
+	sort.Slice(shards, func(i, j int) bool {
+		return shards[i].Load() < shards[j].Load()
+	})
 	return shards
 }

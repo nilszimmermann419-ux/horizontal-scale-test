@@ -77,6 +77,7 @@ public class EntityActivationManager {
     // Track active entities
     private final Map<UUID, Boolean> entityActive = new ConcurrentHashMap<>();
     private final Set<UUID> trackedEntities = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, Entity> entityCache = new ConcurrentHashMap<>();
 
     // Performance tracking
     private long skippedTicks = 0;
@@ -122,6 +123,7 @@ public class EntityActivationManager {
 
         if (isTrackedType(type)) {
             trackedEntities.add(entity.getUuid());
+            entityCache.put(entity.getUuid(), entity);
             // Newly spawned entities are active by default
             entityActive.put(entity.getUuid(), true);
         }
@@ -131,6 +133,7 @@ public class EntityActivationManager {
         Entity entity = event.getEntity();
         trackedEntities.remove(entity.getUuid());
         entityActive.remove(entity.getUuid());
+        entityCache.remove(entity.getUuid());
     }
 
     /**
@@ -219,10 +222,16 @@ public class EntityActivationManager {
     }
 
     private Entity findEntityByUuid(UUID uuid) {
-        // Search across all instances
+        Entity cached = entityCache.get(uuid);
+        if (cached != null && cached.isActive()) {
+            return cached;
+        }
+        // Fallback: search across all instances
+        entityCache.remove(uuid);
         for (var instance : MinecraftServer.getInstanceManager().getInstances()) {
             for (Entity entity : instance.getEntities()) {
                 if (entity.getUuid().equals(uuid)) {
+                    entityCache.put(uuid, entity);
                     return entity;
                 }
             }

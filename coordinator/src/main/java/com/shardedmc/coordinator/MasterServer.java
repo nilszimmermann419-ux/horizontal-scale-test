@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -106,10 +108,10 @@ public class MasterServer {
             String shardId = request.getShardId();
             
             // Update shard info in registry
-            ShardRegistry.ShardInfo info = shardRegistry.getShard(shardId).orElse(null);
-            if (info != null) {
-                shardRegistry.registerShard(shardId, info.address(), info.port(), info.capacity());
-            }
+            List<com.shardedmc.shared.ChunkPos> regions = request.getRegionsList().stream()
+                    .map(r -> new com.shardedmc.shared.ChunkPos(r.getX(), r.getZ()))
+                    .collect(Collectors.toList());
+            shardRegistry.updateHeartbeat(shardId, request.getLoad(), request.getPlayerCount(), regions);
             
             HeartbeatResponse response = HeartbeatResponse.newBuilder()
                     .setHealthy(true)

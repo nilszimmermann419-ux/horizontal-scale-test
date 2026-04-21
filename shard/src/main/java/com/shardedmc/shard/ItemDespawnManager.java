@@ -95,6 +95,9 @@ public class ItemDespawnManager {
     private final Map<UUID, Long> itemSpawnTimes = new ConcurrentHashMap<>();
     private final Map<UUID, Long> itemDespawnTimes = new ConcurrentHashMap<>();
 
+    // Fast O(1) entity lookup instead of O(n×m) iteration
+    private final Map<UUID, Entity> entityCache = new ConcurrentHashMap<>();
+
     // Statistics
     private long despawnedTrash = 0;
     private long despawnedNormal = 0;
@@ -149,6 +152,7 @@ public class ItemDespawnManager {
         long now = System.currentTimeMillis();
         itemSpawnTimes.put(uuid, now);
         itemDespawnTimes.put(uuid, now + despawnTime);
+        entityCache.put(uuid, entity);
 
         // For trash items, set a shorter pickup delay to encourage cleanup
         if (isTrash(material)) {
@@ -175,6 +179,8 @@ public class ItemDespawnManager {
         // Clean up merged entity tracking
         itemSpawnTimes.remove(merged.getUuid());
         itemDespawnTimes.remove(merged.getUuid());
+        entityCache.remove(merged.getUuid());
+        entityCache.put(source.getUuid(), source);
     }
 
     private void checkDespawns() {
@@ -199,6 +205,7 @@ public class ItemDespawnManager {
 
                 itemSpawnTimes.remove(uuid);
                 itemDespawnTimes.remove(uuid);
+                entityCache.remove(uuid);
             }
         }
     }
@@ -241,9 +248,16 @@ public class ItemDespawnManager {
     }
 
     private Entity findEntityByUuid(UUID uuid) {
+        Entity cached = entityCache.get(uuid);
+        if (cached != null && cached.isActive()) {
+            return cached;
+        }
+        // Fallback: entity not in cache or inactive, search all instances
+        entityCache.remove(uuid);
         for (var instance : MinecraftServer.getInstanceManager().getInstances()) {
             for (Entity entity : instance.getEntities()) {
                 if (entity.getUuid().equals(uuid)) {
+                    entityCache.put(uuid, entity);
                     return entity;
                 }
             }

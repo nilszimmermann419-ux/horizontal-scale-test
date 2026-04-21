@@ -144,7 +144,7 @@ func blockKey(world, dimension string, x, y, z int32) string {
 }
 
 // evictOldest removes the oldest entry from an LRU list when over capacity
-func (e *memoryEngine) evictOldest(lru *list.List, dataMap map[string]interface{}, maxSize int) {
+func (e *memoryEngine) evictOldest(lru *list.List, deleteFunc func(string), maxSize int) {
 	if lru.Len() <= maxSize {
 		return
 	}
@@ -155,7 +155,7 @@ func (e *memoryEngine) evictOldest(lru *list.List, dataMap map[string]interface{
 		}
 		lru.Remove(elem)
 		entry := elem.Value.(*lruEntry)
-		delete(dataMap, entry.key)
+		deleteFunc(entry.key)
 	}
 }
 
@@ -206,13 +206,9 @@ func (e *memoryEngine) PutChunk(ctx context.Context, world, dimension string, x,
 	e.chunkMap[key] = e.chunkLRU.PushFront(entry)
 
 	// Evict if over capacity
-	e.evictOldest(e.chunkLRU, func() map[string]interface{} {
-		m := make(map[string]interface{})
-		for k, v := range e.chunks {
-			m[k] = v
-		}
-		return m
-	}(), MaxChunks)
+	e.evictOldest(e.chunkLRU, func(key string) {
+		delete(e.chunks, key)
+	}, MaxChunks)
 
 	return nil
 }
@@ -262,13 +258,9 @@ func (e *memoryEngine) PutPlayerData(ctx context.Context, uuid string, data *Pla
 
 	// Evict if over capacity
 	if e.playerLRU.Len() > MaxPlayers {
-		e.evictOldest(e.playerLRU, func() map[string]interface{} {
-			m := make(map[string]interface{})
-			for k, v := range e.players {
-				m[k] = v
-			}
-			return m
-		}(), MaxPlayers)
+		e.evictOldest(e.playerLRU, func(key string) {
+			delete(e.players, key)
+		}, MaxPlayers)
 	}
 
 	return nil
@@ -304,13 +296,9 @@ func (e *memoryEngine) PutEntity(ctx context.Context, world, dimension string, d
 
 	// Evict if over capacity
 	if e.entityLRU.Len() > MaxEntities {
-		e.evictOldest(e.entityLRU, func() map[string]interface{} {
-			m := make(map[string]interface{})
-			for k, v := range e.entities {
-				m[k] = v
-			}
-			return m
-		}(), MaxEntities)
+		e.evictOldest(e.entityLRU, func(key string) {
+			delete(e.entities, key)
+		}, MaxEntities)
 	}
 
 	return nil
@@ -363,13 +351,9 @@ func (e *memoryEngine) PutBlock(ctx context.Context, world, dimension string, x,
 
 	// Evict if over capacity
 	if e.blockLRU.Len() > MaxBlocks {
-		e.evictOldest(e.blockLRU, func() map[string]interface{} {
-			m := make(map[string]interface{})
-			for k, v := range e.blocks {
-				m[k] = v
-			}
-			return m
-		}(), MaxBlocks)
+		e.evictOldest(e.blockLRU, func(key string) {
+			delete(e.blocks, key)
+		}, MaxBlocks)
 	}
 
 	return nil
