@@ -185,8 +185,9 @@ public class ItemDespawnManager {
 
     private void checkDespawns() {
         long now = System.currentTimeMillis();
+        List<UUID> toRemove = new ArrayList<>();
 
-        for (Map.Entry<UUID, Long> entry : Set.copyOf(itemDespawnTimes.entrySet())) {
+        for (Map.Entry<UUID, Long> entry : itemDespawnTimes.entrySet()) {
             if (entry.getValue() <= now) {
                 UUID uuid = entry.getKey();
                 Entity entity = findEntityByUuid(uuid);
@@ -203,10 +204,14 @@ public class ItemDespawnManager {
                     entity.remove();
                 }
 
-                itemSpawnTimes.remove(uuid);
-                itemDespawnTimes.remove(uuid);
-                entityCache.remove(uuid);
+                toRemove.add(uuid);
             }
+        }
+
+        for (UUID uuid : toRemove) {
+            itemSpawnTimes.remove(uuid);
+            itemDespawnTimes.remove(uuid);
+            entityCache.remove(uuid);
         }
     }
 

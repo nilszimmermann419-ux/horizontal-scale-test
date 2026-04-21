@@ -21,6 +21,35 @@ import java.util.Random;
 public class CombatSystem {
     private static final Logger logger = LoggerFactory.getLogger(CombatSystem.class);
     private static final Random random = new Random();
+    private static final Map<Material, Float> WEAPON_DAMAGE = new HashMap<>();
+    
+    static {
+        WEAPON_DAMAGE.put(Material.WOODEN_SWORD, 4.0f);
+        WEAPON_DAMAGE.put(Material.STONE_SWORD, 5.0f);
+        WEAPON_DAMAGE.put(Material.IRON_SWORD, 6.0f);
+        WEAPON_DAMAGE.put(Material.DIAMOND_SWORD, 7.0f);
+        WEAPON_DAMAGE.put(Material.NETHERITE_SWORD, 8.0f);
+        WEAPON_DAMAGE.put(Material.GOLDEN_SWORD, 4.0f);
+        WEAPON_DAMAGE.put(Material.WOODEN_AXE, 7.0f);
+        WEAPON_DAMAGE.put(Material.STONE_AXE, 9.0f);
+        WEAPON_DAMAGE.put(Material.IRON_AXE, 9.0f);
+        WEAPON_DAMAGE.put(Material.DIAMOND_AXE, 9.0f);
+        WEAPON_DAMAGE.put(Material.NETHERITE_AXE, 10.0f);
+        WEAPON_DAMAGE.put(Material.GOLDEN_AXE, 7.0f);
+        WEAPON_DAMAGE.put(Material.WOODEN_PICKAXE, 2.0f);
+        WEAPON_DAMAGE.put(Material.STONE_PICKAXE, 3.0f);
+        WEAPON_DAMAGE.put(Material.IRON_PICKAXE, 4.0f);
+        WEAPON_DAMAGE.put(Material.DIAMOND_PICKAXE, 5.0f);
+        WEAPON_DAMAGE.put(Material.NETHERITE_PICKAXE, 6.0f);
+        WEAPON_DAMAGE.put(Material.GOLDEN_PICKAXE, 2.0f);
+        WEAPON_DAMAGE.put(Material.WOODEN_SHOVEL, 2.5f);
+        WEAPON_DAMAGE.put(Material.STONE_SHOVEL, 3.5f);
+        WEAPON_DAMAGE.put(Material.IRON_SHOVEL, 4.5f);
+        WEAPON_DAMAGE.put(Material.DIAMOND_SHOVEL, 5.5f);
+        WEAPON_DAMAGE.put(Material.NETHERITE_SHOVEL, 6.5f);
+        WEAPON_DAMAGE.put(Material.GOLDEN_SHOVEL, 2.5f);
+        WEAPON_DAMAGE.put(Material.TRIDENT, 9.0f);
+    }
     
     private final Map<Material, Integer> toolDurability = new HashMap<>();
     
@@ -147,34 +176,9 @@ public class CombatSystem {
         ItemStack held = player.getItemInMainHand();
         Material mat = held.material();
         
-        float damage = 1.0f;
+        float damage = WEAPON_DAMAGE.getOrDefault(mat, 1.0f);
         
-        if (mat == Material.WOODEN_SWORD) damage = 4;
-        else if (mat == Material.STONE_SWORD) damage = 5;
-        else if (mat == Material.IRON_SWORD) damage = 6;
-        else if (mat == Material.DIAMOND_SWORD) damage = 7;
-        else if (mat == Material.NETHERITE_SWORD) damage = 8;
-        else if (mat == Material.GOLDEN_SWORD) damage = 4;
-        else if (mat == Material.WOODEN_AXE) damage = 7;
-        else if (mat == Material.STONE_AXE) damage = 9;
-        else if (mat == Material.IRON_AXE) damage = 9;
-        else if (mat == Material.DIAMOND_AXE) damage = 9;
-        else if (mat == Material.NETHERITE_AXE) damage = 10;
-        else if (mat == Material.GOLDEN_AXE) damage = 7;
-        else if (mat == Material.WOODEN_PICKAXE) damage = 2;
-        else if (mat == Material.STONE_PICKAXE) damage = 3;
-        else if (mat == Material.IRON_PICKAXE) damage = 4;
-        else if (mat == Material.DIAMOND_PICKAXE) damage = 5;
-        else if (mat == Material.NETHERITE_PICKAXE) damage = 6;
-        else if (mat == Material.GOLDEN_PICKAXE) damage = 2;
-        else if (mat == Material.WOODEN_SHOVEL) damage = 2.5f;
-        else if (mat == Material.STONE_SHOVEL) damage = 3.5f;
-        else if (mat == Material.IRON_SHOVEL) damage = 4.5f;
-        else if (mat == Material.DIAMOND_SHOVEL) damage = 5.5f;
-        else if (mat == Material.NETHERITE_SHOVEL) damage = 6.5f;
-        else if (mat == Material.GOLDEN_SHOVEL) damage = 2.5f;
-        else if (mat.name().contains("_hoe")) damage = 1;
-        else if (mat == Material.TRIDENT) damage = 9;
+        if (mat.name().contains("_hoe")) damage = 1.0f;
         
         if (!player.isOnGround() && player.getVelocity().y() < 0) {
             damage *= 1.5f;

@@ -79,7 +79,7 @@ public class EntitySyncManager {
                     handleEntityUpdate(message);
                 }
             } catch (Exception e) {
-                logger.error("Failed to process entity sync message: {}", message, e);
+                logger.error("Failed to process entity sync message: {} - {}", message, e.getMessage(), e);
             }
         });
     }

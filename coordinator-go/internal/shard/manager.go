@@ -16,7 +16,7 @@ type Shard struct {
 	Capacity int
 
 	// Atomic counters for thread-safe access
-	playerCount    int32
+	playerCount    int64
 	load           float64
 	lastHeartbeat  atomic.Int64 // Unix timestamp in nanoseconds
 	healthy        atomic.Bool
@@ -81,7 +81,7 @@ func (m *Manager) GetLeastLoadedShard() *Shard {
 			return true
 		}
 
-		load := float64(atomic.LoadInt32(&shard.playerCount)) / float64(shard.Capacity)
+		load := float64(atomic.LoadInt64(&shard.playerCount)) / float64(shard.Capacity)
 		if load < bestLoad {
 			bestLoad = load
 			best = shard
@@ -162,12 +162,12 @@ func (m *Manager) checkHealth() {
 // AddPlayer increments the player count with bounds checking
 func (s *Shard) AddPlayer() {
 	for {
-		current := atomic.LoadInt32(&s.playerCount)
-		if current >= int32(s.Capacity) {
+		current := atomic.LoadInt64(&s.playerCount)
+		if current >= int64(s.Capacity) {
 			log.Printf("Shard %s at capacity (%d/%d)", s.ID, current, s.Capacity)
 			return
 		}
-		if atomic.CompareAndSwapInt32(&s.playerCount, current, current+1) {
+		if atomic.CompareAndSwapInt64(&s.playerCount, current, current+1) {
 			return
 		}
 	}
@@ -176,11 +176,11 @@ func (s *Shard) AddPlayer() {
 // RemovePlayer decrements the player count with bounds checking
 func (s *Shard) RemovePlayer() {
 	for {
-		current := atomic.LoadInt32(&s.playerCount)
+		current := atomic.LoadInt64(&s.playerCount)
 		if current <= 0 {
 			return
 		}
-		if atomic.CompareAndSwapInt32(&s.playerCount, current, current-1) {
+		if atomic.CompareAndSwapInt64(&s.playerCount, current, current-1) {
 			return
 		}
 	}
@@ -188,7 +188,7 @@ func (s *Shard) RemovePlayer() {
 
 // PlayerCount returns the current player count
 func (s *Shard) PlayerCount() int32 {
-	return atomic.LoadInt32(&s.playerCount)
+	return int32(atomic.LoadInt64(&s.playerCount))
 }
 
 // UpdateHeartbeat updates the last heartbeat time and marks shard as healthy
@@ -218,5 +218,5 @@ func (s *Shard) GetConnection() interface{} {
 
 // Load returns the current load ratio (0.0 - 1.0)
 func (s *Shard) Load() float64 {
-	return float64(atomic.LoadInt32(&s.playerCount)) / float64(s.Capacity)
+	return float64(atomic.LoadInt64(&s.playerCount)) / float64(s.Capacity)
 }

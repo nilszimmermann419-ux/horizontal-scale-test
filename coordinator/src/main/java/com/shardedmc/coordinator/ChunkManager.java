@@ -113,6 +113,8 @@ public class ChunkManager {
                         owned.remove(chunk);
                     }
                     shardChunkLoad.merge(shardId, -1, Integer::sum);
+                    // Remove zero entries to prevent accumulation
+                    shardChunkLoad.computeIfPresent(shardId, (k, v) -> v <= 0 ? null : v);
                     
                     logger.info("Released ownership of chunk {} from shard {}", chunk, shardId);
                 }
@@ -346,6 +348,7 @@ public class ChunkManager {
         }
         shardOwnedChunks.computeIfAbsent(newOwner, k -> ConcurrentHashMap.newKeySet()).add(chunk);
         shardChunkLoad.merge(oldOwner, -1, Integer::sum);
+        shardChunkLoad.computeIfPresent(oldOwner, (k, v) -> v <= 0 ? null : v);
         shardChunkLoad.merge(newOwner, 1, Integer::sum);
     }
     

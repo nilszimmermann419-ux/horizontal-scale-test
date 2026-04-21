@@ -71,6 +71,7 @@ public class CircuitBreaker {
             }
         } else {
             failureCount.set(0);
+            successCount.set(0);
         }
     }
     

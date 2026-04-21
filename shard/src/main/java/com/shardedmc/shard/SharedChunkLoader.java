@@ -220,6 +220,7 @@ public class SharedChunkLoader implements IChunkLoader {
      * Format: x,y,z,blockName;x,y,z,blockName;...
      */
     private String serializeChunk(Chunk chunk) {
+        // TODO: Optimize serialization - consider using ByteBuffer or protobuf instead of StringBuilder
         StringBuilder sb = new StringBuilder();
         
         for (int x = 0; x < 16; x++) {

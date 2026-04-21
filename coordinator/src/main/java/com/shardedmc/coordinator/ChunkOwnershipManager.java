@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Manages chunk ownership across shards.
@@ -25,8 +24,6 @@ public class ChunkOwnershipManager {
     // Maps chunk position to set of subscribing shard IDs
     private final Map<ChunkPos, Set<String>> chunkSubscribers = new ConcurrentHashMap<>();
     
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    
     /**
      * Request ownership of a chunk.
      * Returns true if ownership was granted, false if another shard owns it.
@@ -34,25 +31,20 @@ public class ChunkOwnershipManager {
     public boolean requestOwnership(String shardId, int chunkX, int chunkZ) {
         ChunkPos pos = new ChunkPos(chunkX, chunkZ);
         
-        lock.writeLock().lock();
-        try {
-            String currentOwner = chunkOwners.get(pos);
-            if (currentOwner == null) {
-                // Chunk is unowned, grant ownership
-                chunkOwners.put(pos, shardId);
-                shardOwnedChunks.computeIfAbsent(shardId, k -> ConcurrentHashMap.newKeySet()).add(pos);
-                logger.info("Granted ownership of chunk {},{} to shard {}", chunkX, chunkZ, shardId);
-                return true;
-            } else if (currentOwner.equals(shardId)) {
-                // Already owns this chunk
-                return true;
-            } else {
-                // Another shard owns this chunk
-                logger.debug("Chunk {},{} already owned by shard {}", chunkX, chunkZ, currentOwner);
-                return false;
-            }
-        } finally {
-            lock.writeLock().unlock();
+        String currentOwner = chunkOwners.get(pos);
+        if (currentOwner == null) {
+            // Chunk is unowned, grant ownership
+            chunkOwners.put(pos, shardId);
+            shardOwnedChunks.computeIfAbsent(shardId, k -> ConcurrentHashMap.newKeySet()).add(pos);
+            logger.info("Granted ownership of chunk {},{} to shard {}", chunkX, chunkZ, shardId);
+            return true;
+        } else if (currentOwner.equals(shardId)) {
+            // Already owns this chunk
+            return true;
+        } else {
+            // Another shard owns this chunk
+            logger.debug("Chunk {},{} already owned by shard {}", chunkX, chunkZ, currentOwner);
+            return false;
         }
     }
     
@@ -62,19 +54,14 @@ public class ChunkOwnershipManager {
     public void releaseOwnership(String shardId, int chunkX, int chunkZ) {
         ChunkPos pos = new ChunkPos(chunkX, chunkZ);
         
-        lock.writeLock().lock();
-        try {
-            String currentOwner = chunkOwners.get(pos);
-            if (currentOwner != null && currentOwner.equals(shardId)) {
-                chunkOwners.remove(pos);
-                Set<ChunkPos> shardsChunks = shardOwnedChunks.get(shardId);
-                if (shardsChunks != null) {
-                    shardsChunks.remove(pos);
-                }
-                logger.info("Released ownership of chunk {},{} from shard {}", chunkX, chunkZ, shardId);
+        String currentOwner = chunkOwners.get(pos);
+        if (currentOwner != null && currentOwner.equals(shardId)) {
+            chunkOwners.remove(pos);
+            Set<ChunkPos> shardsChunks = shardOwnedChunks.get(shardId);
+            if (shardsChunks != null) {
+                shardsChunks.remove(pos);
             }
-        } finally {
-            lock.writeLock().unlock();
+            logger.info("Released ownership of chunk {},{} from shard {}", chunkX, chunkZ, shardId);
         }
     }
     
@@ -83,12 +70,7 @@ public class ChunkOwnershipManager {
      */
     public String getOwner(int chunkX, int chunkZ) {
         ChunkPos pos = new ChunkPos(chunkX, chunkZ);
-        lock.readLock().lock();
-        try {
-            return chunkOwners.get(pos);
-        } finally {
-            lock.readLock().unlock();
-        }
+        return chunkOwners.get(pos);
     }
     
     /**
@@ -117,22 +99,17 @@ public class ChunkOwnershipManager {
      */
     public Set<String> getSubscribers(int chunkX, int chunkZ) {
         ChunkPos pos = new ChunkPos(chunkX, chunkZ);
-        lock.readLock().lock();
-        try {
-            Set<String> subscribers = chunkSubscribers.get(pos);
-            if (subscribers == null) {
-                return Set.of();
-            }
-            // Return copy without owner
-            Set<String> result = new HashSet<>(subscribers);
-            String owner = chunkOwners.get(pos);
-            if (owner != null) {
-                result.remove(owner);
-            }
-            return result;
-        } finally {
-            lock.readLock().unlock();
+        Set<String> subscribers = chunkSubscribers.get(pos);
+        if (subscribers == null) {
+            return Set.of();
         }
+        // Return copy without owner
+        Set<String> result = new HashSet<>(subscribers);
+        String owner = chunkOwners.get(pos);
+        if (owner != null) {
+            result.remove(owner);
+        }
+        return result;
     }
     
     /**
@@ -146,18 +123,13 @@ public class ChunkOwnershipManager {
      * Release all chunks owned by a shard (called when shard disconnects).
      */
     public void releaseAllOwnership(String shardId) {
-        lock.writeLock().lock();
-        try {
-            Set<ChunkPos> chunks = shardOwnedChunks.remove(shardId);
-            if (chunks != null) {
-                for (ChunkPos pos : chunks) {
-                    chunkOwners.remove(pos);
-                    logger.info("Released ownership of chunk {},{} from disconnected shard {}", 
-                            pos.x(), pos.z(), shardId);
-                }
+        Set<ChunkPos> chunks = shardOwnedChunks.remove(shardId);
+        if (chunks != null) {
+            for (ChunkPos pos : chunks) {
+                chunkOwners.remove(pos);
+                logger.info("Released ownership of chunk {},{} from disconnected shard {}", 
+                        pos.x(), pos.z(), shardId);
             }
-        } finally {
-            lock.writeLock().unlock();
         }
     }
     

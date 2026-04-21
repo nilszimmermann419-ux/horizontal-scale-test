@@ -4,6 +4,10 @@
 
 const mineflayer = require('mineflayer');
 
+const DEFAULT_HOST = process.env.SHARDEDMC_HOST || 'localhost';
+const DEFAULT_PORT = parseInt(process.env.SHARDEDMC_PORT, 10) || 25565;
+const DEFAULT_PORT_BETA = parseInt(process.env.SHARDEDMC_PORT_BETA, 10) || 25566;
+
 console.log('========================================');
 console.log('Comprehensive Sync Test');
 console.log('========================================\n');
@@ -25,8 +29,8 @@ async function testChunkConsistency() {
     console.log('\n📋 Chunk Consistency Test...');
     
     return new Promise((resolve) => {
-        const bot1 = mineflayer.createBot({ host: 'localhost', port: 25565, username: 'AlphaBot', auth: 'offline' });
-        const bot2 = mineflayer.createBot({ host: 'localhost', port: 25566, username: 'BetaBot', auth: 'offline' });
+        const bot1 = mineflayer.createBot({ host: DEFAULT_HOST, port: DEFAULT_PORT, username: 'AlphaBot', auth: 'offline' });
+        const bot2 = mineflayer.createBot({ host: DEFAULT_HOST, port: DEFAULT_PORT_BETA, username: 'BetaBot', auth: 'offline' });
         
         let spawned1 = false;
         let spawned2 = false;
@@ -79,7 +83,7 @@ async function testBlockSync() {
     console.log('\n📋 Block Synchronization Test...');
     
     return new Promise((resolve) => {
-        const bot = mineflayer.createBot({ host: 'localhost', port: 25565, username: 'BlockBreaker', auth: 'offline' });
+        const bot = mineflayer.createBot({ host: DEFAULT_HOST, port: DEFAULT_PORT, username: 'BlockBreaker', auth: 'offline' });
         
         bot.on('spawn', async () => {
             await new Promise(r => setTimeout(r, 2000));

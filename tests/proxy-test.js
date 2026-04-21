@@ -1,12 +1,14 @@
 const mineflayer = require('mineflayer');
 
 const timeout = process.env.PROXY_TEST_TIMEOUT ? parseInt(process.env.PROXY_TEST_TIMEOUT) : 10000;
+const DEFAULT_HOST = process.env.SHARDEDMC_HOST || 'localhost';
+const DEFAULT_PROXY_PORT = parseInt(process.env.SHARDEDMC_PROXY_PORT, 10) || 25577;
 
-console.log(`Testing connection through proxy (port 25577) with ${timeout}ms timeout...`);
+console.log(`Testing connection through proxy (${DEFAULT_HOST}:${DEFAULT_PROXY_PORT}) with ${timeout}ms timeout...`);
 
 const bot = mineflayer.createBot({
-    host: 'localhost',
-    port: 25577,
+    host: DEFAULT_HOST,
+    port: DEFAULT_PROXY_PORT,
     username: 'ProxyTest',
     auth: 'offline',
     checkTimeoutInterval: timeout > 10000 ? 120000 : 60000,

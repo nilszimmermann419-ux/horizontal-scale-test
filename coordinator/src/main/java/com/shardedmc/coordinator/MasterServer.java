@@ -68,6 +68,7 @@ public class MasterServer {
                 grpcServer.shutdown().awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 grpcServer.shutdownNow();
+                Thread.currentThread().interrupt();
             }
         }
         

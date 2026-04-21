@@ -30,6 +30,14 @@ public class ChunkAllocationManager {
             return List.of();
         }
         
+        // Validate shard is registered and healthy
+        boolean shardIsHealthy = healthyShards.stream()
+                .anyMatch(s -> s.shardId().equals(shardId));
+        if (!shardIsHealthy) {
+            logger.warn("Attempted to allocate regions for unregistered/unhealthy shard: {}", shardId);
+            return List.of();
+        }
+        
         List<ChunkPos> assigned = new ArrayList<>();
         // Simple round-robin for now
         int startX = 0, startZ = 0;

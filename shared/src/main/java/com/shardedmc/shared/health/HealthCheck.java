@@ -105,10 +105,10 @@ public class HealthCheck {
         double usagePercent = (usedMemory * 100.0) / maxMemory;
         
         if (usagePercent > 90) {
-            LOGGER.warn("Memory usage is critical: {}%", String.format("%.2f", usagePercent));
+            LOGGER.warn("Memory usage is critical: {}%", usagePercent);
             return HealthStatus.UNHEALTHY;
         } else if (usagePercent > 80) {
-            LOGGER.warn("Memory usage is high: {}%", String.format("%.2f", usagePercent));
+            LOGGER.warn("Memory usage is high: {}%", usagePercent);
             return HealthStatus.DEGRADED;
         }
         

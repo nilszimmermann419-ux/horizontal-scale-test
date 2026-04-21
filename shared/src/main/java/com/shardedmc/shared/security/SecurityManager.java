@@ -31,6 +31,13 @@ public class SecurityManager {
     private final SecureRandom secureRandom = new SecureRandom();
     private final byte[] encryptionKey;
     private final ScheduledExecutorService cleanupScheduler;
+    private final ThreadLocal<Cipher> cipherThreadLocal = ThreadLocal.withInitial(() -> {
+        try {
+            return Cipher.getInstance(TRANSFORMATION);
+        } catch (Exception e) {
+            throw new SecurityException("Failed to initialize Cipher", e);
+        }
+    });
     
     public SecurityManager(String base64Key) {
         this.encryptionKey = Base64.getDecoder().decode(base64Key);
@@ -93,7 +100,7 @@ public class SecurityManager {
             byte[] iv = new byte[GCM_IV_LENGTH];
             secureRandom.nextBytes(iv);
             
-            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            Cipher cipher = cipherThreadLocal.get();
             GCMParameterSpec parameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
             SecretKeySpec keySpec = new SecretKeySpec(encryptionKey, ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, parameterSpec);
@@ -121,7 +128,7 @@ public class SecurityManager {
             byte[] encrypted = new byte[byteBuffer.remaining()];
             byteBuffer.get(encrypted);
             
-            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            Cipher cipher = cipherThreadLocal.get();
             GCMParameterSpec parameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
             SecretKeySpec keySpec = new SecretKeySpec(encryptionKey, ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, keySpec, parameterSpec);

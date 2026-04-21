@@ -8,8 +8,12 @@
 
 const mineflayer = require('mineflayer');
 
-const SHARD_ALPHA = 'localhost:25565';
-const SHARD_BETA = 'localhost:25566';
+const DEFAULT_HOST = process.env.SHARDEDMC_HOST || 'localhost';
+const DEFAULT_PORT = parseInt(process.env.SHARDEDMC_PORT, 10) || 25565;
+const DEFAULT_PORT_BETA = parseInt(process.env.SHARDEDMC_PORT_BETA, 10) || 25566;
+
+const SHARD_ALPHA = `${DEFAULT_HOST}:${DEFAULT_PORT}`;
+const SHARD_BETA = `${DEFAULT_HOST}:${DEFAULT_PORT_BETA}`;
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -39,7 +43,7 @@ const botNames = [
 
 function createBot(name, port) {
     const bot = mineflayer.createBot({
-        host: 'localhost',
+        host: DEFAULT_HOST,
         port: fixedPort || port,
         username: name,
         auth: 'offline',

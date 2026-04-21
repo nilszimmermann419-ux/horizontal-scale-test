@@ -9,7 +9,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
@@ -145,22 +150,27 @@ public class ShardedPluginManager {
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
     
-    public List<ShardedPlugin> loadPlugins(File pluginsDir) {
+    public CompletableFuture<List<ShardedPlugin>> loadPlugins(File pluginsDir) {
         List<ShardedPlugin> loaded = new ArrayList<>();
         if (!pluginsDir.exists() || !pluginsDir.isDirectory()) {
-            return loaded;
+            return CompletableFuture.completedFuture(loaded);
         }
         File[] jars = pluginsDir.listFiles(f -> f.getName().endsWith(".jar"));
-        if (jars == null) return loaded;
+        if (jars == null) return CompletableFuture.completedFuture(loaded);
+
+        List<CompletableFuture<ShardedPlugin>> futures = new ArrayList<>();
         for (File jar : jars) {
-            try {
-                ShardedPlugin plugin = loadPlugin(jar.toPath()).join();
-                loaded.add(plugin);
-            } catch (Exception e) {
+            futures.add(loadPlugin(jar.toPath()).exceptionally(e -> {
                 logger.error("Failed to load plugin from: {}", jar, e);
-            }
+                return null;
+            }));
         }
-        return loaded;
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .filter(Objects::nonNull)
+                        .toList());
     }
     
     private record LoadedPlugin(ShardedPlugin plugin, PluginClassLoader classLoader, PluginInfo info) {}

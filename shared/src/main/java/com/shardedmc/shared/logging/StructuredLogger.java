@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -135,7 +136,7 @@ public class StructuredLogger {
     
     // Structured logging with event type
     public void logEvent(String eventType, String message, Map<String, String> context) {
-        Map<String, String> eventContext = new ConcurrentHashMap<>();
+        Map<String, String> eventContext = new HashMap<>();
         eventContext.put("event_type", eventType);
         if (context != null) {
             eventContext.putAll(context);
@@ -144,7 +145,7 @@ public class StructuredLogger {
     }
     
     public void logPlayerEvent(String playerId, String eventType, String message, Map<String, String> context) {
-        Map<String, String> eventContext = new ConcurrentHashMap<>();
+        Map<String, String> eventContext = new HashMap<>();
         eventContext.put("player_id", playerId);
         eventContext.put("event_type", eventType);
         if (context != null) {
@@ -154,7 +155,7 @@ public class StructuredLogger {
     }
     
     public void logShardEvent(String shardId, String eventType, String message, Map<String, String> context) {
-        Map<String, String> eventContext = new ConcurrentHashMap<>();
+        Map<String, String> eventContext = new HashMap<>();
         eventContext.put("shard_id", shardId);
         eventContext.put("event_type", eventType);
         if (context != null) {
@@ -164,7 +165,7 @@ public class StructuredLogger {
     }
     
     public void logError(String errorCode, String message, Throwable throwable, Map<String, String> context) {
-        Map<String, String> errorContext = new ConcurrentHashMap<>();
+        Map<String, String> errorContext = new HashMap<>();
         errorContext.put("error_code", errorCode);
         if (context != null) {
             errorContext.putAll(context);

@@ -16,10 +16,18 @@ public interface ShardedWorld {
     CompletableFuture<Block> getBlock(int x, int y, int z);
     CompletableFuture<Boolean> breakBlock(int x, int y, int z);
     
+    /**
+     * Sets a block at the given position.
+     * Note: Vec3d coordinates are truncated to integers (fractional parts discarded).
+     */
     default CompletableFuture<Void> setBlock(Vec3d position, Block block) {
         return setBlock((int) position.x(), (int) position.y(), (int) position.z(), block);
     }
-    
+
+    /**
+     * Gets the block at the given position.
+     * Note: Vec3d coordinates are truncated to integers (fractional parts discarded).
+     */
     default CompletableFuture<Block> getBlock(Vec3d position) {
         return getBlock((int) position.x(), (int) position.y(), (int) position.z());
     }
@@ -33,7 +41,17 @@ public interface ShardedWorld {
     // World properties
     CompletableFuture<Long> getTime();
     CompletableFuture<Void> setTime(long time);
+
+    /**
+     * Gets the current weather.
+     * @return the weather, typically "clear", "rain", or "thunder"
+     */
     CompletableFuture<String> getWeather();
+
+    /**
+     * Sets the weather.
+     * @param weather the weather to set, typically "clear", "rain", or "thunder"
+     */
     CompletableFuture<Void> setWeather(String weather);
     
     // Chunk operations

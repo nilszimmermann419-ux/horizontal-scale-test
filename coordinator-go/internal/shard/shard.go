@@ -26,7 +26,7 @@ func (s *Shard) Stats() ShardStats {
 		Address:       s.Address,
 		Port:          s.Port,
 		Capacity:      s.Capacity,
-		PlayerCount:   atomic.LoadInt32(&s.playerCount),
+		PlayerCount:   int32(atomic.LoadInt64(&s.playerCount)),
 		Load:          s.Load(),
 		Healthy:       s.healthy.Load(),
 		LastHeartbeat: time.Unix(0, s.lastHeartbeat.Load()).Unix(),
@@ -36,7 +36,7 @@ func (s *Shard) Stats() ShardStats {
 // String returns a string representation of the shard
 func (s *Shard) String() string {
 	return fmt.Sprintf("Shard{id=%s, addr=%s:%d, players=%d/%d, load=%.2f, healthy=%v}",
-		s.ID, s.Address, s.Port, atomic.LoadInt32(&s.playerCount), s.Capacity, s.Load(), s.healthy.Load())
+		s.ID, s.Address, s.Port, 		int32(atomic.LoadInt64(&s.playerCount)), s.Capacity, s.Load(), s.healthy.Load())
 }
 
 // ShardMetrics contains aggregated metrics across all shards
@@ -57,7 +57,7 @@ func (m *Manager) GetMetrics() ShardMetrics {
 		shard := value.(*Shard)
 		metrics.TotalShards++
 		metrics.TotalCapacity += shard.Capacity
-		metrics.TotalPlayers += atomic.LoadInt32(&shard.playerCount)
+		metrics.TotalPlayers += int32(atomic.LoadInt64(&shard.playerCount))
 		totalLoad += shard.Load()
 
 		if shard.healthy.Load() {

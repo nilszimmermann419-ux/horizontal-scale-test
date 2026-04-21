@@ -195,6 +195,7 @@ public class VanillaFeatures {
     
     /**
      * Calculate melee damage based on held item
+     * TODO: Extract to shared utility with CombatSystem to avoid duplication
      */
     private float calculateMeleeDamage(Player player) {
         ItemStack heldItem = player.getItemInMainHand();

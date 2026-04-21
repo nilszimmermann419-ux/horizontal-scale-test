@@ -178,7 +178,8 @@ public class CombatLogger {
                     skinSignature = skin.signature();
                 }
             } catch (Exception e) {
-                logger.debug("Could not get skin for {}", name);
+                logger.debug("Could not get skin for {}, continuing with null skin", name);
+                // Continue with null skin - NPC will use default appearance
             }
 
             // Spawn NPC

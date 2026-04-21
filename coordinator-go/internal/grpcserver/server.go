@@ -83,6 +83,7 @@ func (s *GRPCServer) SendHeartbeat(ctx context.Context, req *pb.HeartbeatRequest
 }
 
 func (s *GRPCServer) RequestPlayerTransfer(ctx context.Context, req *pb.TransferRequest) (*pb.TransferResponse, error) {
+	// TODO: Implement proper player transfer logic with shard coordination
 	return &pb.TransferResponse{
 		Accepted: true,
 		Message: "Transfer accepted",
@@ -90,24 +91,28 @@ func (s *GRPCServer) RequestPlayerTransfer(ctx context.Context, req *pb.Transfer
 }
 
 func (s *GRPCServer) ConfirmPlayerTransfer(ctx context.Context, req *pb.TransferConfirmation) (*pb.ConfirmationResponse, error) {
+	// TODO: Implement proper transfer confirmation with state cleanup
 	return &pb.ConfirmationResponse{
 		Acknowledged: true,
 	}, nil
 }
 
 func (s *GRPCServer) RequestChunkLoad(ctx context.Context, req *pb.ChunkLoadRequest) (*pb.ChunkLoadResponse, error) {
+	// TODO: Implement chunk loading with storage backend integration
 	return &pb.ChunkLoadResponse{
 		Success: true,
 	}, nil
 }
 
 func (s *GRPCServer) RequestChunkUnload(ctx context.Context, req *pb.ChunkUnloadRequest) (*pb.ChunkUnloadResponse, error) {
+	// TODO: Implement chunk unloading with persistence and cleanup
 	return &pb.ChunkUnloadResponse{
 		Success: true,
 	}, nil
 }
 
 func (s *GRPCServer) RequestChunkLock(ctx context.Context, req *pb.LockRequest) (*pb.LockResponse, error) {
+	// TODO: Implement distributed chunk locking with deadlock prevention
 	return &pb.LockResponse{
 		Success: true,
 	}, nil
@@ -124,21 +129,24 @@ func (s *GRPCServer) SyncEntityState(ctx context.Context, req *pb.EntityStateSyn
 	}, nil
 }
 
-func StartGRPCServer(addr string, shardMgr *shard.Manager) (*grpc.Server, error) {
+func StartGRPCServer(addr string, shardMgr *shard.Manager) (*grpc.Server, chan error, error) {
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to listen: %v", err)
+		return nil, nil, fmt.Errorf("failed to listen: %v", err)
 	}
 	
 	s := grpc.NewServer()
 	pb.RegisterCoordinatorServiceServer(s, NewGRPCServer(shardMgr))
 	
+	errCh := make(chan error, 1)
 	go func() {
 		log.Printf("gRPC server listening on %s", addr)
 		if err := s.Serve(lis); err != nil {
 			log.Printf("gRPC server error: %v", err)
+			errCh <- err
 		}
+		close(errCh)
 	}()
 	
-	return s, nil
+	return s, errCh, nil
 }

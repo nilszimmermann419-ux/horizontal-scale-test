@@ -10,6 +10,10 @@ import net.minestom.server.item.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +32,8 @@ public class PlayerBoundaryMonitor {
     private static final int BUFFER_CHUNKS = 2; // Start transfer 2 chunks before boundary
     private static final String TRANSFER_CHANNEL = "shard:transfers";
     private static final long TRANSFER_TIMEOUT_MS = 30000; // 30 seconds
+    
+    private static final Gson GSON = new Gson();
     
     private final ShardCoordinatorClient coordinatorClient;
     private final RedisClient redisClient;
@@ -248,27 +254,77 @@ public class PlayerBoundaryMonitor {
         }
         
         public String toJson() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("{");
-            sb.append("\"uuid\":\"").append(uuid).append("\",");
-            sb.append("\"username\":\"").append(username).append("\",");
-            sb.append("\"position\":{");
-            sb.append("\"x\":").append(position.x()).append(",");
-            sb.append("\"y\":").append(position.y()).append(",");
-            sb.append("\"z\":").append(position.z()).append("},");
-            sb.append("\"health\":").append(health).append(",");
-            sb.append("\"food\":").append(food).append(",");
-            sb.append("\"saturation\":").append(saturation).append(",");
-            sb.append("\"inventory\":[");
-            for (int i = 0; i < inventory.size(); i++) {
-                if (i > 0) sb.append(",");
-                ItemData item = inventory.get(i);
-                sb.append("{");
-                sb.append("\"slot\":").append(item.slot()).append(",");
-                sb.append("\"material\":\"").append(item.material()).append("\",");
-                sb.append("\"amount\":").append(item.amount());
-                sb.append("}");
+            JsonObject json = new JsonObject();
+            json.addProperty("uuid", uuid);
+            json.addProperty("username", username);
+            
+            JsonObject pos = new JsonObject();
+            pos.addProperty("x", position.x());
+            pos.addProperty("y", position.y());
+            pos.addProperty("z", position.z());
+            json.add("position", pos);
+            
+            json.addProperty("health", health);
+            json.addProperty("food", food);
+            json.addProperty("saturation", saturation);
+            
+            JsonArray inv = new JsonArray();
+            for (ItemData item : inventory) {
+                JsonObject itemJson = new JsonObject();
+                itemJson.addProperty("slot", item.slot());
+                itemJson.addProperty("material", item.material());
+                itemJson.addProperty("amount", item.amount());
+                inv.add(itemJson);
             }
+            json.add("inventory", inv);
+            
+            json.addProperty("target_shard", targetShardId);
+            json.addProperty("timestamp", timestamp);
+            
+            return GSON.toJson(json);
+        }
+        
+        public static PlayerTransferState fromJson(String json) {
+            try {
+                JsonObject obj = GSON.fromJson(json, JsonObject.class);
+                
+                String uuid = obj.get("uuid").getAsString();
+                String username = obj.get("username").getAsString();
+                
+                JsonObject posObj = obj.getAsJsonObject("position");
+                Vec3d position = new Vec3d(
+                    posObj.get("x").getAsDouble(),
+                    posObj.get("y").getAsDouble(),
+                    posObj.get("z").getAsDouble()
+                );
+                
+                float health = obj.get("health").getAsFloat();
+                float food = obj.get("food").getAsFloat();
+                float saturation = obj.get("saturation").getAsFloat();
+                
+                String targetShard = obj.get("target_shard").getAsString();
+                long timestamp = obj.get("timestamp").getAsLong();
+                
+                List<ItemData> inventory = new ArrayList<>();
+                JsonArray invArray = obj.getAsJsonArray("inventory");
+                if (invArray != null) {
+                    for (JsonElement elem : invArray) {
+                        JsonObject itemObj = elem.getAsJsonObject();
+                        inventory.add(new ItemData(
+                            itemObj.get("slot").getAsInt(),
+                            itemObj.get("material").getAsString(),
+                            itemObj.get("amount").getAsInt()
+                        ));
+                    }
+                }
+                
+                return new PlayerTransferState(uuid, username, position, health, food, 
+                        saturation, inventory, targetShard, timestamp);
+            } catch (Exception e) {
+                logger.error("Failed to parse transfer state: {}", json, e);
+                return null;
+            }
+        }
             sb.append("],");
             sb.append("\"target_shard\":\"").append(targetShardId).append("\",");
             sb.append("\"timestamp\":").append(timestamp);

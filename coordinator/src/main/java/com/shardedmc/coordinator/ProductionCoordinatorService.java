@@ -166,6 +166,7 @@ public class ProductionCoordinatorService extends CoordinatorServiceGrpc.Coordin
         
         String shardId = request.getShardId();
         ChunkPos pos = request.getChunkPos();
+        // TODO: Use StringBuilder for key construction in hot path
         String key = pos.getX() + "," + pos.getZ();
         
         ProductionCoordinatorServer.ChunkAllocation allocation = server.getChunkAllocations().get(key);

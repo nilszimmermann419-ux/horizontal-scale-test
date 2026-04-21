@@ -7,6 +7,8 @@ import (
 	"sync"
 )
 
+// TODO: Consolidate LRU implementation with internal/storage/engine.go
+
 type MemoryCache struct {
 	maxSize int
 	chunks  map[string]*list.Element
@@ -30,8 +32,8 @@ func NewMemoryCache(maxSize int) *MemoryCache {
 func (c *MemoryCache) GetChunk(ctx context.Context, world, dimension string, x, z int32) (*ChunkData, error) {
 	key := fmt.Sprintf("%s:%s:%d:%d", world, dimension, x, z)
 
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	if elem, ok := c.chunks[key]; ok {
 		c.lru.MoveToFront(elem)

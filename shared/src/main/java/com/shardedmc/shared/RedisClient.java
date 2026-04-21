@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.AtomicBoolean;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -22,6 +23,7 @@ public class RedisClient implements AutoCloseable {
     private final StatefulRedisPubSubConnection<String, String> pubSubConnection;
     private final RedisAsyncCommands<String, String> asyncCommands;
     private final RedisCommands<String, String> syncCommands;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
     
     public RedisClient(String host, int port) {
         this(RedisURI.builder()
@@ -83,16 +85,18 @@ public class RedisClient implements AutoCloseable {
     }
     
     // Pub/Sub
-    public void subscribe(String channel, Consumer<String> messageHandler) {
-        pubSubConnection.addListener(new RedisPubSubAdapter<>() {
+    public Runnable subscribe(String channel, Consumer<String> messageHandler) {
+        RedisPubSubAdapter<String, String> listener = new RedisPubSubAdapter<>() {
             @Override
             public void message(String subscribedChannel, String message) {
                 if (subscribedChannel.equals(channel)) {
                     messageHandler.accept(message);
                 }
             }
-        });
+        };
+        pubSubConnection.addListener(listener);
         pubSubConnection.sync().subscribe(channel);
+        return () -> pubSubConnection.removeListener(listener);
     }
     
     public void publish(String channel, String message) {
@@ -144,9 +148,11 @@ public class RedisClient implements AutoCloseable {
     
     @Override
     public void close() {
-        connection.close();
-        pubSubConnection.close();
-        client.shutdown();
-        logger.info("Redis connection closed");
+        if (closed.compareAndSet(false, true)) {
+            connection.close();
+            pubSubConnection.close();
+            client.shutdown();
+            logger.info("Redis connection closed");
+        }
     }
 }

@@ -88,7 +88,7 @@ func (d *PacketDecoder) ReadString() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if int(length) < 0 || d.pos+int(length) > len(d.buf) {
+	if d.pos+int(length) > len(d.buf) {
 		return "", ErrInvalidLength
 	}
 	v := string(d.buf[d.pos : d.pos+int(length)])
@@ -104,7 +104,7 @@ func (d *PacketDecoder) ReadBytes() ([]byte, error) {
 	if length > uint32(MaxPacketSize) {
 		return nil, ErrInvalidLength
 	}
-	if int(length) < 0 || d.pos+int(length) > len(d.buf) {
+	if d.pos+int(length) > len(d.buf) {
 		return nil, ErrInvalidLength
 	}
 	v := make([]byte, length)

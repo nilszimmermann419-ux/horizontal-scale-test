@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -27,9 +26,6 @@ public class ShardProxy {
     private final ShardRegistry shardRegistry;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
-    
-    // Maps player UUID to their current target shard
-    private final Map<String, String> playerShardMap = new ConcurrentHashMap<>();
     
     public ShardProxy(int port, PlayerRouter playerRouter, ShardRegistry shardRegistry) {
         this.port = port;
@@ -100,6 +96,7 @@ public class ShardProxy {
             // For now, just route to first available shard
             // In production, parse handshake and route based on player position
             String targetShard = shardRegistry.getHealthyShards().stream()
+                    .sorted((a, b) -> Integer.compare(a.playerCount(), b.playerCount()))
                     .findFirst()
                     .map(ShardRegistry.ShardInfo::shardId)
                     .orElse(null);
@@ -126,8 +123,4 @@ public class ShardProxy {
         }
     }
     
-    public static void main(String[] args) {
-        // This is a placeholder - integrate with MasterServer
-        logger.info("ShardProxy should be started as part of MasterServer");
-    }
 }

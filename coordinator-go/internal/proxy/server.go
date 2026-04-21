@@ -154,24 +154,24 @@ func (p *Proxy) handleConnection(conn net.Conn) {
 
 	// Player -> Shard
 	go func() {
-		defer wg.Done()
-		defer shardConn.Close()
+		wg.Done()
 		copied, err := io.Copy(shardConn, conn)
 		if err != nil && err != io.EOF {
 			log.Printf("Player %d -> Shard copy error: %v", id, err)
 		}
 		log.Printf("Player %d -> Shard: %d bytes", id, copied)
+		shardConn.Close()
 	}()
 
 	// Shard -> Player
 	go func() {
-		defer wg.Done()
-		defer conn.Close()
+		wg.Done()
 		copied, err := io.Copy(conn, shardConn)
 		if err != nil && err != io.EOF {
 			log.Printf("Shard -> Player %d copy error: %v", id, err)
 		}
 		log.Printf("Shard -> Player %d: %d bytes", id, copied)
+		conn.Close()
 	}()
 
 	wg.Wait()

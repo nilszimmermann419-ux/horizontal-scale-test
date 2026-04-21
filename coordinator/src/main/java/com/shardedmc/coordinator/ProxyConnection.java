@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Manages proxying data between a Minecraft client and a shard server.
@@ -29,6 +30,7 @@ public class ProxyConnection {
     });
     
     private volatile boolean running = false;
+    private final AtomicBoolean stopped = new AtomicBoolean(false);
     
     public ProxyConnection(String playerName, Socket clientSocket, Socket shardSocket, LoadBalancer loadBalancer) {
         this.playerName = playerName;
@@ -56,20 +58,30 @@ public class ProxyConnection {
             int read;
             
             while (running && (read = fromIn.read(buffer)) != -1) {
-                toOut.write(buffer, 0, read);
-                toOut.flush();
+                if (read > 0) {
+                    toOut.write(buffer, 0, read);
+                    toOut.flush();
+                } else {
+                    // Avoid busy-loop when read returns 0
+                    Thread.sleep(1);
+                }
             }
             
         } catch (IOException e) {
             if (running) {
                 logger.debug("Proxy {} connection closed for player {}", direction, playerName);
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } finally {
             stop();
         }
     }
     
     public void stop() {
+        if (!stopped.compareAndSet(false, true)) {
+            return; // Already stopped
+        }
         running = false;
         
         try {

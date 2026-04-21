@@ -44,7 +44,8 @@ public class ConfigLoader {
     
     @SuppressWarnings("unchecked")
     public <T> T load(String configName, Class<T> clazz) {
-        return (T) configCache.computeIfAbsent(configName, k -> doLoad(k, clazz));
+        String cacheKey = configName + ":" + clazz.getName();
+        return (T) configCache.computeIfAbsent(cacheKey, k -> doLoad(configName, clazz));
     }
     
     @SuppressWarnings("unchecked")
@@ -132,8 +133,12 @@ public class ConfigLoader {
     public void save(String configName, Object config) {
         Path configPath = configDirectory.resolve(configName + ".yml");
         try {
+            Path parent = configPath.getParent();
+            if (parent != null && !Files.exists(parent)) {
+                Files.createDirectories(parent);
+            }
             YAML_MAPPER.writeValue(configPath.toFile(), config);
-            configCache.put(configName, config);
+            configCache.put(configName + ":" + config.getClass().getName(), config);
             LOGGER.info("Saved config: {}", configPath);
         } catch (IOException e) {
             LOGGER.error("Failed to save config: {}", configPath, e);

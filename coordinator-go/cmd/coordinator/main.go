@@ -67,11 +67,18 @@ func main() {
 	_ = chunkMgr
 
 	// Start gRPC server for shard registration
-	grpcServer, err := grpcserver.StartGRPCServer(cfg.GRPCAddr, shardMgr)
+	grpcServer, grpcErrCh, err := grpcserver.StartGRPCServer(cfg.GRPCAddr, shardMgr)
 	if err != nil {
 		log.Fatal("Failed to start gRPC server:", err)
 	}
 	defer grpcServer.Stop()
+
+	// Monitor gRPC server errors
+	go func() {
+		if err := <-grpcErrCh; err != nil {
+			log.Printf("gRPC server error: %v", err)
+		}
+	}()
 
 	// Initialize proxy
 	proxyServer, err := proxy.NewProxy(cfg.ProxyAddr, shardMgr)

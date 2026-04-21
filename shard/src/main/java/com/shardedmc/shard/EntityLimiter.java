@@ -78,6 +78,7 @@ public class EntityLimiter {
      */
     public void register(GlobalEventHandler eventHandler) {
         eventHandler.addListener(EntitySpawnEvent.class, this::onEntitySpawn);
+        eventHandler.addListener(EntityDespawnEvent.class, event -> onEntityRemoved(event.getEntity()));
         LOGGER.info("EntityLimiter registered with limits: monsters={}, animals={}, water={}, ambient={}",
             monsterLimit, animalLimit, waterLimit, ambientLimit);
     }

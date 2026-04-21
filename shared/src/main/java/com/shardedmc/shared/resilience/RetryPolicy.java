@@ -80,10 +80,14 @@ public class RetryPolicy {
     }
     
     private boolean isRetryable(Exception e) {
-        for (Class<? extends Exception> retryable : retryableExceptions) {
-            if (retryable.isInstance(e)) {
-                return true;
+        Throwable current = e;
+        while (current != null) {
+            for (Class<? extends Exception> retryable : retryableExceptions) {
+                if (retryable.isInstance(current)) {
+                    return true;
+                }
             }
+            current = current.getCause();
         }
         return false;
     }

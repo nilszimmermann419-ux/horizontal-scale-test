@@ -3,10 +3,10 @@ package com.shardedmc.api;
 import com.shardedmc.api.events.BlockBreakEvent;
 import com.shardedmc.api.events.PlayerJoinEvent;
 import com.shardedmc.shared.Vec3d;
+import net.minestom.server.instance.block.Block;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,7 +26,7 @@ public class PluginApiTest {
     @Test
     void testBlockBreakEventCancellation() {
         UUID playerId = UUID.randomUUID();
-        BlockBreakEvent event = new BlockBreakEvent(playerId, new Vec3d(10, 64, 10), null);
+        BlockBreakEvent event = new BlockBreakEvent(playerId, new Vec3d(10, 64, 10), Block.STONE);
         
         assertFalse(event.isCancelled());
         event.setCancelled(true);

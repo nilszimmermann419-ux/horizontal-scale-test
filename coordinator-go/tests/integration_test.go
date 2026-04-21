@@ -86,7 +86,7 @@ func TestLeastLoadedShard(t *testing.T) {
 
 // TestStorageEngine tests the storage interface
 func TestStorageEngine(t *testing.T) {
-	engine, err := storage.NewEngine("/tmp/test-storage")
+	engine, err := storage.NewEngine(t.TempDir())
 	if err != nil {
 		t.Fatalf("Failed to create storage engine: %v", err)
 	}

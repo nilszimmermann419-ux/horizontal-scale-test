@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ShardConfig {
     
     @JsonProperty("shard_id")
-    private String shardId = "shard-" + System.currentTimeMillis();
+    private String shardId = "shard-" + java.util.UUID.randomUUID().toString();
     
     @JsonProperty("server_host")
     private String serverHost = "0.0.0.0";
@@ -201,4 +201,37 @@ public class ShardConfig {
     public boolean isOnlineMode() { return false; }
     
     public int getWorldBorderRadius() { return 0; }
+
+    public void validate() {
+        if (shardId == null || shardId.isEmpty()) {
+            throw new IllegalArgumentException("shardId must not be empty");
+        }
+        if (serverHost == null || serverHost.isEmpty()) {
+            throw new IllegalArgumentException("serverHost must not be empty");
+        }
+        if (serverPort <= 0) {
+            throw new IllegalArgumentException("serverPort must be positive");
+        }
+        if (maxPlayers <= 0) {
+            throw new IllegalArgumentException("maxPlayers must be positive");
+        }
+        if (viewDistance <= 0 || simulationDistance <= 0 || chunkLoadDistance <= 0) {
+            throw new IllegalArgumentException("distances must be positive");
+        }
+        if (coordinatorHost == null || coordinatorHost.isEmpty()) {
+            throw new IllegalArgumentException("coordinatorHost must not be empty");
+        }
+        if (coordinatorPort <= 0) {
+            throw new IllegalArgumentException("coordinatorPort must be positive");
+        }
+        if (redisHost == null || redisHost.isEmpty()) {
+            throw new IllegalArgumentException("redisHost must not be empty");
+        }
+        if (redisPort <= 0) {
+            throw new IllegalArgumentException("redisPort must be positive");
+        }
+        if (heartbeatIntervalMs <= 0 || boundaryCheckIntervalMs <= 0 || playerStateSyncIntervalMs <= 0 || entitySyncIntervalMs <= 0) {
+            throw new IllegalArgumentException("intervals must be positive");
+        }
+    }
 }

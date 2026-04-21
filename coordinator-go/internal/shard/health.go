@@ -20,7 +20,7 @@ func NewHealthChecker(manager *Manager, interval, timeout time.Duration) *Health
 		manager:   manager,
 		interval:  interval,
 		timeout:   timeout,
-		unhealthy: make(chan *Shard, 100),
+		unhealthy: make(chan *Shard, 1000),
 	}
 }
 
@@ -63,6 +63,7 @@ func (hc *HealthChecker) checkShard(shard *Shard) {
 			select {
 			case hc.unhealthy <- shard:
 			default:
+				log.Printf("Warning: unhealthy notification dropped for shard %s (channel full)", shard.ID)
 			}
 		}
 		return
@@ -79,6 +80,7 @@ func (hc *HealthChecker) ReportUnhealthy(shard *Shard) {
 	select {
 	case hc.unhealthy <- shard:
 	default:
+		log.Printf("Warning: unhealthy notification dropped for shard %s (channel full)", shard.ID)
 	}
 }
 

@@ -99,6 +99,8 @@ func NewEngine(path string) (Engine, error) {
 	return newMemoryEngine(), nil
 }
 
+// TODO: Consolidate LRU implementation with internal/storage/memory.go
+
 type memoryEngine struct {
 	mu       sync.RWMutex
 	chunks   map[string]*ChunkData
@@ -169,6 +171,12 @@ func (e *memoryEngine) touch(lru *list.List, elemMap map[string]*list.Element, k
 }
 
 func (e *memoryEngine) GetChunk(ctx context.Context, world, dimension string, x, z int32) (*ChunkData, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
@@ -186,6 +194,12 @@ func (e *memoryEngine) GetChunk(ctx context.Context, world, dimension string, x,
 }
 
 func (e *memoryEngine) PutChunk(ctx context.Context, world, dimension string, x, z int32, data *ChunkData) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -214,6 +228,12 @@ func (e *memoryEngine) PutChunk(ctx context.Context, world, dimension string, x,
 }
 
 func (e *memoryEngine) DeleteChunk(ctx context.Context, world, dimension string, x, z int32) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -227,6 +247,12 @@ func (e *memoryEngine) DeleteChunk(ctx context.Context, world, dimension string,
 }
 
 func (e *memoryEngine) GetPlayerData(ctx context.Context, uuid string) (*PlayerData, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
@@ -243,6 +269,12 @@ func (e *memoryEngine) GetPlayerData(ctx context.Context, uuid string) (*PlayerD
 }
 
 func (e *memoryEngine) PutPlayerData(ctx context.Context, uuid string, data *PlayerData) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -267,6 +299,12 @@ func (e *memoryEngine) PutPlayerData(ctx context.Context, uuid string, data *Pla
 }
 
 func (e *memoryEngine) GetEntities(ctx context.Context, world, dimension string, minX, minZ, maxX, maxZ int32) ([]*EntityData, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
@@ -277,10 +315,17 @@ func (e *memoryEngine) GetEntities(ctx context.Context, world, dimension string,
 			result = append(result, entity)
 		}
 	}
+	// TODO: Implement spatial indexing (R-tree or quadtree) for efficient entity queries
 	return result, nil
 }
 
 func (e *memoryEngine) PutEntity(ctx context.Context, world, dimension string, data *EntityData) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -305,6 +350,12 @@ func (e *memoryEngine) PutEntity(ctx context.Context, world, dimension string, d
 }
 
 func (e *memoryEngine) DeleteEntity(ctx context.Context, world, dimension string, uuid string) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -317,6 +368,12 @@ func (e *memoryEngine) DeleteEntity(ctx context.Context, world, dimension string
 }
 
 func (e *memoryEngine) GetBlock(ctx context.Context, world, dimension string, x, y, z int32) (uint16, error) {
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
@@ -334,6 +391,12 @@ func (e *memoryEngine) GetBlock(ctx context.Context, world, dimension string, x,
 }
 
 func (e *memoryEngine) PutBlock(ctx context.Context, world, dimension string, x, y, z int32, blockID uint16) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
 

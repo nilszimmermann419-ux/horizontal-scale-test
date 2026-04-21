@@ -9,6 +9,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,7 +90,11 @@ public class MinecraftProxy {
                                             
                                             // Flush pending writes
                                             for (ByteBuf buf : pendingWrites) {
-                                                backendChannel.writeAndFlush(buf);
+                                                backendChannel.writeAndFlush(buf).addListener(f -> {
+                                                    if (!f.isSuccess()) {
+                                                        ReferenceCountUtil.release(buf);
+                                                    }
+                                                });
                                             }
                                             pendingWrites.clear();
                                             

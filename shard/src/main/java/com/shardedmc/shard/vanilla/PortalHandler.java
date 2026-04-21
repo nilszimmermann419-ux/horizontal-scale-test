@@ -70,8 +70,12 @@ public class PortalHandler {
     }
     
     private void handleNetherPortal(Player player, Pos pos) {
+        if (!(player.getInstance() instanceof InstanceContainer instanceContainer)) {
+            logger.warn("Player {} is not in an InstanceContainer", player.getUsername());
+            return;
+        }
         DimensionManager.Dimension currentDim = dimensionManager.getDimensionForInstance(
-            (InstanceContainer) player.getInstance()
+            instanceContainer
         );
         
         if (currentDim == null) {

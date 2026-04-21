@@ -311,13 +311,15 @@ public class EntityAI {
         return true; // Water and ambient mobs don't care
     }
     
+    private static final MobCounts EMPTY_MOBCOUNTS = new MobCounts();
+    
     private MobCounts countMobs(Instance instance) {
-        return globalMobCounts.getOrDefault(instance, new MobCounts());
+        return globalMobCounts.getOrDefault(instance, EMPTY_MOBCOUNTS);
     }
     
     private MobCounts countMobsInChunk(Instance instance, int chunkX, int chunkZ) {
         long chunkKey = getChunkKey(chunkX, chunkZ);
-        return chunkMobCounts.getOrDefault(chunkKey, new MobCounts());
+        return chunkMobCounts.getOrDefault(chunkKey, EMPTY_MOBCOUNTS);
     }
     
     private long getChunkKey(int x, int z) {

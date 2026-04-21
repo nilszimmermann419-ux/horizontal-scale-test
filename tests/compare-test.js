@@ -1,11 +1,15 @@
 const net = require('net');
 
+const DEFAULT_HOST = process.env.SHARDEDMC_HOST || 'localhost';
+const DEFAULT_PORT = parseInt(process.env.SHARDEDMC_PORT, 10) || 25565;
+const DEFAULT_PROXY_PORT = parseInt(process.env.SHARDEDMC_PROXY_PORT, 10) || 25577;
+
 function testConnection(name, port) {
     return new Promise((resolve) => {
         console.log(`\nTesting ${name} (port ${port})...`);
         const startTime = Date.now();
         
-        const socket = net.createConnection({ host: 'localhost', port: port });
+        const socket = net.createConnection({ host: DEFAULT_HOST, port: port });
         
         socket.on('connect', () => {
             console.log(`✅ ${name}: Connected in ${Date.now() - startTime}ms`);
@@ -41,9 +45,9 @@ function testConnection(name, port) {
 }
 
 async function run() {
-    const directResult = await testConnection('Direct', 25565);
+    const directResult = await testConnection('Direct', DEFAULT_PORT);
     await new Promise(r => setTimeout(r, 1000));
-    const proxyResult = await testConnection('Proxy', 25577);
+    const proxyResult = await testConnection('Proxy', DEFAULT_PROXY_PORT);
     
     if (directResult && proxyResult) {
         console.log('\n✅ PASS: Both connections succeeded');

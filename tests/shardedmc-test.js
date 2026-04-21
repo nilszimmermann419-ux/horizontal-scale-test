@@ -6,8 +6,12 @@
 const mineflayer = require('mineflayer');
 
 // Test configuration
-const SHARD_ALPHA = 'localhost:25565';
-const SHARD_BETA = 'localhost:25566';
+const DEFAULT_HOST = process.env.SHARDEDMC_HOST || 'localhost';
+const DEFAULT_PORT = parseInt(process.env.SHARDEDMC_PORT, 10) || 25565;
+const DEFAULT_PORT_BETA = parseInt(process.env.SHARDEDMC_PORT_BETA, 10) || 25566;
+
+const SHARD_ALPHA = `${DEFAULT_HOST}:${DEFAULT_PORT}`;
+const SHARD_BETA = `${DEFAULT_HOST}:${DEFAULT_PORT_BETA}`;
 
 let passed = 0;
 let failed = 0;
@@ -285,17 +289,14 @@ async function runTests() {
     console.log('ShardedMC Production Test Suite');
     console.log('========================================\n');
     
-    log('Waiting 3 seconds for servers...');
-    await new Promise(r => setTimeout(r, 3000));
-    
+    log('Waiting for servers...');
+    await new Promise(r => setTimeout(r, 500));
+
     await testConnection();
-    await new Promise(r => setTimeout(r, 1000));
-    
+
     await testBlockInteraction();
-    await new Promise(r => setTimeout(r, 1000));
-    
+
     await testStressTest();
-    await new Promise(r => setTimeout(r, 2000));
     
     await testMultiShard();
     

@@ -20,5 +20,6 @@ type ChunkKey struct {
 
 // AcquireChunk acquires ownership of a chunk for a shard
 func (m *Manager) AcquireChunk(ctx context.Context, key ChunkKey, shardID string) (bool, error) {
+	// TODO: Implement proper chunk ownership tracking with conflict resolution
 	return true, nil
 }

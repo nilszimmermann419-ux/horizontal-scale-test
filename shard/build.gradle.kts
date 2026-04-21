@@ -15,6 +15,7 @@ dependencies {
     implementation("io.grpc:grpc-stub:${property("grpcVersion")}")
     implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
     implementation("net.kyori:adventure-api:4.15.0")
+    implementation("com.google.code.gson:gson:2.10.1")
     
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testImplementation("org.testcontainers:testcontainers:1.19.3")

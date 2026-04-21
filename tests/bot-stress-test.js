@@ -173,7 +173,14 @@ function startBlockInteraction(bot) {
         }
       }
     } catch (err) {
-      // Ignore block interaction errors
+      if (stats.errors.length <= 10) {
+        log(`⚠️ Block interaction error for ${bot.username}: ${err.message}`);
+      }
+      stats.errors.push({
+        bot: bot.username,
+        error: `Block interaction: ${err.message}`,
+        time: Date.now() - stats.startTime
+      });
     }
   }, 5000 + Math.random() * 5000);
   

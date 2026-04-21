@@ -1,8 +1,11 @@
 const net = require('net');
 
+const DEFAULT_HOST = process.env.SHARDEDMC_HOST || 'localhost';
+const DEFAULT_PROXY_PORT = parseInt(process.env.SHARDEDMC_PROXY_PORT, 10) || 25577;
+
 console.log('Testing raw TCP connection to proxy...');
 
-const socket = net.createConnection({ host: 'localhost', port: 25577 });
+const socket = net.createConnection({ host: DEFAULT_HOST, port: DEFAULT_PROXY_PORT });
 
 socket.on('connect', () => {
     console.log('✅ Connected to proxy');

@@ -6,9 +6,13 @@ const mineflayer = require('mineflayer');
 
 console.log('Testing chunk consistency across shards...\n');
 
+const DEFAULT_HOST = process.env.SHARDEDMC_HOST || 'localhost';
+const DEFAULT_PORT = parseInt(process.env.SHARDEDMC_PORT, 10) || 25565;
+const DEFAULT_PORT_BETA = parseInt(process.env.SHARDEDMC_PORT_BETA, 10) || 25566;
+
 function createBot(name, port) {
     return mineflayer.createBot({
-        host: 'localhost',
+        host: DEFAULT_HOST,
         port: port,
         username: name,
         auth: 'offline',
@@ -18,8 +22,8 @@ function createBot(name, port) {
 
 async function testChunkConsistency() {
     return new Promise((resolve) => {
-        const bot1 = createBot('ShardAlphaBot', 25565);
-        const bot2 = createBot('ShardBetaBot', 25566);
+        const bot1 = createBot('ShardAlphaBot', DEFAULT_PORT);
+        const bot2 = createBot('ShardBetaBot', DEFAULT_PORT_BETA);
         
         let spawned1 = false;
         let spawned2 = false;

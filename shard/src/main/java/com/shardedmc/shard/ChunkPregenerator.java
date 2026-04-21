@@ -13,6 +13,8 @@ import net.minestom.server.timer.TaskSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,6 +45,8 @@ public class ChunkPregenerator {
     private final AtomicInteger generatedChunks = new AtomicInteger(0);
     private final AtomicLong startTime = new AtomicLong(0);
     private final AtomicReference<Pos> centerPos = new AtomicReference<>();
+    private final AtomicInteger currentIndex = new AtomicInteger(0);
+    private List<int[]> spiralChunks = new ArrayList<>();
 
     public ChunkPregenerator(RedisClient redisClient, String shardId, Instance instance) {
         this.redisClient = redisClient;
@@ -108,12 +112,14 @@ public class ChunkPregenerator {
         running.set(true);
         paused.set(false);
         currentRadius.set(0);
+        currentIndex.set(0);
         generatedChunks.set(0);
         startTime.set(System.currentTimeMillis());
         centerPos.set(player.getPosition());
 
-        // Calculate total chunks in spiral
-        int total = calculateTotalChunks(radius);
+        // Pre-calculate spiral pattern
+        spiralChunks = calculateSpiralPattern(radius, player.getPosition().chunkX(), player.getPosition().chunkZ());
+        int total = spiralChunks.size();
         totalChunks.set(total);
 
         player.sendMessage(Component.text("Starting chunk pregeneration...", NamedTextColor.GREEN));
@@ -128,23 +134,102 @@ public class ChunkPregenerator {
         generateSpiral(player, radius);
     }
 
-    private void generateSpiral(Player initiator, int maxRadius) {
-        Pos center = centerPos.get();
-        int centerChunkX = center.chunkX();
-        int centerChunkZ = center.chunkZ();
+    private List<int[]> calculateSpiralPattern(int maxRadius, int centerChunkX, int centerChunkZ) {
+        List<int[]> chunks = new ArrayList<>();
+        int x = 0, z = 0;
+        int dx = 0, dz = -1;
+        
+        for (int i = 0; i < (maxRadius * 2 + 1) * (maxRadius * 2 + 1); i++) {
+            if (-maxRadius <= x && x <= maxRadius && -maxRadius <= z && z <= maxRadius) {
+                chunks.add(new int[]{centerChunkX + x, centerChunkZ + z});
+            }
+            
+            if (x == z || (x < 0 && x == -z) || (x > 0 && x == 1 - z)) {
+                int temp = dx;
+                dx = -dz;
+                dz = temp;
+            }
+            x += dx;
+            z += dz;
+        }
+        
+        return chunks;
+    }
 
+    private void generateSpiral(Player initiator, int maxRadius) {
         MinecraftServer.getSchedulerManager().buildTask(() -> {
             if (!running.get()) return;
             if (paused.get()) return;
 
             // Check MSPT - pause if server is lagging
-            // Use ShardMonitor for tick time if available, otherwise skip check
             double mspt = 0;
             try {
                 mspt = com.shardedmc.shard.debug.ShardMonitor.getInstance().getCurrentTickTime();
             } catch (Exception e) {
                 // ShardMonitor not available, skip MSPT check
             }
+            if (mspt > MAX_MSPT_FOR_GENERATION) {
+                return; // Skip this tick, try again next tick
+            }
+
+            int index = currentIndex.get();
+            if (index >= spiralChunks.size()) {
+                // Done!
+                running.set(false);
+                long elapsed = System.currentTimeMillis() - startTime.get();
+                String timeStr = formatDuration(elapsed);
+
+                Component doneMsg = Component.text("Chunk pregeneration complete!", NamedTextColor.GREEN);
+                Component statsMsg = Component.text("Generated " + generatedChunks.get() + " chunks in " + timeStr, NamedTextColor.YELLOW);
+
+                broadcastToOps(doneMsg);
+                broadcastToOps(statsMsg);
+                logger.info("Chunk pregeneration complete. Generated {} chunks in {}", generatedChunks.get(), timeStr);
+
+                clearStatusInRedis();
+                return;
+            }
+
+            // Generate chunks from pre-calculated spiral
+            int chunksThisTick = 0;
+            while (index < spiralChunks.size() && chunksThisTick < DEFAULT_CHUNKS_PER_TICK) {
+                int[] chunkCoords = spiralChunks.get(index);
+                final int cx = chunkCoords[0];
+                final int cz = chunkCoords[1];
+
+                instance.loadChunk(cx, cz).thenRun(() -> {
+                    generatedChunks.incrementAndGet();
+                    saveStatusToRedis();
+                }).exceptionally(ex -> {
+                    logger.error("Failed to generate chunk {}, {}", cx, cz, ex);
+                    return null;
+                });
+
+                chunksThisTick++;
+                index++;
+            }
+            
+            currentIndex.set(index);
+
+            // Progress update every 5%
+            int total = totalChunks.get();
+            int generated = generatedChunks.get();
+            if (total > 0 && generated % Math.max(1, total / 20) == 0) {
+                double percent = (generated * 100.0) / total;
+                long elapsed = System.currentTimeMillis() - startTime.get();
+                long etaMs = (long) ((elapsed / percent) * (100 - percent));
+                String etaStr = formatDuration(etaMs);
+
+                if (initiator.isOnline()) {
+                    initiator.sendActionBar(Component.text(
+                            String.format("Pregen: %d/%d chunks (%.1f%%) - ETA: %s",
+                                    generated, total, percent, etaStr), NamedTextColor.GREEN));
+                }
+            }
+
+            saveStatusToRedis();
+        }).repeat(TaskSchedule.tick(YIELD_TICKS)).schedule();
+    }
             if (mspt > MAX_MSPT_FOR_GENERATION) {
                 return; // Skip this tick, try again next tick
             }

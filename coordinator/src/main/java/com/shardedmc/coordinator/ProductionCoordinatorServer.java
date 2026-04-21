@@ -206,6 +206,7 @@ public class ProductionCoordinatorServer {
         return sb.toString();
     }
     
+    // TODO: Replace manual JSON construction with Jackson or Gson to properly escape values
     private String generateShardJson(ShardInfo shard) {
         return "{\"id\":\"" + shard.getId() + "\"," +
                "\"host\":\"" + shard.getHost() + "\"," +

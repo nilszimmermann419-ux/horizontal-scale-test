@@ -28,7 +28,7 @@ public class AutoRestart {
     private static final Logger logger = LoggerFactory.getLogger(AutoRestart.class);
 
     // Configurable values (in minutes, converted from plan spec)
-    private static final long DEFAULT_RESTART_INTERVAL_MINUTES = 12 * 60; // 12 hours
+    private static final long DEFAULT_RESTART_INTERVAL_MINUTES = java.time.Duration.ofHours(12).toMinutes(); // 12 hours
     private static final double TPS_HEALTH_THRESHOLD = 10.0;
     private static final long TPS_HEALTH_DURATION_MINUTES = 5;
     private static final long TPS_HEALTH_DURATION_MS = TPS_HEALTH_DURATION_MINUTES * 60 * 1000;

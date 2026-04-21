@@ -83,6 +83,7 @@ public class VillagerOptimizer {
         eventHandler.addListener(InventoryCloseEvent.class, this::onInventoryClose);
 
         // Periodic cleanup and chunk recount
+        // TODO: Make this async to avoid blocking the main thread
         MinecraftServer.getSchedulerManager().buildTask(this::recountVillagers)
             .repeat(TaskSchedule.tick(200)) // Every 10 seconds
             .schedule();

@@ -1,10 +1,13 @@
 const mineflayer = require('mineflayer');
 
+const DEFAULT_HOST = process.env.SHARDEDMC_HOST || 'localhost';
+const DEFAULT_PORT = parseInt(process.env.SHARDEDMC_PORT, 10) || 25565;
+
 console.log('Testing direct connection to shard...');
 
 const bot = mineflayer.createBot({
-    host: 'localhost',
-    port: 25565,
+    host: DEFAULT_HOST,
+    port: DEFAULT_PORT,
     username: 'DirectTest',
     auth: 'offline'
 });

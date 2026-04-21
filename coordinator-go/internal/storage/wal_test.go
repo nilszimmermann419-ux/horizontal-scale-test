@@ -97,8 +97,12 @@ func TestWALAppend(t *testing.T) {
 
 	storedCRC := binary.LittleEndian.Uint32(data[offset : offset+4])
 
-	// Verify CRC
+	// Verify CRC - must match calculateCRC in wal.go which includes timestamp, op, key, value
 	h := crc32.NewIEEE()
+	timestampBytes := make([]byte, 8)
+	binary.LittleEndian.PutUint64(timestampBytes, uint64(timestamp))
+	h.Write(timestampBytes)
+	h.Write([]byte{byte(op)})
 	h.Write([]byte(key))
 	h.Write(value)
 	expectedCRC := h.Sum32()

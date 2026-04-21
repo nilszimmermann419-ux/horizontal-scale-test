@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class VanillaMechanics {
     private static final Logger logger = LoggerFactory.getLogger(VanillaMechanics.class);
+    private static final long TICK_MS = 50;
     
     private final RedstoneEngine redstone;
     private final EntityAI entityAI;
@@ -34,7 +35,7 @@ public class VanillaMechanics {
         farming.register(eventHandler);
         
         MinecraftServer.getSchedulerManager().buildTask(this::tick)
-            .repeat(java.time.Duration.ofMillis(50))
+            .repeat(java.time.Duration.ofMillis(TICK_MS))
             .schedule();
         
         logger.info("Vanilla mechanics registered (6 subsystems)");

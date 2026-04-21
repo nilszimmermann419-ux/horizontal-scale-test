@@ -240,6 +240,7 @@ public class OptimizedRedstone {
      * Schedule an immediate update.
      */
     private void scheduleUpdate(Point pos, Instance instance, int distance) {
+        if (pos == null || instance == null) return;
         String key = getKey(pos, instance);
         if (pendingUpdates.add(key)) {
             bfsQueue.offer(new UpdateNode(pos, instance, distance));
@@ -352,24 +353,36 @@ public class OptimizedRedstone {
         return 2;
     }
 
+    private static final Point[] NEIGHBOR_OFFSETS = {
+            new Vec(1, 0, 0),
+            new Vec(-1, 0, 0),
+            new Vec(0, 1, 0),
+            new Vec(0, -1, 0),
+            new Vec(0, 0, 1),
+            new Vec(0, 0, -1)
+    };
+    
+    private static final Point[] DIAGONAL_OFFSETS = {
+            new Vec(1, 0, 1),
+            new Vec(1, 0, -1),
+            new Vec(-1, 0, 1),
+            new Vec(-1, 0, -1)
+    };
+    
     private List<Point> getNeighbors(Point pos) {
-        return Arrays.asList(
-                pos.add(1, 0, 0),
-                pos.add(-1, 0, 0),
-                pos.add(0, 1, 0),
-                pos.add(0, -1, 0),
-                pos.add(0, 0, 1),
-                pos.add(0, 0, -1)
-        );
+        List<Point> neighbors = new ArrayList<>(NEIGHBOR_OFFSETS.length);
+        for (Point offset : NEIGHBOR_OFFSETS) {
+            neighbors.add(pos.add(offset));
+        }
+        return neighbors;
     }
 
     private List<Point> getDiagonals(Point pos) {
-        return Arrays.asList(
-                pos.add(1, 0, 1),
-                pos.add(1, 0, -1),
-                pos.add(-1, 0, 1),
-                pos.add(-1, 0, -1)
-        );
+        List<Point> diagonals = new ArrayList<>(DIAGONAL_OFFSETS.length);
+        for (Point offset : DIAGONAL_OFFSETS) {
+            diagonals.add(pos.add(offset));
+        }
+        return diagonals;
     }
 
     private String getKey(Point pos, Instance instance) {

@@ -82,7 +82,7 @@ public class DebugCommands {
         // NPC commands
         registerNPCCommand();
 
-        logger.info("Debug commands registered (19 commands + debug panel)");
+        logger.info("Debug commands registered");
     }
 
     // ==================== Original Debug Commands ====================
@@ -545,7 +545,9 @@ public class DebugCommands {
 
             for (Chunk chunk : chunks) {
                 if (count >= 20) {
-                    player.sendMessage(Component.text("║  ... and " + (chunks.size() - 20) + " more chunks", NamedTextColor.GRAY));
+                    player.sendMessage(Component.text("║  ... and ", NamedTextColor.GRAY)
+                            .append(Component.text(chunks.size() - 20, NamedTextColor.GRAY))
+                            .append(Component.text(" more chunks", NamedTextColor.GRAY)));
                     break;
                 }
                 // TODO: Cache chunk-entity mappings to avoid O(chunks × entities) iteration
@@ -558,8 +560,11 @@ public class DebugCommands {
                         chunkEntityCount++;
                     }
                 }
-                player.sendMessage(Component.text("║  [" + cx + ", " + cz + "]", NamedTextColor.YELLOW)
-                        .append(Component.text(" Entities: " + chunkEntityCount, NamedTextColor.WHITE)));
+                player.sendMessage(Component.text("║  [", NamedTextColor.YELLOW)
+                        .append(Component.text(cx + ", " + cz, NamedTextColor.YELLOW))
+                        .append(Component.text("]", NamedTextColor.YELLOW))
+                        .append(Component.text(" Entities: ", NamedTextColor.WHITE))
+                        .append(Component.text(chunkEntityCount, NamedTextColor.WHITE)));
                 count++;
             }
 
@@ -617,7 +622,9 @@ public class DebugCommands {
                     .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                     .limit(10)
                     .forEach(entry -> {
-                        player.sendMessage(Component.text("║  " + entry.getKey() + ": ", NamedTextColor.YELLOW)
+                        player.sendMessage(Component.text("║  ", NamedTextColor.YELLOW)
+                                .append(Component.text(entry.getKey(), NamedTextColor.YELLOW))
+                                .append(Component.text(": ", NamedTextColor.YELLOW))
                                 .append(Component.text(entry.getValue(), NamedTextColor.WHITE)));
                     });
 
@@ -654,7 +661,9 @@ public class DebugCommands {
                 typeCounts.entrySet().stream()
                         .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                         .forEach(entry -> {
-                            player.sendMessage(Component.text("║  " + entry.getKey() + ": ", NamedTextColor.YELLOW)
+                            player.sendMessage(Component.text("║  ", NamedTextColor.YELLOW)
+                                    .append(Component.text(entry.getKey(), NamedTextColor.YELLOW))
+                                    .append(Component.text(": ", NamedTextColor.YELLOW))
                                     .append(Component.text(entry.getValue(), NamedTextColor.WHITE)));
                         });
             }
@@ -944,9 +953,12 @@ public class DebugCommands {
 
             for (NPCManager.NPC npc : npcs) {
                 Pos pos = npc.getPosition();
-                player.sendMessage(Component.text("║  ID: " + npc.id + " | Name: ", NamedTextColor.YELLOW)
+                player.sendMessage(Component.text("║  ID: ", NamedTextColor.YELLOW)
+                        .append(Component.text(npc.id, NamedTextColor.YELLOW))
+                        .append(Component.text(" | Name: ", NamedTextColor.YELLOW))
                         .append(Component.text(npc.name, NamedTextColor.WHITE))
-                        .append(Component.text(" | Pos: " + String.format("%.1f, %.1f, %.1f", pos.x(), pos.y(), pos.z()), NamedTextColor.GRAY)));
+                        .append(Component.text(" | Pos: ", NamedTextColor.GRAY))
+                        .append(Component.text(String.format("%.1f, %.1f, %.1f", pos.x(), pos.y(), pos.z()), NamedTextColor.GRAY)));
             }
 
             player.sendMessage(Component.text("╚════════════════════════════════════════╝", NamedTextColor.GOLD));

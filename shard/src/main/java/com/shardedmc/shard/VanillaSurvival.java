@@ -399,6 +399,7 @@ public class VanillaSurvival {
     
     /**
      * Calculate melee damage
+     * TODO: Use shared utility with CombatSystem/VanillaFeatures to avoid duplication
      */
     private float calculateMeleeDamage(Player player) {
         ItemStack held = player.getItemInMainHand();
@@ -428,6 +429,8 @@ public class VanillaSurvival {
         else if (mat == Material.WOODEN_SHOVEL) damage = 2.5f;
         else if (mat == Material.STONE_SHOVEL) damage = 3.5f;
         else if (mat == Material.IRON_SHOVEL) damage = 4.5f;
+        else if (mat == Material.DIAMOND_SHOVEL) damage = 5.5f;
+        else if (mat == Material.NETHERITE_SHOVEL) damage = 6.5f;
         
         return damage;
     }

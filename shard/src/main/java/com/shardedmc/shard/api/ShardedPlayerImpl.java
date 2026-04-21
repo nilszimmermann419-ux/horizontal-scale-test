@@ -78,6 +78,9 @@ public class ShardedPlayerImpl implements ShardedPlayer {
     @Override
     public CompletableFuture<Void> setGameMode(String mode) {
         return CompletableFuture.runAsync(() -> {
+            if (mode == null) {
+                throw new RuntimeException("Game mode cannot be null");
+            }
             try {
                 net.minestom.server.entity.GameMode gameMode = net.minestom.server.entity.GameMode.valueOf(mode.toUpperCase());
                 player.setGameMode(gameMode);

@@ -118,4 +118,28 @@ public class CoordinatorConfig {
     
     public String getTlsKeyPath() { return tlsKeyPath; }
     public void setTlsKeyPath(String tlsKeyPath) { this.tlsKeyPath = tlsKeyPath; }
+
+    public void validate() {
+        if (grpcPort <= 0) {
+            throw new IllegalArgumentException("grpcPort must be positive");
+        }
+        if (restPort <= 0) {
+            throw new IllegalArgumentException("restPort must be positive");
+        }
+        if (redisHost == null || redisHost.isEmpty()) {
+            throw new IllegalArgumentException("redisHost must not be empty");
+        }
+        if (redisPort <= 0) {
+            throw new IllegalArgumentException("redisPort must be positive");
+        }
+        if (heartbeatTimeoutMs <= 0 || heartbeatIntervalMs <= 0) {
+            throw new IllegalArgumentException("heartbeat timeouts must be positive");
+        }
+        if (maxShards <= 0) {
+            throw new IllegalArgumentException("maxShards must be positive");
+        }
+        if (defaultShardCapacity <= 0) {
+            throw new IllegalArgumentException("defaultShardCapacity must be positive");
+        }
+    }
 }

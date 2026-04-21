@@ -24,7 +24,17 @@ public interface ShardedPlayer {
     CompletableFuture<Void> setHealth(double health);
     CompletableFuture<Double> getMaxHealth();
     CompletableFuture<ShardedInventory> getInventory();
+
+    /**
+     * Gets the player's current game mode.
+     * @return the game mode, typically "survival", "creative", "adventure", or "spectator"
+     */
     CompletableFuture<String> getGameMode();
+
+    /**
+     * Sets the player's game mode.
+     * @param mode the game mode, typically "survival", "creative", "adventure", or "spectator"
+     */
     CompletableFuture<Void> setGameMode(String mode);
     
     // Communication

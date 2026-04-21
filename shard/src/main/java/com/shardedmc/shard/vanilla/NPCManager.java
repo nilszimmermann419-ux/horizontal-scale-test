@@ -297,8 +297,9 @@ public class NPCManager {
                     }
                     
                     // Find instance
+                    UUID targetUuid = UUID.fromString(instanceId);
                     Instance instance = MinecraftServer.getInstanceManager().getInstances().stream()
-                        .filter(inst -> inst.getUniqueId().toString().equals(instanceId))
+                        .filter(inst -> inst.getUniqueId().equals(targetUuid))
                         .findFirst()
                         .orElse(null);
                     

@@ -355,13 +355,22 @@ public class DupePrevention {
             var nbt = customData.nbt();
             if (nbt != null) {
                 String entityType = nbt.getString("EntityTag");
-                if (entityType != null && entityType.length() > 50) {
+                if (entityType != null && !isValidEntityType(entityType)) {
                     return true;
                 }
             }
         }
 
         return false;
+    }
+
+    private boolean isValidEntityType(String entityType) {
+        try {
+            net.minestom.server.entity.EntityType type = net.minestom.server.entity.EntityType.fromKey(entityType.toLowerCase());
+            return type != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
