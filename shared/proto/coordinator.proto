@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package shardedmc.v2;
+
+option go_package = "github.com/shardedmc/v2/shared/proto;shardedmc";
+
+import "shared/proto/common.proto";
+
+message ShardInfo {
+  string id = 1;
+  string address = 2;
+  int32 port = 3;
+  int32 capacity = 4;
+  int32 player_count = 5;
+  double load = 6;
+  bool healthy = 7;
+  repeated RegionCoord regions = 8;
+}
+
+message ShardRegistrationRequest {
+  ShardInfo shard = 1;
+}
+
+message ShardRegistrationResponse {
+  bool success = 1;
+  string coordinator_id = 2;
+}
+
+message HeartbeatRequest {
+  string shard_id = 1;
+  double cpu_usage = 2;
+  double memory_usage = 3;
+  int32 player_count = 4;
+  double load = 5;
+  bool healthy = 6;
+  repeated RegionCoord regions = 7;
+}
+
+message HeartbeatResponse {
+  bool accepted = 1;
+  repeated string commands = 2;
+}
+
+message GetChunkOwnerRequest {
+  ChunkCoord coord = 1;
+}
+
+message GetChunkOwnerResponse {
+  ShardInfo shard = 1;
+  bool found = 2;
+}
+
+message GetRegionMapRequest {
+}
+
+message GetRegionMapResponse {
+  map<string, ShardInfo> region_map = 1;
+}
+
+message GetPlayerShardRequest {
+  string player_uuid = 1;
+}
+
+message GetPlayerShardResponse {
+  ShardInfo shard = 1;
+  bool found = 2;
+}
+
+message RecordPlayerPositionRequest {
+  string player_uuid = 1;
+  Vec3d position = 2;
+  string shard_id = 3;
+}
+
+message RecordPlayerPositionResponse {
+  bool success = 1;
+}
+
+service CoordinatorService {
+  rpc RegisterShard(ShardRegistrationRequest) returns (ShardRegistrationResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  rpc GetChunkOwner(GetChunkOwnerRequest) returns (GetChunkOwnerResponse);
+  rpc GetRegionMap(GetRegionMapRequest) returns (GetRegionMapResponse);
+  rpc GetPlayerShard(GetPlayerShardRequest) returns (GetPlayerShardResponse);
+  rpc RecordPlayerPosition(RecordPlayerPositionRequest) returns (RecordPlayerPositionResponse);
+}

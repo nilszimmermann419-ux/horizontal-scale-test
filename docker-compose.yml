@@ -1,6 +1,15 @@
 version: '3.8'
 
 services:
+  nats:
+    image: nats:2-alpine
+    command: "--js --store_dir /data --http_port 8222"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - nats-data:/data
+
   redis:
     image: redis:7-alpine
     ports:
@@ -8,85 +17,64 @@ services:
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
 
   coordinator:
     build:
       context: .
-      dockerfile: coordinator-go/Dockerfile
+      dockerfile: docker/Dockerfile.coordinator
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+    environment:
+      - PORT=50051
+      - HTTP_PORT=8080
+      - HEARTBEAT_TIMEOUT=30s
+    depends_on:
+      - nats
+
+  proxy:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.proxy
     ports:
       - "25565:25565"
-      - "50051:50051"
     environment:
-      - PROXY_ADDR=:25565
-      - GRPC_ADDR=:50051
-      - REDIS_ADDR=redis:6379
-      - STORAGE_PATH=/data
-      - MAX_PLAYERS=100000
-      - SHARD_CAPACITY=2000
-    volumes:
-      - coordinator-data:/data
+      - LISTEN_ADDR=:25565
+      - COORDINATOR_ADDR=coordinator:50051
     depends_on:
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "25565"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - coordinator
 
   shard-1:
     build:
       context: .
-      dockerfile: shard/Dockerfile
-    ports:
-      - "25566:25566"
+      dockerfile: docker/Dockerfile.shard
     environment:
       - SHARD_ID=shard-1
       - PORT=25566
-      - CAPACITY=2000
-      - MASTER_ADDRESS=coordinator:50051
+      - COORDINATOR_HOST=coordinator
+      - COORDINATOR_PORT=50051
+      - NATS_HOST=nats
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - MINIO_HOST=minio
     depends_on:
       - coordinator
-
-  shard-2:
-    build:
-      context: .
-      dockerfile: shard/Dockerfile
-    ports:
-      - "25567:25567"
-    environment:
-      - SHARD_ID=shard-2
-      - PORT=25567
-      - CAPACITY=2000
-      - MASTER_ADDRESS=coordinator:50051
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - coordinator
-
-  shard-3:
-    build:
-      context: .
-      dockerfile: shard/Dockerfile
-    ports:
-      - "25568:25568"
-    environment:
-      - SHARD_ID=shard-3
-      - PORT=25568
-      - CAPACITY=2000
-      - MASTER_ADDRESS=coordinator:50051
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - coordinator
+      - nats
+      - redis
+      - minio
 
 volumes:
+  nats-data:
   redis-data:
-  coordinator-data:
+  minio-data:

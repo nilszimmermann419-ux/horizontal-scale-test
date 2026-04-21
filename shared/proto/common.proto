@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package shardedmc.v2;
+
+option go_package = "github.com/shardedmc/v2/shared/proto;shardedmc";
+
+message Vec3d {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Vec3i {
+  int32 x = 1;
+  int32 y = 2;
+  int32 z = 3;
+}
+
+message ChunkCoord {
+  int32 x = 1;
+  int32 z = 2;
+}
+
+message RegionCoord {
+  int32 x = 1;
+  int32 z = 2;
+}
+
+message PlayerId {
+  string uuid = 1;
+}
+
+message ShardId {
+  string id = 1;
+}

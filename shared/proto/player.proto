@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package shardedmc.v2;
+
+option go_package = "github.com/shardedmc/v2/shared/proto;shardedmc";
+
+import "shared/proto/common.proto";
+
+message InventoryItem {
+  int32 slot = 1;
+  string material = 2;
+  int32 amount = 3;
+  bytes nbt_data = 4;
+}
+
+message PlayerState {
+  string uuid = 1;
+  string username = 2;
+  Vec3d position = 3;
+  float health = 4;
+  int32 food = 5;
+  float saturation = 6;
+  string gamemode = 7;
+  repeated InventoryItem inventory = 8;
+}
+
+message PlayerTransferState {
+  string player_uuid = 1;
+  string source_shard = 2;
+  string target_shard = 3;
+  PlayerState state = 4;
+  int64 transfer_start_time = 5;
+  bool acknowledged = 6;
+}

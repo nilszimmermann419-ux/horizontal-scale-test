@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package coordinator;
+
+option go_package = "github.com/shardedmc/v2/coordinator/pkg/api";
+
+service CoordinatorService {
+    rpc RegisterShard(RegisterShardRequest) returns (RegisterShardResponse);
+    rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+    rpc GetChunkOwner(GetChunkOwnerRequest) returns (GetChunkOwnerResponse);
+    rpc GetRegionMap(GetRegionMapRequest) returns (GetRegionMapResponse);
+    rpc GetPlayerShard(GetPlayerShardRequest) returns (GetPlayerShardResponse);
+    rpc RecordPlayerPosition(RecordPlayerPositionRequest) returns (RecordPlayerPositionResponse);
+}
+
+message RegisterShardRequest {
+    string shard_id = 1;
+    string address = 2;
+    int32 port = 3;
+    int32 capacity = 4;
+    repeated string regions = 5;
+}
+
+message RegisterShardResponse {
+    map<string, string> allocated_regions = 1;
+    bool success = 2;
+}
+
+message HeartbeatRequest {
+    string shard_id = 1;
+    int32 player_count = 2;
+    double load = 3;
+}
+
+message HeartbeatResponse {
+    bool success = 1;
+}
+
+message GetChunkOwnerRequest {
+    int32 chunk_x = 1;
+    int32 chunk_z = 2;
+}
+
+message GetChunkOwnerResponse {
+    string shard_id = 1;
+}
+
+message GetRegionMapRequest {}
+
+message GetRegionMapResponse {
+    map<string, string> region_map = 1;
+}
+
+message GetPlayerShardRequest {
+    string player_id = 1;
+}
+
+message GetPlayerShardResponse {
+    string shard_id = 1;
+}
+
+message RecordPlayerPositionRequest {
+    string player_id = 1;
+    int32 chunk_x = 2;
+    int32 chunk_z = 3;
+}
+
+message RecordPlayerPositionResponse {
+    bool success = 1;
+}

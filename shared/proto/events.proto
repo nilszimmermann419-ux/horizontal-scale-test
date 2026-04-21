@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package shardedmc.v2;
+
+option go_package = "github.com/shardedmc/v2/shared/proto;shardedmc";
+
+import "shared/proto/common.proto";
+
+message BlockChangeEvent {
+  int32 x = 1;
+  int32 y = 2;
+  int32 z = 3;
+  string block_id = 4;
+  string player_id = 5;
+}
+
+message EntitySpawnEvent {
+  string uuid = 1;
+  string type = 2;
+  double x = 3;
+  double y = 4;
+  double z = 5;
+}
+
+message EntityMoveEvent {
+  string uuid = 1;
+  double x = 2;
+  double y = 3;
+  double z = 4;
+  double vx = 5;
+  double vy = 6;
+  double vz = 7;
+}
+
+message PlayerJoinEvent {
+  string uuid = 1;
+  string username = 2;
+  string shard_id = 3;
+}
+
+message PlayerLeaveEvent {
+  string uuid = 1;
+  string shard_id = 2;
+}
+
+message PlayerMoveEvent {
+  string uuid = 1;
+  double x = 2;
+  double y = 3;
+  double z = 4;
+  float yaw = 5;
+  float pitch = 6;
+}
+
+message WorldEvent {
+  int64 timestamp = 1;
+  int64 sequence = 2;
+  string shard_id = 3;
+
+  oneof payload {
+    BlockChangeEvent block_change = 10;
+    EntitySpawnEvent entity_spawn = 11;
+    EntityMoveEvent entity_move = 12;
+    PlayerJoinEvent player_join = 13;
+    PlayerLeaveEvent player_leave = 14;
+    PlayerMoveEvent player_move = 15;
+  }
+}
